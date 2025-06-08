@@ -65,14 +65,32 @@ class Logger {
     this.indent_str = indent_str;
   }
   // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indent = true) {
-    console.error(this.indent_thing(thing, with_indent));
+  error(...args) {
+    this.__write(console.error, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indent = true) {
-    const full_output = this.indent_thing(thing, with_indent);
-    for (const line of full_output.split('\n'))
-      console.log(line);
+  log(...args) {
+    this.__write(console.log, ...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __write(destination, str_or_fun, with_indent = true) {    
+    // if ((typeof destination !== 'function') ||
+    //     (typeof str_fun !== 'function'))
+    //   throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
+
+    let str = typeof str_or_fun === 'function'
+        ? str_or_fun()
+        : str_or_fun;
+    
+    if (with_indent)
+      str = this.indent_thing(str);
+    
+    for (const line of str.split('\n'))
+      destination(line);
+  }
+  // -----------------------------------------------------------------------------------------------
+  indent_thing(thing) {
+    return this.indent_lines(thing);
   }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
@@ -86,12 +104,6 @@ class Logger {
           .join("\n");
 
     return indented_str;
-  }
-  // -----------------------------------------------------------------------------------------------
-  indent_thing(thing, with_indent = true) {
-    return with_indent
-      ? `${this.indent_lines(thing.toString())}`
-      : thing.toString();
   }
   // -----------------------------------------------------------------------------------------------
   nest(indent_addend = 1) {
@@ -438,13 +450,13 @@ class Rule {
 
     // if (ref_counts.size > 0) {
     //   lm.log(`REF_COUNTS:`);
-    //   lm.log('{');
+    //   lm.log(() => '{');
     
     //   for (const [key, value] of ref_counts)
     //     lm.log(`  ${inspect_fun(key, true)} ` +
     //                 `=> ${value},`);
     
-    //   lm.log('}');
+    //   lm.log(() => '}');
     // }
     
     return this.__toString(new Map(), next_id, ref_counts).replace('() => ', '');
@@ -559,7 +571,7 @@ class Quantified extends Rule {
     while (true) {
       if (this.separator_rule) {
         if (log_match_enabled)
-          lm.log(`Matching separator rule ${this.separator_rule}...`);
+          lm.log(() => `Matching separator rule ${this.separator_rule}...`);
         
         const separator_match_result =
               lm.indent(() => this.separator_rule.match(input, index, cache));
@@ -573,13 +585,13 @@ class Quantified extends Rule {
           }
 
           if (log_match_enabled)
-            lm.log(`did NOT Match separator rule ${this.separator_rule}...`);
+            lm.log(() => `did NOT Match separator rule ${this.separator_rule}...`);
           
           break;
         }
 
         if (log_match_enabled)
-          lm.log(`matched separator rule ${this.separator_rule}...`);
+          lm.log(() => `matched separator rule ${this.separator_rule}...`);
 
         update_index(separator_match_result.index);
       } // end of if (this.separator_rule)
@@ -694,7 +706,7 @@ class Choice extends Rule  {
       
       if (log_match_enabled)
         lm.indent(() =>
-          lm.log(`Try option #${ix} ${option} ` +
+          lm.log(() => `Try option #${ix} ${option} ` +
                  `at char #${index}: ` +
                  `'${abbreviate(input.substring(index))}'`));
       
@@ -709,7 +721,7 @@ class Choice extends Rule  {
 
         if (log_match_enabled)
           lm.indent(() =>
-            lm.log(`Chose option #${ix}, ` +
+            lm.log(() => `Chose option #${ix}, ` +
                    `now at char #${match_result.index}: ` +
                    `'${abbreviate(input.substring(match_result.index))}'`));
         
@@ -718,7 +730,7 @@ class Choice extends Rule  {
 
       if (log_match_enabled)
         lm.indent(() =>
-          lm.log(`Rejected option #${ix}.`));
+          lm.log(() => `Rejected option #${ix}.`));
     }
 
     return null;
@@ -780,7 +792,7 @@ class Discard extends Rule {
 
     const mr = new MatchResult(DISCARD, input, match_result.index);
 
-    // lm.log(`MR: ${inspect_fun(mr)}`);
+    // lm.log(() => `MR: ${inspect_fun(mr)}`);
     
     return mr;
   } 
@@ -831,7 +843,7 @@ class Element extends Rule {
           : rule_match_result.value[this.index];
     
     if (log_match_enabled) 
-      lm.log(`get elem ${this.index} from ` +
+      lm.log(() => `get elem ${this.index} from ` +
              `${compress(inspect_fun(rule_match_result.value))} = ` +
              `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect_fun(ret)))}`);
     
@@ -1107,7 +1119,7 @@ class Optional extends Rule {
       const mr = new MatchResult(this.default_value, input, index);
 
       if (log_match_enabled)
-        lm.log(`returning default ${inspect_fun(mr)}`);
+        lm.log(() => `returning default ${inspect_fun(mr)}`);
 
       return mr;
     }
@@ -1184,7 +1196,7 @@ class Sequence extends Rule {
     if (last_match_result === null) {
       if (log_match_enabled)
         lm.indent(() =>
-          lm.log(`did not match sequence element #1.`));
+          lm.log(() => `did not match sequence element #1.`));
       return null;
     }
 
@@ -1258,7 +1270,7 @@ class Sequence extends Rule {
     //   throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
-    // lm.log(`SEQ MR = ${inspect_fun(mr)}`);
+    // lm.log(() => `SEQ MR = ${inspect_fun(mr)}`);
     return mr;
   }
   // -----------------------------------------------------------------------------------------------
@@ -1795,11 +1807,11 @@ function index_is_at_end_of_input(index, input) {
 //   if (! log_enabled)
 //     return;
 
-//   lm.log(`${indent_str.repeat(indent)}${str}`);
+//   lm.log(() => `${indent_str.repeat(indent)}${str}`);
 // }
 // -------------------------------------------------------------------------------------------------
 function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-  lm.log(char.repeat(width));
+  lm.log(() => char.repeat(width));
 }
 LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
@@ -1917,7 +1929,6 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     if (noisy)
       throw new Error('noisy bomb');
     
-    // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
 
     let stringified_rule = null;
@@ -1936,26 +1947,31 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     }
 
     if (!rule) {
-      lm.log(`return original null rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      lm.log(`return klassed function ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      lm.log(`return original klassed rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      lm.log(`return original rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original rule ${stringified_rule}`);
       return rule;
     }
 
-    lm.log(`return klassed ${stringified_rule}`);
+    if (noisy)
+      lm.log(() => `return klassed ${stringified_rule}`);
     
     return new klass(rule);
   }
@@ -2048,9 +2064,9 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
       const unwrapped_options = rule.options.map(option => option.__original_rule || option);
       const rebuilt_choice = new Choice(...unwrapped_options);
       
-      // lm.log(`constructed ${inspect_fun(rebuilt_choice)}`);
+      // lm.log(() => `constructed ${inspect_fun(rebuilt_choice)}`);
       const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-      // lm.log(`decorated ${inspect_fun(decorated)}`);
+      // lm.log(() => `decorated ${inspect_fun(decorated)}`);
       return decorated;
     }
 
@@ -2085,7 +2101,7 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
     // if (prettify_whitespace_combinators)
     //   built.__impl_toString = function(visited, next_id, ref_counts) {
     //     if (typeof this.__toString !== 'function')
-    //       lm.log(`suspiciousa: ${inspect_fun(this)}`);
+    //       lm.log(() => `suspiciousa: ${inspect_fun(this)}`);
     //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
     //   };
 
@@ -2475,7 +2491,7 @@ const json_fractionalPart = r(/\.[0-9]+/);
 const json_exponentPart = r(/[eE][+-]?\d+/);
 // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
 const reify_json_number = arr => {
-  // lm.log(`REIFY ${inspect_fun(arr)}`);
+  // lm.log(() => `REIFY ${inspect_fun(arr)}`);
   
   const multiplier      = arr[0] ? -1 : 1;
   const integer_part    = arr[1];
@@ -2483,7 +2499,7 @@ const reify_json_number = arr => {
   const exponent        = arr[3];
   const number          = multiplier * ((integer_part + fractional_part)**exponent);
 
-  // lm.log(`ARR: ${inspect_fun(arr)}`);
+  // lm.log(() => `ARR: ${inspect_fun(arr)}`);
   return number;
   // return arr;
 };
@@ -2651,7 +2667,7 @@ const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]
 class WeightedPicker {
   // -----------------------------------------------------------------------------------------------
   constructor(options = []) {
-    // lm.log(`CONSTRUCT WITH ${inspect_fun(options)}`);
+    // lm.log(() => `CONSTRUCT WITH ${inspect_fun(options)}`);
     
     this.options = []; // array of [weight, value]
     this.used_indices = new Map();
@@ -2692,7 +2708,7 @@ class WeightedPicker {
       this.__clear_used_indices();
     
     if (log_picker_enabled)
-      lm.log(`PICK ${min_count}-${max_count}`);
+      lm.log(() => `PICK ${min_count}-${max_count}`);
     
     const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
     const res = [];
@@ -2701,7 +2717,7 @@ class WeightedPicker {
       res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
 
     if (log_picker_enabled)
-      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+      lm.log(() => `PICKED ITEMS: ${inspect_fun(res)}`);
 
     return res;
   }
@@ -2726,13 +2742,13 @@ class WeightedPicker {
     this.last_pick_index = null;
 
     if (log_picker_enabled)
-      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+      lm.log(() => `AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
     if (log_picker_enabled) {
-      lm.log(`this.options      = ${compress(inspect_fun(this.options))}`);
-      lm.log(`this.used_indices = ${compress(inspect_fun(this.used_indices))}`);
+      lm.log(() => `this.options      = ${compress(inspect_fun(this.options))}`);
+      lm.log(() => `this.used_indices = ${compress(inspect_fun(this.used_indices))}`);
     }
     
     if (! priority)
@@ -2788,7 +2804,7 @@ class WeightedPicker {
     }
 
     if (log_picker_enabled)
-      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+      lm.log(() => `RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
     return Math.max(0, ret);
   };
@@ -2800,23 +2816,23 @@ class WeightedPicker {
       throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
     
     if (log_picker_enabled) {
-      lm.log(`PICK ONE =================================================================================`);
-      lm.log(`PRIORITY        = ${inspect_fun(priority)}`);
-      lm.log(`USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-      lm.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+      lm.log(() => `PICK ONE =================================================================================`);
+      lm.log(() => `PRIORITY        = ${inspect_fun(priority)}`);
+      lm.log(() => `USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      lm.log(() => `LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     }
     
     if (! (priority && allow_if && forbid_if))
       throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (log_picker_enabled) {
-      lm.log(`PICK_ONE!`);
-      lm.log(`PICK FROM ${inspect_fun(this)}`);
+      lm.log(() => `PICK_ONE!`);
+      lm.log(() => `PICK FROM ${inspect_fun(this)}`);
     }
 
     if (this.options.length === 0) {
       if (log_picker_enabled)
-        lm.log(`PICK_ONE: NO OPTIONS 1!`);
+        lm.log(() => `PICK_ONE: NO OPTIONS 1!`);
       
       return null;
     }
@@ -2825,7 +2841,7 @@ class WeightedPicker {
     
     if (this.__indices_are_exhausted(legal_option_indices, priority)) {
       if (log_picker_enabled)
-        lm.log(`PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
+        lm.log(() => `PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       
       if (priority === picker_priority.avoid_repetition_long) {
         if (this.last_pick_index !== null) {
@@ -2842,45 +2858,45 @@ class WeightedPicker {
       }
 
       if (log_picker_enabled)
-        lm.log(`AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+        lm.log(() => `AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
       
       legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
     }
     
     if (legal_option_indices.length === 0) {
       if (log_picker_enabled)
-        lm.log(`PICK_ONE: NO LEGAL OPTIONS 2!`);
+        lm.log(() => `PICK_ONE: NO LEGAL OPTIONS 2!`);
 
       return null;
     }
 
     if (legal_option_indices.length === 1) {
       if (log_picker_enabled)
-        lm.log(`only one legal option in ${inspect_fun(legal_option_indices)}!`);
+        lm.log(() => `only one legal option in ${inspect_fun(legal_option_indices)}!`);
       
       this.__record_index_usage(legal_option_indices[0]);
 
       if (log_picker_enabled)
-        lm.log(`BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
+        lm.log(() => `BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       
       return this.options[legal_option_indices[0]].value;
     }
 
     if (log_picker_enabled)
-      lm.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+      lm.log(() => `pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
     if (log_picker_enabled)
-      lm.log(`BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+      lm.log(() => `BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
     
     for (const legal_option_ix of legal_option_indices) {
       const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
 
       if (log_picker_enabled) {
-        lm.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
-        lm.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
+        lm.log(() => `effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        lm.log(() => `COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(() => `ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
       
       total_weight += adjusted_weight;
@@ -2902,10 +2918,10 @@ class WeightedPicker {
     let random = Math.random() * total_weight;
 
     if (log_picker_enabled) {
-      lm.log(`----------------------------------------------------------------------------------`);
-      lm.log(`RANDOM IS ${random}`);
-      lm.log(`TOTAL_WEIGHT IS ${total_weight}`);
-      lm.log(`USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+      lm.log(() => `----------------------------------------------------------------------------------`);
+      lm.log(() => `RANDOM IS ${random}`);
+      lm.log(() => `TOTAL_WEIGHT IS ${total_weight}`);
+      lm.log(() => `USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
     }
     
     for (const legal_option_ix of legal_option_indices) {
@@ -2916,7 +2932,7 @@ class WeightedPicker {
         continue;
       
       if (log_picker_enabled)
-        lm.log(`ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
+        lm.log(() => `ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
       
       if (random < adjusted_weight) {
         this.__record_index_usage(legal_option_ix);
@@ -2975,7 +2991,7 @@ function benchmark(thunk, {
   });
   
   for (let oix = 0; oix < batch_count; oix++) {
-    // lm.log(`oix: ${oix}`);
+    // lm.log(() => `oix: ${oix}`);
     
     global.gc(); // triggers GC
     start_mem  = process.memoryUsage().heapUsed;
@@ -3188,8 +3204,8 @@ function levenshtein(a, b) {
     }
   }
 
-  // lm.log(`Levenshtein distance between '${a}' and '${b}':`);
-  // lm.log(`${inspect_fun(dp)}.`);
+  // lm.log(() => `Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(() => `${inspect_fun(dp)}.`);
 
   return dp[m][n];
 }
@@ -3233,10 +3249,19 @@ function rjson_stringify(obj) {
 }
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
+let smart_join_trap_target;
+// smart_join_trap_target = 1;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
+
+  smart_join_trap_counter += 1;
+
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+    lm.log(() => `smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
+
 
   if (! arr || typeof arr === 'string')
     return arr;
@@ -3251,14 +3276,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  smart_join_trap_counter += 1;
-
-  // if (smart_join_trap_counter === 3)
-  //   throw stop();
-  
-  if (log_level__smart_join >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
+  if (smart_join_trap_counter === smart_join_trap_target) {
+    lm.log(() => `SMART_JOIN TRAPPED`, false);
+    
+    throw stop(); 
+  }
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3289,7 +3311,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const add_a_space = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`SPACE!`, true);
+        lm.log(() => `SPACE!`, true);
 
       prev_char  = ' ';
       str       += ' ';
@@ -3297,7 +3319,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const chomp_left_side = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CHOMP LEFT!`, true);
+        lm.log(() => `CHOMP LEFT!`, true);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -3307,7 +3329,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     const chomp_right_side = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CHOMP RIGHT!`, true);
+        lm.log(() => `CHOMP RIGHT!`, true);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -3316,7 +3338,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const consume_right_word = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
+        lm.log(() => `CONSUME ${inspect_fun(right_word)}!`, true);
 
       // if (right_word === '""' || right_word === "''")
       //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
@@ -3327,7 +3349,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
-        lm.log(`SHIFT ${n} CHARACTERS!`, true);
+        lm.log(() => `SHIFT ${n} CHARACTERS!`, true);
 
       const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
       const shifted_str = right_word.substring(0, n);
@@ -3347,7 +3369,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_level__smart_join >= 2)
-        lm.log(`ix = ${inspect_fun(ix)}, ` +
+        lm.log(() => `ix = ${inspect_fun(ix)}, ` +
                `str = ${inspect_fun(str)}, ` +
                `left_word = ${inspect_fun(left_word)}, ` +         
                `right_word = ${inspect_fun(right_word)}, ` +       
@@ -3361,7 +3383,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     if (right_word === '') {
       if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY!`, true);
+        lm.log(() => `JUMP EMPTY!`, true);
 
       continue;
     }
@@ -3409,7 +3431,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (right_word === '') {
       if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
+        lm.log(() => `JUMP EMPTY (LATE)!`, true);
 
       continue;
     }
@@ -3429,10 +3451,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
+    lm.log(() => `smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
-  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+  // lm.log(() => `${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
   return str;
 }
@@ -3517,7 +3539,7 @@ if (test_structured_clone) {
     if (clone.a !== clone.b)
       throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
 
-    lm.log(`test #1 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(() => `test #1 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #2: break shared references (unshare), this one seems to work:
   {
@@ -3526,7 +3548,7 @@ if (test_structured_clone) {
     if (clone.a === clone.b)
       throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
 
-    lm.log(`test #2 succesfully cloned object ${inspect_fun(obj)}`);
+    lm.log(() => `test #2 succesfully cloned object ${inspect_fun(obj)}`);
   }
   // test #4: should fail do to cycle, with unshare = false:
   try {
@@ -3540,7 +3562,7 @@ if (test_structured_clone) {
     if (err.message === 'test #3 should have failed.')
       throw err;
     else 
-      lm.log(`test #3 failed as intended.`);
+      lm.log(() => `test #3 failed as intended.`);
   }
   // test #4: should fail do to cycle, with unshare = true:
   try {
@@ -3553,7 +3575,7 @@ if (test_structured_clone) {
     if (err.message === 'test #4 should have failed.') 
       throw err;
     else
-      lm.log(`test #3 failed as intended.`);
+      lm.log(() => `test #3 failed as intended.`);
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -3575,11 +3597,11 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
-         ? 'null'
+         ? 'null '
          : `${thing.constructor.name} ` ?? 'Object ')
       : `${typeof thing} `;
 
@@ -3590,7 +3612,8 @@ function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
 
   if (thing instanceof ASTNode) {
     thing_str = thing.toString();
-    type_str  = '';
+    if (! always_include_type_str)
+      type_str  = '';
   }
   else if (Array.isArray(thing)) {
     thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
@@ -3766,7 +3789,7 @@ const configuration_key_names = [
 // -------------------------------------------------------------------------------------------------
 function get_other_name(return_key, find_key, find_value) {
   if (log_name_lookups_enabled)
-    lm.log(`\nLOOKING UP ${return_key} FOR ` +
+    lm.log(() => `\nLOOKING UP ${return_key} FOR ` +
            `${inspect_fun(find_key)} ` +
            `${inspect_fun(find_value)}`);
 
@@ -3780,7 +3803,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(() => `RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
     return got[return_key];
   }
@@ -3790,7 +3813,7 @@ function get_other_name(return_key, find_key, find_value) {
   // -----------------------------------------------------------------------------------------------
   got = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+      lm.log(() => `test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
              `${inspect_fun(find_value_lc)} = ` +
              `${obj[return_key].toLowerCase() === find_value_lc}`);
     return obj[return_key].toLowerCase() === find_value_lc;
@@ -3798,7 +3821,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      lm.log(() => `RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
     
     return got[return_key];
   } 
@@ -3810,7 +3833,7 @@ function get_other_name(return_key, find_key, find_value) {
 
   if (got) {
     if (log_name_lookups_enabled)
-      lm.log(`GOT ${return_key} FOR ` +
+      lm.log(() => `GOT ${return_key} FOR ` +
              `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
     
     return got[return_key];
@@ -3820,7 +3843,7 @@ function get_other_name(return_key, find_key, find_value) {
   // didn't find it on either sise, just return the argument:
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+    lm.log(() => `RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
 
   // possibly an error? maybe not always.
   return find_value;
@@ -3839,7 +3862,7 @@ function get_our_name(name) {
                ? get_dt_name
                : get_automatic1111_name)(name);
 
-  // lm.log(`got our name for ${name}: ${res}`);
+  // lm.log(() => `got our name for ${name}: ${res}`);
   
   return res;
 }
@@ -3895,7 +3918,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   clone(obj = {}) {
-    // lm.log(`CLONING CONTEXT ${inspect_fun(this)}`);
+    // lm.log(() => `CLONING CONTEXT ${inspect_fun(this)}`);
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
@@ -3915,7 +3938,7 @@ class Context {
         this.configuration.loras === copy.configuration.loras)
       throw new Error("oh no");
 
-    // lm.log(`CLONED CONTEXT`);
+    // lm.log(() => `CLONED CONTEXT`);
     
     Object.assign(copy, obj);
 
@@ -3951,7 +3974,7 @@ class Context {
   }
   // -----------------------------------------------------------------------------------------------
   set configuration(config) {
-    // lm.log(`CLONING CONFIGURATION!`);
+    // lm.log(() => `CLONING CONFIGURATION!`);
     this.#configuration = structured_clone(config, { unshare: true });
   }
   // -----------------------------------------------------------------------------------------------
@@ -3990,12 +4013,12 @@ class Context {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
-      //   lm.log(`skipping, already set`);
+      //   lm.log(() => `skipping, already set`);
       return;
     }
     
     if (log_flags_enabled) 
-      lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
+      lm.log(() => `adding ${compress(inspect_fun(new_flag))} to flags ` +
              `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
     //if (replace_existing)
@@ -4005,7 +4028,7 @@ class Context {
       this.flags = this.flags.filter(existing_flag => {
         if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
           // if (log_flags_enabled)
-          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+          //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
           //          `new flag ${compress(inspect_fun(new_flag))}`);
           return false;
         }
@@ -4014,7 +4037,7 @@ class Context {
           if (new_flag_head.length != 0 &&
               arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
             // if (log_flags_enabled)
-            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+            //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a child of ` +
             //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
             return false; 
           }
@@ -4028,12 +4051,12 @@ class Context {
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
     // if (log_flags_enabled)
-    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    //   lm.log(() => `BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
     // if (log_flags_enabled)
-    //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    //   lm.log(() => `AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
@@ -4042,18 +4065,18 @@ class Context {
 
     for (const [name, nwc] of this.named_wildcards) {
       if (nwc instanceof ASTLatchedNamedWildcard) {
-        // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        // lm.log(() => `unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
-           lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+           lm.log(() => `NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
     }
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
+    // const log = msg => lm.log(() => `${' '.repeat(indent*2)}${msg}`);
 
-    // lm.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+    // lm.log(() => `MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
 
     const munged_configuration = structured_clone(this.configuration);
 
@@ -4061,7 +4084,7 @@ class Context {
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+      lm.log(() => `WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
              `what you meant to do, your prompt template may contain an error!`,
              log_level__expand_and_walk);
       delete munged_configuration.model;
@@ -4092,19 +4115,19 @@ class Context {
       if (got)
         munged_configuration.sampler = got;
       else
-        lm.log(`WARNING: did not find samples '${munged_configuration.sampler}', ` +
+        lm.log(() => `WARNING: did not find samples '${munged_configuration.sampler}', ` +
                `we're probably going to crash in a moment`);
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
+        lm.log(() => `correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
                `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
                log_level__expand_and_walk);
         const index = dt_samplers.indexOf(munged_configuration.sampler);
 
         if (index === -1) {
-          lm.log(`WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
+          lm.log(() => `WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
                  `Are you sure you used the ` +
                  `correct name? deleting sampler from configuration.`);
 
@@ -4117,7 +4140,7 @@ class Context {
     }
     // when running in Node.js, sampler needs to be a string::
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+      lm.log(() => `correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
              log_level__expand_and_walk);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
@@ -4130,7 +4153,7 @@ class Context {
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
-          lm.log(`%seed = -1 due to n_iter > 1`,
+          lm.log(() => `%seed = -1 due to n_iter > 1`,
                  log_level__expand_and_walk);
 
         munged_configuration.seed = -1;
@@ -4139,7 +4162,7 @@ class Context {
         const random = Math.floor(Math.random() * (2 ** 32));
         
         if (log_configuration_enabled)
-          lm.log(`%seed = ${random} due to no seed`,
+          lm.log(() => `%seed = ${random} due to no seed`,
                  log_level__expand_and_walk);
 
         munged_configuration.seed = random;
@@ -4147,7 +4170,7 @@ class Context {
     }
 
     // if (log_configuration_enabled)
-    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
+    //   lm.log(() => `MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
     this.configuration =  munged_configuration;
   }
@@ -8290,7 +8313,7 @@ function load_prelude(into_context = new Context()) {
     return into_context;
   
   if (log_loading_prelude)
-    lm.log(`loading prelude...`);
+    lm.log(() => `loading prelude...`);
 
   const elapsed = measure_time(() => {
     const old_log_flags_enabled = log_flags_enabled;
@@ -8303,7 +8326,7 @@ function load_prelude(into_context = new Context()) {
       log_match_enabled = old_log_match_enabled;
     }
 
-    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+    // lm.log(() => `prelude AST:\n${inspect_fun(prelude_parse_result)}`);
     const ignored = expand_wildcards(prelude_parse_result.value, into_context,
                                      { correct_articles: true });
     
@@ -8314,11 +8337,11 @@ function load_prelude(into_context = new Context()) {
     if (ignored === undefined)
       throw new Error("crap");
 
-    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+    // lm.log(() => `NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
   
   if (log_loading_prelude)
-    lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
+    lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
 
   return into_context;
 }
@@ -8332,15 +8355,15 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
-  if (thing == undefined ||
-      context === undefined ||
+function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
+  if (thing            === undefined ||
+      context          === undefined ||
       correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      lm.log(() => `nothing to expand in ${thing_str_repr(thing)}, returning as is`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8370,12 +8393,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
+    // lm.log(() => `pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
     const ret = lm.indent(() =>
-      expand_wildcards(pick?.body ?? '', context,
-                       { correct_articles: correct_articles }));
+      walk(pick?.body ?? '', 
+           { correct_articles: correct_articles }));
 
     if (log_level__expand_and_walk >= 2)
-      lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
+      lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
              `<${thing_str_repr(pick)}> => ` + 
              `${thing_str_repr(ret)}`, false)
 
@@ -8386,10 +8410,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return `[WARNING: ${str}!]`;
   }
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg, with_indentation = true) => { 
-    if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) lm.log(msg, with_indentation);
-  };
+  // const log = (guard_bool, msg, with_indentation = true) => { 
+  //   if (! msg && msg !== '') throw new Error("bomb 1");
+  //   if (guard_bool) lm.log(msg, with_indentation);
+  // };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, { correct_articles = undefined } = {}) {
     if (correct_articles === undefined)
@@ -8397,7 +8421,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     const log = (guard_bool, msg, with_indentation = true) => {
       if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) lm.log(msg, with_indentation);
+      if (guard_bool) lm.log(() => msg, with_indentation);
     };
 
     class ThrownReturn {
@@ -8409,12 +8433,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     if (typeof thing === 'string') {
       if (log_level__expand_and_walk)
-        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+        lm.log(() => `nothing to walk in ${thing_str_repr(thing)}, returning as is`);
       return thing;
     }
 
     log(log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing)}`);
+        `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8428,7 +8452,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log(log_level__expand_and_walk,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} `
+                `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
                );
 
             const elem_ret =
@@ -8441,7 +8465,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 `walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
                 `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret)}`
+                `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
                );
           }
         });
@@ -8500,19 +8524,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let anon_wildcard;
         
-        if (got instanceof ASTLatchedNamedWildcard) {
-          anon_wildcard = anon_wildcard.original_value;
+        if (got instanceof ASTLatchedNamedWildcard) {          
+          anon_wildcard = got.original_value;
           
-          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles})); //  not walk!
-            // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
-            //   note on the prior line - it seems like using walk instead would be fine but I
-            //   must have had some reason, review this later.
-            
-            if (expanded)
-              res.push(expanded);
-          }
+          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+          //   const expanded = lm.indent(() => walk(got.latched_value, 
+          //                                         { correct_articles: correct_articles})); 
+          //   // ^ not quite sure whether to use walk or expand_wildcards here.
+          
+          //   if (expanded)
+          //     res.push(expanded);
+          ///}
+          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
@@ -8534,11 +8557,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let effective_joiner;
         let intercalate_options = {}
-        
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
-
-        // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-        // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+        
+        // lm.log(() => `EFFECTIVE_JOINER:  ${effective_joiner}`);
+        // lm.log(() => `EFFECTIVE_TRAILER: ${effective_trailer}`);
 
         if (thing.joiner === '&') {
           effective_joiner = ',';
@@ -8603,14 +8625,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           else 
             throw new ThrownReturn(''); // produce nothing
         }
-        
 
         lm.indent(() => {
           const latched =
                 new ASTLatchedNamedWildcard(
-                  walk(got, { correct_articles: false }), got);
+                  walk(got, { correct_articles: correct_articles }), got);
 
-          log(context.noisy,
+          log(log_level__expand_and_walk,
               `latched @${thing.target.name} to value: ` +
               `${typeof latched.latched_value} ` +
               `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
@@ -8666,18 +8687,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        log(log_level__expand_and_walk >= 2, '');
+        // log(log_level__expand_and_walk >= 2, '');
         log(log_level__expand_and_walk >= 2,
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
-                                                         { correct_articles: correct_articles }));
+        let   new_val = lm.indent(() => smart_join(walk(thing.source,
+                                                        { correct_articles: correct_articles }),
+                                                   { correct_articles: correct_articles }));
 
         if (! thing.assign) {
           const old_val = context.scalar_variables.get(thing.destination.name)??'';
           new_val = smart_join([old_val, new_val],
-                               { correct_articles: true }); // always correct articles here?
+                               { correct_articles: correct_articles }); 
         }
         
         context.scalar_variables.set(thing.destination.name, new_val);
@@ -8856,7 +8878,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               : { desc: 'UI negative prompt', text: ui_neg_prompt };
         
         if (log_level__expand_and_walk >= 2)
-          lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+          lm.log(() => `expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
         let res = null;
 
@@ -8909,31 +8931,31 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         lm.indent(() => {
           log(log_level__expand_and_walk,
-              `expanding file ${compress(inspect_fun(thing.file))}`);
+              `Expanding LoRA file ` +
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
-                                                         { correct_articles: correct_articles })); // not walk!
+                                                         { correct_articles: false })); // not walk!
 
           log(log_level__expand_and_walk,
-              `expanded file is ${typeof walked_file} ` +
-              `${walked_file.constructor.name} ` +
-              `${inspect_fun(walked_file)} `);
+              `expanded LoRa file `+
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+              `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
         });
         
         let walked_weight = null;
         
         lm.indent(() => {
           log(log_level__expand_and_walk,
-              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+              `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
-                                                           { correct_articles: correct_articles })); // not walk!
+                                                           { correct_articles: false })); // not walk!
 
           log(log_level__expand_and_walk,
-              `expanded weight is ${typeof walked_weight} ` +
-              `${walked_weight.constructor.name} ` +
-              `${compress(inspect_fun(walked_weight))}, ` +
-              `Array.isArray(${Array.isArray(walked_weight)})`);
+              `expanded LoRA weight ` +
+              `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+              `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -8985,36 +9007,38 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       if (! obj.quiet)
         log(log_level__expand_and_walk,
             `walking ` +
-            `${thing_str_repr(thing)} ` + 
+            `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
             //`in ${context} ` +
             `returned ` +
-            `${thing_str_repr(obj.value)}`);
+            `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
 
       return obj.value;
     }
   }
 
-  log(log_level__expand_and_walk,
-      `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} `);
+  if (log_level__expand_and_walk)
+    lm.log(() => `Expanding wildcards in ` +
+           `${thing_str_repr(thing, { always_include_type_str: true })} `);
 
   let ret;
 
   lm.indent(() => {
-    ret = unescape(smart_join(walk(thing,
-                                   { correct_articles: correct_articles }),
+    const walked = walk(thing,
+                        { correct_articles: correct_articles })
+
+    ret = unescape(smart_join(walked,
                               { correct_articles: correct_articles })).replace(/^</, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
     //   unescape probably should too.
 
     context.munge_configuration();
   });
-  
-  log(log_level__expand_and_walk,
-      `expanded wildcards in ` +
-      `${thing_str_repr(thing)} in ` + 
-      `returned ` +
-      `${thing_str_repr(ret)}`);
+
+  if (log_level__expand_and_walk)
+    lm.log(() => `expanding wildcards in ` +
+           `${thing_str_repr(thing)} ` + 
+           `returned ` +
+           `${thing_str_repr(ret, { always_include_type_str: true })}`);
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
@@ -9056,7 +9080,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     const log = (msg_thunk, indent = true) => {
       if (noisy)
-        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
+        lm.log(() => `${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
     };
     function walk_children(thing, mode) {
       if (typeof mode !== 'string')
@@ -9085,7 +9109,7 @@ function audit_semantics(root_ast_node,
       }
       else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
                ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation and not local log function
+        lm.log(() => msg, false); // false arg for no indentation and not local log function
         // already_warned_msgs.add(msg);
       }
     }
@@ -9413,7 +9437,7 @@ class ASTScalarAssignment extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
+    return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9484,7 +9508,7 @@ class ASTLatchedNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcards:
+// ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
   constructor(options, { trailer = null, unsafe_guards = false } = {}) {
@@ -9539,7 +9563,7 @@ class ASTAnonWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcardsAlternative:
+// ASTAnonWildcardsAlternative:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
@@ -9817,8 +9841,8 @@ const ExposedRjsonc =
 // const flag_ident = xform(dot_chained(ident),
 //                          arr => {
 //                            lm.log();
-//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
+//                            lm.log(() => `FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+//                            lm.log(() => `FLAG_IDENT OUT: ${inspect_fun(arr)}`);
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
@@ -10089,7 +10113,7 @@ const SpecialFunctionRevertPickMultiple =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
       xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
         return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
       },
             cutting_seq(seq(c_ident,                                                // [0][0]
@@ -10103,7 +10127,7 @@ const SpecialFunctionUpdateConfigurationBinary =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
       xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
         return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
       },
             seq(/conf(?:ig)?/,                                                        // [0]
@@ -10155,7 +10179,7 @@ const NamedWildcardReference  =
               const trailer = arr[6];
 
               if (min_ct == 0 && max_ct == 0) {
-                lm.log(`WARNING: retrieving 0 items from a named ` +
+                lm.log(() => `WARNING: retrieving 0 items from a named ` +
                        `wildcard is a strange thing to do. We'll allow ` +
                        `it, but you may have made a mistake in your ` +
                        `template.`,
@@ -10259,8 +10283,8 @@ const LimitedContentNoAWCTrailers =
 // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
 //       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+// lm.log(() => `THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(() => `THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
 // const malformed_token =
 //       // tokens starting with % are actually usually caught before getting here.

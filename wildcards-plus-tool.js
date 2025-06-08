@@ -74,9 +74,9 @@ function parse_file(filename) {
     }
     catch (err) {
       if (err instanceof FatalParseError) {
-        console.log(`ERROR: matching threw fatal parse error, ` +
-                    `halting: \n` +
-                    `${inspect_fun(err)}`);
+        lm.log(() => `ERROR: matching threw fatal parse error, ` +
+               `halting: \n` +
+               `${inspect_fun(err)}`);
         return null;
       }
       else {
@@ -8981,11 +8981,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
             // %sampled = { Euler A AYS };
-            expand_wildcards(thing.value, context, // not walk!
-                             { correct_articles: false })); 
+            smart_join(walk(thing.value, { correct_articles: false }),
+                       { correct_articles: false })); 
 
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? RjsoncObject
+                                                ? RjefsoncObject
                                                 : Rjsonc).match(expanded_value);
 
           if (thing instanceof ASTUpdateConfigurationBinary) {
@@ -9048,6 +9048,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                 `to non-object ${inspect_fun(tmp_obj)}`);
 
               const new_obj = { ...tmp_obj, ...value };
+
               log(log_expand_and_walk_enabled >= 2,
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
                   `increment by object ${inspect_fun(value)}, ` +
@@ -9081,9 +9082,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                   `increment by string ${inspect_fun(value)}, ` +
                   `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
 
+              // context.configuration[our_name] =
+              //   lm.indent(() => smart_join([tmp_str, value],
+              //                              { correct_articles: false })); // never correct here?
               context.configuration[our_name] =
-                lm.indent(() => smart_join([tmp_str, value],
-                                           { correct_articles: false })); // never correct here?
+                lm.indent(() => smart_join([tmp_str, unescape(value)],
+                                           { correct_articles: false })); 
             }
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
