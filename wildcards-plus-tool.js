@@ -8593,7 +8593,8 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
+function expand_wildcards(thing, context = new Context(), { inner = true,
+                                                            correct_articles = undefined } = {}) {
   if (thing == undefined ||
       context === undefined ||
       correct_articles === undefined)
@@ -9745,7 +9746,7 @@ class ASTLatchedNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcards:
+// ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
   constructor(options, { trailer = null, unsafe_guards = false } = {}) {
@@ -9800,7 +9801,7 @@ class ASTAnonWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcardsAlternative:
+// ASTAnonWildcardsAlternative:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
