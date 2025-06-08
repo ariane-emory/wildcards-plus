@@ -8796,8 +8796,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
 
-        lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-        lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+        // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+        // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
 
         if (thing.joiner === '&') {
           effective_joiner = ',';
