@@ -4405,7 +4405,7 @@ class Sequence extends Rule {
           }
         }
       }
-      // when running in Node.js, sampler needs to be a string::
+      // when running in Node.js, sampler needs to be a string:
       else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
         lm.log(() => `correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
                `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
