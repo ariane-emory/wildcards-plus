@@ -9155,9 +9155,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        log(log_configuration_enabled,
-            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+        if (log_configuration_enabled)
+          lm.log(() => `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                 `${inspect_fun(walked)}.`);
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9200,9 +9200,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
-        log(log_configuration_enabled,
-            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(prior_val)}.`);
+        if (log_configuration_enabled)
+          lm.log(() => `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                 `${inspect_fun(prior_val)}.`);
         
         context[cur_key]   = prior_val;
         context[prior_key] = cur_val;
@@ -9221,17 +9221,17 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let walked_file = null;
 
         lm.indent(() => {
-          log(log_level__expand_and_walk,
-              `Expanding LoRA file ` +
-              `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
+          if (log_level__expand_and_walk)
+            lm.log(() => `Expanding LoRA file ` +
+                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
-              `expanded LoRa file `+
-              `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
-              `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
+          if (log_level__expand_and_walk)
+            lm.log(() => `expanded LoRa file `+
+                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+                   `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
         });
         
         let walked_weight = null;
