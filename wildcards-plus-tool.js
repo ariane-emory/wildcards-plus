@@ -8786,7 +8786,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           
           if (log_level__expand_and_walk)
             lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
-
         }
         
         if (thing.capitalize && res.length > 0) 
