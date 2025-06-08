@@ -342,7 +342,7 @@ class Logger {
     let str = typeof str_or_fun === 'function'
         ? str_or_fun()
         : str_or_fun;
-        
+    
     if (with_indent)
       str = this.indent_thing(str);
     
@@ -8972,8 +8972,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
-        log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-            log_level__expand_and_walk);
+        if (true)
+          lm.log(() => `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+                 log_level__expand_and_walk);
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9117,21 +9118,21 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +
                        `incrementing by unknown type value ${inspect_fun(value)}, ` +
-                                                                                `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+                       `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
-                                           context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-                           }
- }
+              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+            }
+          }
 
-                                   lm.indent(() => log(log_configuration_enabled,
-                                                       `%${our_name} ` +
-                                                       `${thing.assign ? '=' : '+='} ` +
-                                                       `${inspect_fun(value, true)}`,
-                                                       log_level__expand_and_walk));
-         }
-                                               
-                                               throw new ThrownReturn(''); // produce nothing
-                                              }
+          lm.indent(() => log(log_configuration_enabled,
+                              `%${our_name} ` +
+                              `${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(value, true)}`,
+                              log_level__expand_and_walk));
+        }
+        
+        throw new ThrownReturn(''); // produce nothing
+      }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
                thing instanceof ASTSetPickMultiple) {
