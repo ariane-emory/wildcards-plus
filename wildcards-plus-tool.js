@@ -3503,31 +3503,31 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   smart_join_trap_counter += 1;
 
-  if (log_level__smart_join >= 1 || log_level__smart_join >= 1)
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
 
   if (! arr || typeof arr === 'string')
-    return arr;
+  return arr;
 
-  arr = [...arr.flat(Infinity).filter(x=> x)];
+arr = [...arr.flat(Infinity).filter(x=> x)];
 
-  // if (arr.includes("''") || arr.includes('""'))
-  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+// if (arr.includes("''") || arr.includes('""'))
+//   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
-  if (arr.length === 0) 
-    return '';
-  else if (arr.length === 1)
-    return arr[0];
+if (arr.length === 0) 
+  return '';
+else if (arr.length === 1)
+  return arr[0];
 
-  if (smart_join_trap_counter === smart_join_trap_target) {
-    lm.log(`SMART_JOIN TRAPPED`, false);
-    
-    throw stop(); 
-  }
+if (smart_join_trap_counter === smart_join_trap_target) {
+  lm.log(`SMART_JOIN TRAPPED`, false);
   
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  throw stop(); 
+}
+
+// const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => "_-".includes(ch);
   // const whitep       = (ch)  => " \n".includes(ch);
@@ -8933,13 +8933,14 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        log(log_level__expand_and_walk >= 2, '');
+        // log(log_level__expand_and_walk >= 2, '');
         log(log_level__expand_and_walk >= 2,
             `assigning ${inspect_fun(thing.source)} ` +
             `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
-                                                         { correct_articles: correct_articles }));
+        let   new_val = lm.indent(() => smart_join(walk(thing.source,
+                                                        { correct_articles: correct_articles }),
+                                                   { correct_articles: correct_articles }));
 
         if (! thing.assign) {
           const old_val = context.scalar_variables.get(thing.destination.name)??'';
@@ -9176,31 +9177,31 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
 
         lm.indent(() => {
           log(log_level__expand_and_walk,
-              `expanding file ${compress(inspect_fun(thing.file))}`);
+              `Expanding LoRA file ` +
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: correct_articles })); // not walk!
 
           log(log_level__expand_and_walk,
-              `expanded file is ${typeof walked_file} ` +
-              `${walked_file.constructor.name} ` +
-              `${inspect_fun(walked_file)} `);
+              `expanded LoRa file `+
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+              `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
         });
         
         let walked_weight = null;
         
         lm.indent(() => {
           log(log_level__expand_and_walk,
-              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+              `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: correct_articles })); // not walk!
 
           log(log_level__expand_and_walk,
-              `expanded weight is ${typeof walked_weight} ` +
-              `${walked_weight.constructor.name} ` +
-              `${compress(inspect_fun(walked_weight))}, ` +
-              `Array.isArray(${Array.isArray(walked_weight)})`);
+              `expanded LoRA weight ` +
+              `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+              `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9252,7 +9253,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
       if (! obj.quiet)
         log(log_level__expand_and_walk,
             `walking ` +
-            `${thing_str_repr(thing)} ` + 
+            `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
             //`in ${context} ` +
             `returned ` +
             `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
@@ -9270,6 +9271,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
   lm.indent(() => {
     const walked = walk(thing,
                         { correct_articles: correct_articles })
+
     ret = unescape(smart_join(walked,
                               { correct_articles: correct_articles })).replace(/^</, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
@@ -9279,7 +9281,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
   });
   
   log(log_level__expand_and_walk,
-      `expanded wildcards in ` +
+      `expanding wildcards in ` +
       `${thing_str_repr(thing)} ` + 
       `returned ` +
       `${thing_str_repr(ret, { always_include_type_str: true })}`);
