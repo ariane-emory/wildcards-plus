@@ -8753,7 +8753,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw new ThrownReturn(ret);
       }
       // -------------------------------------------------------------------------------------------
-      // ASTNamedWildcardReferences;
+      // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = context.named_wildcards.get(thing.name);
