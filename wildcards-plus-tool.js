@@ -8686,10 +8686,10 @@ class Sequence extends Rule {
       if (correct_articles === undefined)
         throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
 
-      const log = (guard_bool, msg, with_indentation = true) => {
-        if (! msg && msg !== '') throw new Error("bomb 1");
-        if (guard_bool) lm.log(() => msg, with_indentation);
-      };
+      // const log = (guard_bool, msg, with_indentation = true) => {
+      //   if (! msg && msg !== '') throw new Error("bomb 1");
+      //   if (guard_bool) lm.log(() => msg, with_indentation);
+      // };
 
       class ThrownReturn {
         constructor(value, quiet = false) {
