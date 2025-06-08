@@ -4378,7 +4378,7 @@ class Sequence extends Rule {
         if (got)
           munged_configuration.sampler = got;
         else
-          lm.log(() => `WARNING: did not find samples '${munged_configuration.sampler}', ` +
+          lm.log(() => `WARNING: did not find sampler '${munged_configuration.sampler}', ` +
                  `we're probably going to crash in a moment`);
       }
       
