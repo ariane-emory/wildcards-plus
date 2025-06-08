@@ -8999,7 +8999,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           }
         }
         else {
-          value = structured_clone(value); // do we need to do this? I forget.
+          value = structured_clone(value); // do we need to clone this? I forget.
         }
 
         if (thing instanceof ASTUpdateConfigurationUnary) { 
