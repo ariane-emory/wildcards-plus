@@ -3633,10 +3633,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
-    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
       move_chars_left(1);
 
     // Normalize article if needed:
@@ -8794,23 +8794,28 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let effective_joiner;
         let intercalate_options = {}
         
+        let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
+
+        lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+        lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+
         if (thing.joiner === '&') {
           effective_joiner = ',';
           intercalate_options.final_separator = 'and';
         }
+        else if (thing.joiner)
+          effective_joiner = thing.joiner;
         else if (anon_wildcard.trailer === ',')
           effective_joiner = ',';
         else
-          effective_joiner= thing.joiner;
+          effective_joiner = thing.joiner;
         
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
                                { correct_articles: false });
           // ^ don't need to correct articles here since punctuation and the word 'and' both can't
           //   trigger an article correction anyhow.
-
-          let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
-
+          
           if (effective_trailer && str.length > 0)
             str = smart_join([str, effective_trailer],
                              { correct_articles: false });
