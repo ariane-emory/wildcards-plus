@@ -4303,7 +4303,7 @@ class Context {
     this.scalar_variables = new Map();
 
     for (const [name, nwc] of this.named_wildcards) {
-      if (nwc instanceof ASTLatchedNamedWildcardValue) {
+      if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
@@ -8750,7 +8750,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcardValue 
+        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
         
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
@@ -8759,7 +8759,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let anon_wildcard;
         
-        if (got instanceof ASTLatchedNamedWildcardValue) {
+        if (got instanceof ASTLatchedNamedWildcard) {
           anon_wildcard = anon_wildcard.original_value;
           
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
@@ -8771,10 +8771,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             
             if (expanded)
               res.push(expanded);
-
-            // this feels like a dirty move, but it'll get the job done and it doesn't seem like
-            // there's a real reason not to:
-            got = got.original_value; 
           }
         }
         else { // ASTAnonWildcard
@@ -8850,7 +8846,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           throw new ThrownReturn(
             warning_str(`Named wildcard @${thing.target.name} not found`));
 
-        if (got instanceof ASTLatchedNamedWildcardValue) {
+        if (got instanceof ASTLatchedNamedWildcard) {
           if (double_latching_is_an_error)
             throw new ThrownReturn(
               warning_str(`tried to latch already-latched named wildcard ` +
@@ -8862,7 +8858,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         lm.indent(() => {
           const latched =
-                new ASTLatchedNamedWildcardValue(
+                new ASTLatchedNamedWildcard(
                   walk(got, { correct_articles: false }), got);
 
           log(context.noisy,
@@ -8882,7 +8878,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (!got)
           throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
-        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        if (! (got instanceof ASTLatchedNamedWildcard)) {
           if (double_unlatching_is_an_error)
             throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
                                                `'${thing.name}', check your template`));
@@ -8912,8 +8908,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       // internal objects:
       // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTLatchedNamedWildcardValue) {
-        throw new Error(`something has gone awry, ASTLatchedNamedWildcardValues shouldn't be ` +
+      else if (thing instanceof ASTLatchedNamedWildcard) {
+        throw new Error(`something has gone awry, ASTLatchedNamedWildcards shouldn't be ` +
                         `reached by walk, stop`);
         
       }
@@ -9721,9 +9717,9 @@ class ASTUnlatchNamedWildcard extends ASTLeafNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// ASTLatchedNamedWildcardValue:
+// ASTLatchedNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcardValue extends ASTNode {
+class ASTLatchedNamedWildcard extends ASTNode {
   constructor(latched_value, original_value) {
     super();
     this.latched_value  = latched_value;
