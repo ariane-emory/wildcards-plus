@@ -339,10 +339,12 @@ class Logger {
         (typeof str_or_fun !== 'function'))
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
-    let str = typeof str_or_fun === 'function'
-        ? str_or_fun()
-        : str_or_fun;
-        
+    let str = str_or_fun();
+    
+    // let str = typeof str_or_fun === 'function'
+    //     ? str_or_fun()
+    //     : str_or_fun;
+    
     if (with_indent)
       str = this.indent_thing(str);
     
