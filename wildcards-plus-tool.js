@@ -327,15 +327,15 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   error(thing = '', with_indent = true) {
-    console.error(this.indent_thing(thing, with_indent));
+    this.__write(console.error, ...args);
   }
   // -----------------------------------------------------------------------------------------------
   log(...args) {
-    this.__write(console, ...args);
+    this.__write(console.log, ...args);
   }
   // -----------------------------------------------------------------------------------------------
   __write(destination, str = '', with_indent = true) {    
-    if ((!destination) ||
+    if ((typeof destination !== 'function') ||
         (typeof str !== 'string') // ||
         //(typeof with_indent !== 'boolean')
        )
@@ -345,7 +345,7 @@ class Logger {
       str = this.indent_thing(str);
     
     for (const line of str.split('\n'))
-      destination.log(line);
+      destination(line);
   }
   // -----------------------------------------------------------------------------------------------
   indent_thing(thing) {
