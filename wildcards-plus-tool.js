@@ -1533,2928 +1533,2928 @@ class Sequence extends Rule {
     //   throw new Error("STOP @ RET");
     
     const mr = new MatchResult(values, input, last_match_result.index);
-                // lm.log(() => `SEQ MR = ${inspect_fun(mr)}`);
-                return mr;
-               }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      const elem_strs = this.elements.map(x => this.__vivify(x) .__toString(visited,
-                                                                            next_id,
-                                                                            ref_counts));
-      const str       = elem_strs.join(' ');
-      return `[${str}]`;
-      // return `(${str})`;
-    }
+    // lm.log(() => `SEQ MR = ${inspect_fun(mr)}`);
+    return mr;
   }
-  // -------------------------------------------------------------------------------------------------
-  function seq(...elements) { // convenience constructor
-    return new Sequence(...elements);
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const elem_strs = this.elements.map(x => this.__vivify(x) .__toString(visited,
+                                                                          next_id,
+                                                                          ref_counts));
+    const str       = elem_strs.join(' ');
+    return `[${str}]`;
+    // return `(${str})`;
   }
-  // -------------------------------------------------------------------------------------------------
+}
+// -------------------------------------------------------------------------------------------------
+function seq(...elements) { // convenience constructor
+  return new Sequence(...elements);
+}
+// -------------------------------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------------------------------
-  // CuttingSequence class
-  // -------------------------------------------------------------------------------------------------
-  class CuttingSequence extends Sequence {
-    // -----------------------------------------------------------------------------------------------
-    constructor(leading_rule, ...expected_rules) {
-      super(leading_rule, ...expected_rules);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __fail_or_throw_error(start_rule_result, failed_rule_result,
-                          input, index) {
-      throw new FatalParseError(// `(#2) ` +
-        `CuttingSequence expected ${this.elements[0]} to be followed by ` +
-          `[${this.elements.slice(1).join(" ")}]`,
-        input, start_rule_result.index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id, ref_counts)}!`;
-      const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
-                                                   .__toString(visited, next_id, ref_counts));
-      const str       = [ first_str, ...rest_strs ].join(' ');
-      return `[${str}]`;
-    }
+// -------------------------------------------------------------------------------------------------
+// CuttingSequence class
+// -------------------------------------------------------------------------------------------------
+class CuttingSequence extends Sequence {
+  // -----------------------------------------------------------------------------------------------
+  constructor(leading_rule, ...expected_rules) {
+    super(leading_rule, ...expected_rules);
   }
-  // -------------------------------------------------------------------------------------------------
-  // convenience constructor:
-  function cutting_seq(leading_rule, ...expected_rules) {
-    return new CuttingSequence(leading_rule, ...expected_rules);
+  // -----------------------------------------------------------------------------------------------
+  __fail_or_throw_error(start_rule_result, failed_rule_result,
+                        input, index) {
+    throw new FatalParseError(// `(#2) ` +
+      `CuttingSequence expected ${this.elements[0]} to be followed by ` +
+        `[${this.elements.slice(1).join(" ")}]`,
+      input, start_rule_result.index);
   }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Xform class
-  // -------------------------------------------------------------------------------------------------
-  class Xform extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, xform_func) {
-      super();
-      this.xform_func = xform_func;
-      this.rule       = make_rule_func(rule);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return this.__vivify(this.rule).direct_children();
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(visited) {
-      this.rule = this.__vivify(this.rule);
-      lm.indent(() => this.rule.__finalize(visited));
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      const rule_match_result = lm.indent(() => this.rule.match(input, index, cache));
-
-      if (! rule_match_result)
-        return null;
-
-      rule_match_result.value = this.xform_func(rule_match_result.value);
-
-      return rule_match_result
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `λ(${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
-      // return `λ${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
-    }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    const first_str = `${this.__vivify(this.elements[0]).__toString(visited, next_id, ref_counts)}!`;
+    const rest_strs = this.elements.slice(1).map(x => this.__vivify(x)
+                                                 .__toString(visited, next_id, ref_counts));
+    const str       = [ first_str, ...rest_strs ].join(' ');
+    return `[${str}]`;
   }
-  // -------------------------------------------------------------------------------------------------
-  function xform(...things) { // convenience constructor with magic
-    things = things.map(make_rule_func);
+}
+// -------------------------------------------------------------------------------------------------
+// convenience constructor:
+function cutting_seq(leading_rule, ...expected_rules) {
+  return new CuttingSequence(leading_rule, ...expected_rules);
+}
+// -------------------------------------------------------------------------------------------------
 
-    if (things[0] instanceof Rule ||
-        things[0] instanceof RegExp || 
-        typeof things[0] === "string" || 
-        things[0] instanceof ForwardReference) {
-      const fn   = pipe_funs(...things.slice(1));
-      const rule = things[0];
-
-      return new Xform(rule, fn);
-    }
-    else
-    {
-      const fn   = compose_funs(...things.slice(0, -1));
-      const rule = things[things.length - 1];
-
-      return new Xform(rule, fn);
-    }
+// -------------------------------------------------------------------------------------------------
+// Xform class
+// -------------------------------------------------------------------------------------------------
+class Xform extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, xform_func) {
+    super();
+    this.xform_func = xform_func;
+    this.rule       = make_rule_func(rule);
   }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // Expected class
-  // -------------------------------------------------------------------------------------------------
-  class Expected extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, error_func = null) {
-      super();
-      this.rule       = make_rule_func(rule);
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.rule ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      const match_result = lm.indent(() => this.rule.match(input, index, cache));
-
-      if (! match_result) {
-        if (this.error_func)
-          throw this.error_func(this, input, index)
-        else 
-          throw new FatalParseError(`expected ${this.rule}`, input, index);
-      };
-
-      return match_result;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(visited) {
-      this.rule = this.__vivify(this.rule);    
-      lm.indent(() => this.rule.__finalize(visited))
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
-    }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.__vivify(this.rule).direct_children();
   }
-  // -------------------------------------------------------------------------------------------------
-  function expect(rule, error_func = null) { // convenience constructor
-    return new Expected(rule, error_func);
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(visited) {
+    this.rule = this.__vivify(this.rule);
+    lm.indent(() => this.rule.__finalize(visited));
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    const rule_match_result = lm.indent(() => this.rule.match(input, index, cache));
 
-  // -------------------------------------------------------------------------------------------------
-  // Unexpected class
-  // -------------------------------------------------------------------------------------------------
-  class Unexpected extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(rule, error_func = null) {
-      super();
-      this.rule       = make_rule_func(rule);
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.rule ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      const match_result = lm.indent(() => this.rule.match(input, index, cache));
-      
-      if (match_result) {
-        if (this.error_func) {
-          const err = this.error_func(this, input, index, match_result);
-          throw err instanceof Error ? err : new FatalParseError(err, input, index);
-        }
-        else {
-          throw new FatalParseError(`unexpected ${this.rule}`, input, index);
-        }
-      };
-      
-      return null; // new MatchResult(null, input, match_result.index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(visited) {
-      this.rule = this.__vivify(this.rule);    
-      lm.indent(() => this.rule.__finalize(visited));
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
-    }
+    if (! rule_match_result)
+      return null;
+
+    rule_match_result.value = this.xform_func(rule_match_result.value);
+
+    return rule_match_result
   }
-  // -------------------------------------------------------------------------------------------------
-  function unexpected(rule, error_func = null) { // convenience constructor
-    return new Unexpected(rule, error_func);
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `λ(${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
+    // return `λ${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}`;
   }
-  // -------------------------------------------------------------------------------------------------
+}
+// -------------------------------------------------------------------------------------------------
+function xform(...things) { // convenience constructor with magic
+  things = things.map(make_rule_func);
 
-  // -------------------------------------------------------------------------------------------------
-  // Fail class
-  // -------------------------------------------------------------------------------------------------
-  class Fail extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(error_func = null) {
-      super();
-      this.error_func = error_func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      throw this.error_func
-        ? this.error_func(this, index, input)
-        : new FatalParseError(`hit automatic failure Rule`, input, index);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `<FAIL!>`;
-    }
+  if (things[0] instanceof Rule ||
+      things[0] instanceof RegExp || 
+      typeof things[0] === "string" || 
+      things[0] instanceof ForwardReference) {
+    const fn   = pipe_funs(...things.slice(1));
+    const rule = things[0];
+
+    return new Xform(rule, fn);
   }
-  // -------------------------------------------------------------------------------------------------
-  function fail(error_func = null) { // convenience constructor
-    return new Fail(error_func);
+  else
+  {
+    const fn   = compose_funs(...things.slice(0, -1));
+    const rule = things[things.length - 1];
+
+    return new Xform(rule, fn);
   }
-  // -------------------------------------------------------------------------------------------------
+}
+// -------------------------------------------------------------------------------------------------
 
-  // // -------------------------------------------------------------------------------------------------
-  // // Tail class
-  // // -------------------------------------------------------------------------------------------------
-  // class Tail extends Rule {
-  //   // -----------------------------------------------------------------------------------------------
-  //   constructor(index, rule) {
-  //     super();
-  //     this.rule  = make_rule_func(rule);
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __direct_children() {
-  //     return [ this.rule ];
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __impl_finalize(indent, visited) {
-  //     this.rule = this.__vivify(this.rule);
-  //     this.rule.__finalize(indent + 1, visited);
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __match(input, index, cache) {
-  //     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-  //     if (! rule_match_result)
-  //       return null;
-
-  //     // I forget why I did this? Could be a bad idea?
-  //     const ret = rule_match_result.value.slice(1);
-
-  //     if (log_match_enabled)
-  //       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-  //           `${inspect_fun(ret)}`);
-
-  //     rule_match_result.value = ret;
-
-  //     return rule_match_result
-  //   }
-  //   // -----------------------------------------------------------------------------------------------
-  //   __impl_toString(visited, next_id, ref_counts) {
-  //     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-  //     return `CDR(${rule_str})`;
-  //   }
-  // }
-  // // -------------------------------------------------------------------------------------------------
-  // function tail(rule) { // convenience constructor
-  //   return new Tail(rule);
-  // }
-  // // =================================================================================================
-
-  // -------------------------------------------------------------------------------------------------
-  // TokenLabel class, this can probably be deleted soon?
-  // -------------------------------------------------------------------------------------------------
-  class TokenLabel extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(label) {
-      super();
-      this.label  = label;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      if (index_is_at_end_of_input(index, input))
-        return null;
-
-      let the_token = input[index];
-
-      if (the_token?.label != this.label)
-        return null;
-
-      return new MatchResult(the_token,
-                             input,
-                             index + 1) // always matches just 1 token.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `'${this.label}'`;
-    }
+// -------------------------------------------------------------------------------------------------
+// Expected class
+// -------------------------------------------------------------------------------------------------
+class Expected extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
   }
-  // -------------------------------------------------------------------------------------------------
-  function tok(label) { // convenience constructor
-    return new TokenLabel(label);
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
 
-  // -------------------------------------------------------------------------------------------------
-  // Literal class
-  // -------------------------------------------------------------------------------------------------
-  class Literal extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(string) {
-      super();
-      this.string  = string;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      if (index_is_at_end_of_input(index, input))
-        return null;
+    if (! match_result) {
+      if (this.error_func)
+        throw this.error_func(this, input, index)
+      else 
+        throw new FatalParseError(`expected ${this.rule}`, input, index);
+    };
 
-      if (! input.startsWith(this.string, index))
-        return null;
-
-      return new MatchResult(this.string,
-                             input,
-                             index + this.string.length)
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `'${this.string}'`;
-    }
+    return match_result;
   }
-  // -------------------------------------------------------------------------------------------------
-  function l(first_arg, second_arg) { // convenience constructor
-    if (second_arg)
-      return new Label(first_arg, new Literal(second_arg));
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(visited) {
+    this.rule = this.__vivify(this.rule);    
+    lm.indent(() => this.rule.__finalize(visited))
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `${this.__vivify(this.rule).__toString(visited, next_id)}!`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function expect(rule, error_func = null) { // convenience constructor
+  return new Expected(rule, error_func);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Unexpected class
+// -------------------------------------------------------------------------------------------------
+class Unexpected extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule, error_func = null) {
+    super();
+    this.rule       = make_rule_func(rule);
+    this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
     
-    return new Literal(first_arg);
+    if (match_result) {
+      if (this.error_func) {
+        const err = this.error_func(this, input, index, match_result);
+        throw err instanceof Error ? err : new FatalParseError(err, input, index);
+      }
+      else {
+        throw new FatalParseError(`unexpected ${this.rule}`, input, index);
+      }
+    };
+    
+    return null; // new MatchResult(null, input, match_result.index);
   }
-  // -------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(visited) {
+    this.rule = this.__vivify(this.rule);    
+    lm.indent(() => this.rule.__finalize(visited));
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `!${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)}!`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function unexpected(rule, error_func = null) { // convenience constructor
+  return new Unexpected(rule, error_func);
+}
+// -------------------------------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------------------------------
-  // Regex class
-  // -------------------------------------------------------------------------------------------------
-  class Regex extends Rule {
-    // -----------------------------------------------------------------------------------------------
-    constructor(regexp) {
-      super();
-      this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
-    }
-    // -----------------------------------------------------------------------------------------------
-    #ensure_RegExp_sticky_flag(regexp) {
-      // e.ensure_thing_has_class(RegExp, regexp);
+// -------------------------------------------------------------------------------------------------
+// Fail class
+// -------------------------------------------------------------------------------------------------
+class Fail extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(error_func = null) {
+    super();
+    this.error_func = error_func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    throw this.error_func
+      ? this.error_func(this, index, input)
+      : new FatalParseError(`hit automatic failure Rule`, input, index);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `<FAIL!>`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function fail(error_func = null) { // convenience constructor
+  return new Fail(error_func);
+}
+// -------------------------------------------------------------------------------------------------
 
-      return regexp.sticky
-        ? regexp
-        : new RegExp(regexp.source, regexp.flags + 'y');
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_finalize(indent, visited) {
-      // do nothing.
-    }
-    // -----------------------------------------------------------------------------------------------
-    __match(input, index, cache) {
-      this.regexp.lastIndex = index;
+// // -------------------------------------------------------------------------------------------------
+// // Tail class
+// // -------------------------------------------------------------------------------------------------
+// class Tail extends Rule {
+//   // -----------------------------------------------------------------------------------------------
+//   constructor(index, rule) {
+//     super();
+//     this.rule  = make_rule_func(rule);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __direct_children() {
+//     return [ this.rule ];
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_finalize(indent, visited) {
+//     this.rule = this.__vivify(this.rule);
+//     this.rule.__finalize(indent + 1, visited);
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __match(input, index, cache) {
+//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
 
+//     if (! rule_match_result)
+//       return null;
+
+//     // I forget why I did this? Could be a bad idea?
+//     const ret = rule_match_result.value.slice(1);
+
+//     if (log_match_enabled)
+//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
+//           `${inspect_fun(ret)}`);
+
+//     rule_match_result.value = ret;
+
+//     return rule_match_result
+//   }
+//   // -----------------------------------------------------------------------------------------------
+//   __impl_toString(visited, next_id, ref_counts) {
+//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
+//     return `CDR(${rule_str})`;
+//   }
+// }
+// // -------------------------------------------------------------------------------------------------
+// function tail(rule) { // convenience constructor
+//   return new Tail(rule);
+// }
+// // =================================================================================================
+
+// -------------------------------------------------------------------------------------------------
+// TokenLabel class, this can probably be deleted soon?
+// -------------------------------------------------------------------------------------------------
+class TokenLabel extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label) {
+    super();
+    this.label  = label;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    if (index_is_at_end_of_input(index, input))
+      return null;
+
+    let the_token = input[index];
+
+    if (the_token?.label != this.label)
+      return null;
+
+    return new MatchResult(the_token,
+                           input,
+                           index + 1) // always matches just 1 token.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `'${this.label}'`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function tok(label) { // convenience constructor
+  return new TokenLabel(label);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Literal class
+// -------------------------------------------------------------------------------------------------
+class Literal extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(string) {
+    super();
+    this.string  = string;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    if (index_is_at_end_of_input(index, input))
+      return null;
+
+    if (! input.startsWith(this.string, index))
+      return null;
+
+    return new MatchResult(this.string,
+                           input,
+                           index + this.string.length)
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `'${this.string}'`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function l(first_arg, second_arg) { // convenience constructor
+  if (second_arg)
+    return new Label(first_arg, new Literal(second_arg));
+  
+  return new Literal(first_arg);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// Regex class
+// -------------------------------------------------------------------------------------------------
+class Regex extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(regexp) {
+    super();
+    this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
+  }
+  // -----------------------------------------------------------------------------------------------
+  #ensure_RegExp_sticky_flag(regexp) {
+    // e.ensure_thing_has_class(RegExp, regexp);
+
+    return regexp.sticky
+      ? regexp
+      : new RegExp(regexp.source, regexp.flags + 'y');
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(indent, visited) {
+    // do nothing.
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    this.regexp.lastIndex = index;
+
+    if (log_match_enabled)
+      lm.indent(() => lm.log(() => `testing /${this.regexp.source}/ at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
+
+    const re_match = this.regexp.exec(input);
+    
+    if (! re_match) {
       if (log_match_enabled)
-        lm.indent(() => lm.log(() => `testing /${this.regexp.source}/ at char #${index}: ` +
-                               `'${abbreviate(input.substring(index))}'`));
+        lm.indent(() => lm.log(() => `regex did not match`));
+      return null;
+    }
 
-      const re_match = this.regexp.exec(input);
-      
-      if (! re_match) {
-        if (log_match_enabled)
-          lm.indent(() => lm.log(() => `regex did not match`));
-        return null;
+    return new MatchResult(re_match[re_match.length - 1],
+                           input,
+                           index + re_match[0].length);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `/${this.regexp.source}/`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function r_raw(strings, ...values) { // convenience constructor
+  const regexp = RegExp_raw(strings, ...values);
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
+function r(regexp) { // convenience constructor
+  return new Regex(regexp);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// ForwardReference class, possibly delete this.
+// -------------------------------------------------------------------------------------------------
+class ForwardReference {
+  // -----------------------------------------------------------------------------------------------
+  constructor(func) {
+    this.func = func;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.func() ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __toString() {
+    return "???";
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString() {
+    return "???";
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const ref = (func) => new ForwardReference(func);
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// LabeledValue class
+// -------------------------------------------------------------------------------------------------
+class LabeledValue {
+  // -----------------------------------------------------------------------------------------------
+  constructor(label, value) {
+    this.label  = label;
+    this.value  = value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// MatchResult class
+// -------------------------------------------------------------------------------------------------
+class MatchResult {
+  // -----------------------------------------------------------------------------------------------
+  constructor(value, input, index) {
+    this.value       = value;
+    this.index       = index; // a number.
+    this.is_finished = index == input.length; 
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
+// helper functions and related vars:
+// -------------------------------------------------------------------------------------------------
+function abbreviate(str, normalize_newlines = true, len = 100) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
+
+  // Normalize all newlines first
+  if (normalize_newlines)
+    str = str.replace(/\r?\n/g, '\\n');
+
+  // str = compress(str);
+  
+  if (str.length < len)
+    return str;
+
+  const bracing_pairs = [
+    ['/',  '/'],
+    ['(',  ')'],
+    ['[',  ']'],
+    ['{',  '}'],
+    ['<',  '>'],
+    ['\'', '\''],
+    ['\"', '\"'],
+    ['λ(', ')'],
+  ];
+
+  for (const [left, right] of bracing_pairs) {
+    if (str.startsWith(left) && str.endsWith(right)) {
+      const inner = str.substring(left.length, len - 3 - right.length);
+      return `${left}${inner.trim()}...${right}`;
+    }
+  }
+
+  return `${str.substring(0, len - 3).trim()}...`;
+}
+// -------------------------------------------------------------------------------------------------
+function compress(str) {
+  if (typeof str !== 'string')
+    throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
+  
+  return str.replace(/\s+/g, ' ');
+}
+// -------------------------------------------------------------------------------------------------
+function index_is_at_end_of_input(index, input) {
+  return index == input.length
+}
+// // -------------------------------------------------------------------------------------------------
+// function log(indent, str = "", indent_str = "| ") {
+//   if (! log_enabled)
+//     return;
+
+//   lm.log(() => `${indent_str.repeat(indent)}${str}`);
+// }
+// -------------------------------------------------------------------------------------------------
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
+  lm.log(() => char.repeat(width));
+}
+LOG_LINE.line_width = 100;
+// -------------------------------------------------------------------------------------------------
+function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
+  if (typeof thing === 'string')
+    return new Literal(thing);
+  else if (thing instanceof RegExp)
+    return new Regex(thing);
+  else
+    return thing;
+}
+// -------------------------------------------------------------------------------------------------
+function maybe_make_TokenLabel_from_string(thing) {
+  if (typeof thing === 'string')
+    return new TokenLabel(thing);
+
+  return thing
+}
+// -------------------------------------------------------------------------------------------------
+let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
+// -------------------------------------------------------------------------------------------------
+function compose_funs(...fns) {
+  return fns.length === 0
+    ? x => x
+    : pipe_funs(...[...fns].reverse());
+}
+// -------------------------------------------------------------------------------------------------
+function pipe_funs(...fns) {
+  if (fns.length === 0)
+    return x => x;
+  else if (fns.length === 1)
+    return fns[0];
+
+  const [head, ...rest] = fns;
+
+  return rest.reduce((acc, fn) => x => fn(acc(x)), head);
+}
+// =================================================================================================
+// END OF GRAMMAR.JS CONTENT SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// Whitespace combinators, these should go somewhere else?
+// =================================================================================================
+const prettify_whitespace_combinators = true;
+// =================================================================================================
+
+// =================================================================================================
+const lws0                = rule => {
+  rule = second(seq(whites_star, rule));
+  
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
+      return `LWS0(${rule_str})`;
+    }
+  }
+
+  return rule;
+};
+const tws0                = rule => { 
+  rule = first(seq(rule, whites_star));
+
+  if (prettify_whitespace_combinators) {
+    rule.__impl_toString = function(visited, next_id, ref_counts) {
+      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
+      return `TWS0(${rule_str})`;
+    }
+  }
+  
+  return rule;
+};
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
+  let klass = {
+    [class_name_str]: class extends Rule {
+      // -------------------------------------------------------------------------------------------
+      constructor(rule) {
+        super();
+        this.base_rule = make_rule_func(rule);
+        this.rule = builder(this.base_rule);
       }
-
-      return new MatchResult(re_match[re_match.length - 1],
-                             input,
-                             index + re_match[0].length);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString(visited, next_id, ref_counts) {
-      return `/${this.regexp.source}/`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function r_raw(strings, ...values) { // convenience constructor
-    const regexp = RegExp_raw(strings, ...values);
-    return new Regex(regexp);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function r(regexp) { // convenience constructor
-    return new Regex(regexp);
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // ForwardReference class, possibly delete this.
-  // -------------------------------------------------------------------------------------------------
-  class ForwardReference {
-    // -----------------------------------------------------------------------------------------------
-    constructor(func) {
-      this.func = func;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.func() ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    __toString() {
-      return "???";
-    }
-    // -----------------------------------------------------------------------------------------------
-    __impl_toString() {
-      return "???";
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  const ref = (func) => new ForwardReference(func);
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // LabeledValue class
-  // -------------------------------------------------------------------------------------------------
-  class LabeledValue {
-    // -----------------------------------------------------------------------------------------------
-    constructor(label, value) {
-      this.label  = label;
-      this.value  = value;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // MatchResult class
-  // -------------------------------------------------------------------------------------------------
-  class MatchResult {
-    // -----------------------------------------------------------------------------------------------
-    constructor(value, input, index) {
-      this.value       = value;
-      this.index       = index; // a number.
-      this.is_finished = index == input.length; 
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------------------------------
-  // helper functions and related vars:
-  // -------------------------------------------------------------------------------------------------
-  function abbreviate(str, normalize_newlines = true, len = 100) {
-    if (typeof str !== 'string')
-      throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
-
-    // Normalize all newlines first
-    if (normalize_newlines)
-      str = str.replace(/\r?\n/g, '\\n');
-
-    // str = compress(str);
-    
-    if (str.length < len)
-      return str;
-
-    const bracing_pairs = [
-      ['/',  '/'],
-      ['(',  ')'],
-      ['[',  ']'],
-      ['{',  '}'],
-      ['<',  '>'],
-      ['\'', '\''],
-      ['\"', '\"'],
-      ['λ(', ')'],
-    ];
-
-    for (const [left, right] of bracing_pairs) {
-      if (str.startsWith(left) && str.endsWith(right)) {
-        const inner = str.substring(left.length, len - 3 - right.length);
-        return `${left}${inner.trim()}...${right}`;
+      // -------------------------------------------------------------------------------------------
+      __direct_children() {
+        return [this.rule];
       }
-    }
-
-    return `${str.substring(0, len - 3).trim()}...`;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function compress(str) {
-    if (typeof str !== 'string')
-      throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
-    
-    return str.replace(/\s+/g, ' ');
-  }
-  // -------------------------------------------------------------------------------------------------
-  function index_is_at_end_of_input(index, input) {
-    return index == input.length
-  }
-  // // -------------------------------------------------------------------------------------------------
-  // function log(indent, str = "", indent_str = "| ") {
-  //   if (! log_enabled)
-  //     return;
-
-  //   lm.log(() => `${indent_str.repeat(indent)}${str}`);
-  // }
-  // -------------------------------------------------------------------------------------------------
-  function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-    lm.log(() => char.repeat(width));
-  }
-  LOG_LINE.line_width = 100;
-  // -------------------------------------------------------------------------------------------------
-  function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
-    if (typeof thing === 'string')
-      return new Literal(thing);
-    else if (thing instanceof RegExp)
-      return new Regex(thing);
-    else
-      return thing;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function maybe_make_TokenLabel_from_string(thing) {
-    if (typeof thing === 'string')
-      return new TokenLabel(thing);
-
-    return thing
-  }
-  // -------------------------------------------------------------------------------------------------
-  let make_rule_func = maybe_make_RE_or_Literal_from_Regexp_or_string
-  // -------------------------------------------------------------------------------------------------
-  function compose_funs(...fns) {
-    return fns.length === 0
-      ? x => x
-      : pipe_funs(...[...fns].reverse());
-  }
-  // -------------------------------------------------------------------------------------------------
-  function pipe_funs(...fns) {
-    if (fns.length === 0)
-      return x => x;
-    else if (fns.length === 1)
-      return fns[0];
-
-    const [head, ...rest] = fns;
-
-    return rest.reduce((acc, fn) => x => fn(acc(x)), head);
-  }
-  // =================================================================================================
-  // END OF GRAMMAR.JS CONTENT SECTION.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // Whitespace combinators, these should go somewhere else?
-  // =================================================================================================
-  const prettify_whitespace_combinators = true;
-  // =================================================================================================
-
-  // =================================================================================================
-  const lws0                = rule => {
-    rule = second(seq(whites_star, rule));
-    
-    if (prettify_whitespace_combinators) {
-      rule.__impl_toString = function(visited, next_id, ref_counts) {
-        const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-        return `LWS0(${rule_str})`;
+      // -------------------------------------------------------------------------------------------
+      __impl_finalize(indent, visited) {
+        this.rule = this.__vivify(this.rule);
+        lm.indent(() => this.rule.__finalize(visited))
+        this.base_rule = this.__vivify(this.base_rule);
+        lm.indent(() => this.base_rule.__finalize(visited));
       }
-    }
-
-    return rule;
-  };
-  const tws0                = rule => { 
-    rule = first(seq(rule, whites_star));
-
-    if (prettify_whitespace_combinators) {
-      rule.__impl_toString = function(visited, next_id, ref_counts) {
-        const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-        return `TWS0(${rule_str})`;
+      // -------------------------------------------------------------------------------------------
+      __match(input, index, cache) {
+        return lm.indent(() => this.rule.match(input, index, cache));
       }
-    }
-    
-    return rule;
-  };
-  // =================================================================================================
-
-
-  // =================================================================================================
-  function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
-    let klass = {
-      [class_name_str]: class extends Rule {
-        // -------------------------------------------------------------------------------------------
-        constructor(rule) {
-          super();
-          this.base_rule = make_rule_func(rule);
-          this.rule = builder(this.base_rule);
-        }
-        // -------------------------------------------------------------------------------------------
-        __direct_children() {
-          return [this.rule];
-        }
-        // -------------------------------------------------------------------------------------------
-        __impl_finalize(indent, visited) {
-          this.rule = this.__vivify(this.rule);
-          lm.indent(() => this.rule.__finalize(visited))
-          this.base_rule = this.__vivify(this.base_rule);
-          lm.indent(() => this.base_rule.__finalize(visited));
-        }
-        // -------------------------------------------------------------------------------------------
-        __match(input, index, cache) {
-          return lm.indent(() => this.rule.match(input, index, cache));
-        }
-        // -------------------------------------------------------------------------------------------
-        __impl_toString(visited, next_id, ref_counts) {
-          if (typeof this.base_rule.__toString !== 'function')
-            throw new Error(inspect_fun(this));
-          
-          return prettify_whitespace_combinators
-            ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
-            : this.base_rule.toString();
-        }
-      }
-    }[class_name_str];
-
-    let factory_fun = (rule, noisy = false) => {
-      if (noisy)
-        throw new Error('noisy bomb');
-      
-      rule = make_rule_func(rule);
-
-      let stringified_rule = null;
-
-      try {
-        stringified_rule = 
-          dt_hosted && typeof rule === 'function'
-          ? 'function'
-          : abbreviate(compress(inspect_fun(rule)));
-      }
-      catch (err) {
-        if (!dt_hosted)
-          throw err;
+      // -------------------------------------------------------------------------------------------
+      __impl_toString(visited, next_id, ref_counts) {
+        if (typeof this.base_rule.__toString !== 'function')
+          throw new Error(inspect_fun(this));
         
-        stringified_rule = '<unprintable>';
+        return prettify_whitespace_combinators
+          ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
+          : this.base_rule.toString();
       }
+    }
+  }[class_name_str];
 
-      if (!rule) {
-        if (noisy)
-          lm.log(() => `return original null rule ${stringified_rule}`);
-        return rule;
-      }
+  let factory_fun = (rule, noisy = false) => {
+    if (noisy)
+      throw new Error('noisy bomb');
+    
+    rule = make_rule_func(rule);
 
-      if (typeof rule === 'function') {
-        if (noisy)
-          lm.log(() => `return klassed function ${stringified_rule}`);
-        return new klass(rule);
-      }
+    let stringified_rule = null;
+
+    try {
+      stringified_rule = 
+        dt_hosted && typeof rule === 'function'
+        ? 'function'
+        : abbreviate(compress(inspect_fun(rule)));
+    }
+    catch (err) {
+      if (!dt_hosted)
+        throw err;
       
-      if (rule instanceof klass) {
-        if (noisy)
-          lm.log(() => `return original klassed rule ${stringified_rule}`);
-        return rule;
-      }
-      
-      if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-        if (noisy)
-          lm.log(() => `return original rule ${stringified_rule}`);
-        return rule;
-      }
+      stringified_rule = '<unprintable>';
+    }
 
+    if (!rule) {
       if (noisy)
-        lm.log(() => `return klassed ${stringified_rule}`);
-      
+        lm.log(() => `return original null rule ${stringified_rule}`);
+      return rule;
+    }
+
+    if (typeof rule === 'function') {
+      if (noisy)
+        lm.log(() => `return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
-    return [ klass, factory_fun ];
-  }
-  // -------------------------------------------------------------------------------------------------
-  const [ WithLWS, lws1 ] =
-        make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
-  const [ WithTWS, tws1 ] =
-        make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
-  // =================================================================================================
-
-
-  // =================================================================================================
-  function make_whitespace_decorator0(name, builder, extractor) {
-    return rule => {
-      const built = builder(rule);
-
-      if (prettify_whitespace_combinators)
-        built.__impl_toString = function(visited, next_id, ref_counts) {
-          const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
-          return `${name}(${rule_str})`;
-        };
-
-      return built;
+    if (rule instanceof klass) {
+      if (noisy)
+        lm.log(() => `return original klassed rule ${stringified_rule}`);
+      return rule;
     }
-  }
-  // -------------------------------------------------------------------------------------------------
-  const lws2 = make_whitespace_decorator0("LWS2",
-                                          rule => second(seq(whites_star, rule)),
-                                          rule => rule.elements[1]  // your original form
-                                         );
-  const tws2 = make_whitespace_decorator0("TWS2",
-                                          rule => first(seq(rule, whites_star)),
-                                          rule => rule.elements[0]
-                                         );
-  // =================================================================================================
-
-
-  // =================================================================================================
-  function make_whitespace_decorator1(name, builder) {
-    const tag = Symbol(name);
     
-    return function (rule) {
-      rule = make_rule_func(rule);
+    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
+      if (noisy)
+        lm.log(() => `return original rule ${stringified_rule}`);
+      return rule;
+    }
 
-      if (!rule) return rule;
-
-      if (rule[tag]) return rule;
-      
-      if (rule instanceof Rule  &&
-          rule.direct_children().length > 0 &&
-          rule.direct_children().every(x => x[tag]))
-        return rule;
-      
-      const built = builder(rule);
-      built[tag] = true;
-
-      if (prettify_whitespace_combinators)
-        built.__impl_toString = function(visited, next_id, ref_counts) {
-          return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-        };
-
-      return built;
-    };
-  }
-  // -------------------------------------------------------------------------------------------------
-  const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
-  const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
-  // =================================================================================================
-
-
-  // =================================================================================================
-  function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
-    const tag = Symbol(name);
-
-    const decorate = function (rule) {
-      rule = make_rule_func(rule);
-
-      if (!rule)
-        return rule;
-
-      if (rule[tag])
-        return rule;
-
-      // Unwrap if Choice of tagged rules
-      if (rule instanceof Choice &&
-          rule.options.every(option => option[tag])) {
-        const unwrapped_options = rule.options.map(option => option.__original_rule || option);
-        const rebuilt_choice = new Choice(...unwrapped_options);
-        
-        // lm.log(() => `constructed ${inspect_fun(rebuilt_choice)}`);
-        const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-        // lm.log(() => `decorated ${inspect_fun(decorated)}`);
-        return decorated;
-      }
-
-      if (rule instanceof Sequence) {
-        if (elem_index == 1 &&
-            rule.elements[0][tag])
-          return rule;
-        else if (elem_index == 0 &&
-                 rule.elements[rule.elements.length - 1][tag])
-          return rule;
-      }
-      
-      if (rule instanceof Rule &&
-          rule.direct_children().length > 0 &&
-          rule.direct_children().every(x => x[tag]))
-        return rule;
-
-      const builder = elem_index == 0 ? first : second;
-      
-      const built = builder(elem_index == 0
-                            ? seq(rule, whitespace_rule)
-                            : seq(whitespace_rule, rule));
-      
-      built[tag] = true;
-      built.__original_rule = rule;
-
-      // if (prettify_whitespace_combinators)
-      //   built.__impl_toString = function(visited, next_id, ref_counts) {
-      //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-      //   };
-
-      // if (prettify_whitespace_combinators)
-      //   built.__impl_toString = function(visited, next_id, ref_counts) {
-      //     if (typeof this.__toString !== 'function')
-      //       lm.log(() => `suspiciousa: ${inspect_fun(this)}`);
-      //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
-      //   };
-
-      return built;
-    };
-
-    return decorate;
-  }
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // COMMON-GRAMMAR.JS CONTENT SECTION:
-  // =================================================================================================
-  // Code in this section originally copy/pasted from the common-grammar.js file in my
-  // 'jparse' project circa ac2979f but updated since
-  // 
-  // Not all of this section is actually used by the wildcards-plus script right 
-  // now, but it's easier to just copy/paste in the whole file than it is to
-  // bother working out which parts can be removed and snipping them out, and who
-  // knows, maybe I'll use more of it in the future.
-  // 
-  // Original project at: https://github.com/ariane-emory/jparse/
-  // =================================================================================================
-  // Convenient Rules/combinators for common terminals and constructs:
-  // =================================================================================================
-  const STOP = expect(never_match);
-  STOP.abbreviate_str_repr("STOP");
-  // -------------------------------------------------------------------------------------------------
-  // whitespace:
-  const whites_star        = r(/\s*/);
-  const whites_plus        = r(/\s+/);
-  const hwhites_star       = r(/[ \t]*/);
-  const hwhites_plus       = r(/[ \t]+/);
-  // whites_star.memoize = false;
-  // whites_plus.memoize = false;
-  whites_star.abbreviate_str_repr('whites*');
-  whites_plus.abbreviate_str_repr('whites+');
-  hwhites_star.abbreviate_str_repr('hwhites*');
-  hwhites_plus.abbreviate_str_repr('hwhites+');
-  // -------------------------------------------------------------------------------------------------
-  const lws = make_whitespace_decorator2("LWS", 1, whites_star);
-  const tws = make_whitespace_decorator2("TWS", 0, whites_star);
-  const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
-  const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
-  // -------------------------------------------------------------------------------------------------
-  // whitespace tolerant combinators:
-  // -------------------------------------------------------------------------------------------------
-  const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
-        ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
-  const make_wst_seq_combinator = (base_combinator, lws_rule) =>
-        //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
-        (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
-  // -------------------------------------------------------------------------------------------------
-  const wst_choice      = (...options) => lws(choice(...options));
-  const wst_star        = make_wst_quantified_combinator(star, lws);
-  const wst_plus        = make_wst_quantified_combinator(plus, lws);
-  const wst_seq         = make_wst_seq_combinator(seq, lws);
-  const wst_enc         = make_wst_seq_combinator(enc, lws);
-  const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
-  const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
-  const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
-  const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
-  const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
-  const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
-  // -------------------------------------------------------------------------------------------------
-  const hwst_choice      = (...options) => lws(choice(...options));
-  const hwst_star        = make_wst_quantified_combinator(star, lhws);
-  const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
-  const hwst_seq         = make_wst_seq_combinator(seq, lhws);
-  const hwst_enc         = make_wst_seq_combinator(enc, lhws);
-  const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
-  const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
-  const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
-  const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
-  const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
-  const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
-  // -------------------------------------------------------------------------------------------------
-  // simple 'words':
-  // -------------------------------------------------------------------------------------------------
-  const alpha_snake             = r(/[a-zA-Z_]+/);
-  const lc_alpha_snake          = r(/[a-z_]+/);
-  const uc_alpha_snake          = r(/[A-Z_]+/);
-  alpha_snake.abbreviate_str_repr('alpha_snake');
-  lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
-  uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
-  // -------------------------------------------------------------------------------------------------
-  // leading/trailing whitespace:
-  // -------------------------------------------------------------------------------------------------
-  // common numbers:
-  const udecimal           = r(/\d+\.\d+/);
-  const urational          = r(/\d+\/[1-9]\d*/);
-  const uint               = r(/\d+/);
-  const sdecimal           = r(/[+-]?\d+\.\d+/);
-  const srational          = r(/[+-]?\d+\/[1-9]\d*/);
-  const sint               = r(/[+-]?\d+/)
-  udecimal.abbreviate_str_repr('udecimal');
-  urational.abbreviate_str_repr('urational');
-  uint.abbreviate_str_repr('uint');
-  sdecimal.abbreviate_str_repr('sdecimal');
-  srational.abbreviate_str_repr('srational');
-  sint.abbreviate_str_repr('sint');
-  // -------------------------------------------------------------------------------------------------
-  // common separated quantified rules:
-  const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
-  const plus_comma_sep     = rule => plus(rule, /\s*\,\s*/);
-  const star_whites_sep    = rule => star(rule, whites_plus);
-  const plus_whites_sep    = rule => plus(rule, whites_plus);
-  // -------------------------------------------------------------------------------------------------
-  // string-like terminals:
-  const stringlike         = quote => r_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`;
-  const dq_string          = stringlike('"');
-  const raw_dq_string      = r(/r"[^"]*"/);
-  const sq_string          = stringlike("'");
-  const template_string    = r(/`(?:[^\\`]|\\.)*`/);
-  const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
-  dq_string.abbreviate_str_repr('dq_string');
-  raw_dq_string.abbreviate_str_repr('raw_dq_string');
-  sq_string.abbreviate_str_repr('sq_string');
-  template_string.abbreviate_str_repr('template_string');
-  triple_dq_string.abbreviate_str_repr('triple_dq_string');
-  // -------------------------------------------------------------------------------------------------
-  // keyword helper:
-  const keyword            = word => {
-    if (word instanceof Regex)
-      return keyword(word.regexp);
-
-    if (word instanceof RegExp)
-      return keyword(word.source);
+    if (noisy)
+      lm.log(() => `return klassed ${stringified_rule}`);
     
-    return r(RegExp_raw(`\b${word}\b`));
+    return new klass(rule);
+  }
+  
+  return [ klass, factory_fun ];
+}
+// -------------------------------------------------------------------------------------------------
+const [ WithLWS, lws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
+const [ WithTWS, tws1 ] =
+      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator0(name, builder, extractor) {
+  return rule => {
+    const built = builder(rule);
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
+        return `${name}(${rule_str})`;
+      };
+
+    return built;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const lws2 = make_whitespace_decorator0("LWS2",
+                                        rule => second(seq(whites_star, rule)),
+                                        rule => rule.elements[1]  // your original form
+                                       );
+const tws2 = make_whitespace_decorator0("TWS2",
+                                        rule => first(seq(rule, whites_star)),
+                                        rule => rule.elements[0]
+                                       );
+// =================================================================================================
+
+
+// =================================================================================================
+function make_whitespace_decorator1(name, builder) {
+  const tag = Symbol(name);
+  
+  return function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule) return rule;
+
+    if (rule[tag]) return rule;
+    
+    if (rule instanceof Rule  &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
+    
+    const built = builder(rule);
+    built[tag] = true;
+
+    if (prettify_whitespace_combinators)
+      built.__impl_toString = function(visited, next_id, ref_counts) {
+        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+      };
+
+    return built;
   };
-  // -------------------------------------------------------------------------------------------------
-  // parenthesis-like terminals:
-  const gt                 = l('>');
-  const rtri               = l('>');
-  const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-  const lpar               = l('(');
-  const lsqr               = l('[]'[0]);
-  const lt                 = l('<');
-  const ltri               = l('<');
-  const rbrc               = l('{}'[1]);
-  const rpar               = l(')');
-  const rsqr               = l('[]'[1]);
-  gt.abbreviate_str_repr('gt');
-  lbrc.abbreviate_str_repr('lbrc');
-  lpar.abbreviate_str_repr('lpar');
-  lsqr.abbreviate_str_repr('lsqr');
-  lt.abbreviate_str_repr('lt');
-  ltri.abbreviate_str_repr('ltri');
-  rbrc.abbreviate_str_repr('rbrc');
-  rpar.abbreviate_str_repr('rpar');
-  rsqr.abbreviate_str_repr('rsqr');
-  rtri.abbreviate_str_repr('rtri');
-  // -------------------------------------------------------------------------------------------------
-  // common enclosed rules:
-  const par_enc            = rule => cutting_enc(lpar, rule, rpar);
-  const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
-  const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
-  const tri_enc            = rule => cutting_enc(lt,   rule, gt);
-  // const wse                = rule => enc(whites_star, rule, whites_star);
-  // const wse                = rule => {
-  //   rule = enc(whites_star, rule, whites_star);
-
-  //   rule.__impl_toString = function(visited, next_id, ref_counts) {
-  //     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
-  //     return `WSE(${rule_str})`;
-  //   }
-
-  //   return rule;
-  // };
-  // -------------------------------------------------------------------------------------------------
-  // basic arithmetic ops:
-  const factor_op          = r(/[\/\*\%]/);
-  const term_op            = r(/[\+\-]/);
-  factor_op.abbreviate_str_repr('factor_op');
-  term_op.abbreviate_str_repr('term_op');
-  // -------------------------------------------------------------------------------------------------
-  // Pascal-like terminals:
-  const pascal_assign_op   = l('=');
-  pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
-  // -------------------------------------------------------------------------------------------------
-  // Python-like terminals:
-  const python_exponent_op = l('**');
-  const python_logic_word  = r(/and|or|not|xor/);
-  python_exponent_op.abbreviate_str_repr('python_exponent_op');
-  python_logic_word.abbreviate_str_repr('python_logic_word');
-  // -------------------------------------------------------------------------------------------------
-  // common punctuation:
-  const at                 = l('@');
-  const ampersand          = l('&');
-  const asterisk           = l('*');
-  const bang               = l('!');
-  const bslash             = l('\\');
-  const caret              = l('^');
-  const colon              = l(':');
-  const comma              = l(',');
-  const dash               = l('-');
-  const dash_arrow         = l('->');
-  const dollar             = l('$');
-  const dot                = l('.');
-  const ellipsis           = l('...');
-  const equals             = l('=');
-  const equals_arrow       = l('=>');
-  const hash               = l('#');
-  const decr_equals        = l('-=');
-  const plus_equals        = l('+=');
-  const percent            = l('%');
-  const pipe               = l('|');
-  const pound              = l('#');
-  const question           = l('?');
-  const range              = l('..');
-  const semicolon          = l(';');
-  const shebang            = l('#!');
-  const slash              = l('/');
-  ampersand.abbreviate_str_repr('ampersand');
-  at.abbreviate_str_repr('at');
-  asterisk.abbreviate_str_repr('asterisk');
-  bang.abbreviate_str_repr('bang');
-  bslash.abbreviate_str_repr('bslash');
-  caret.abbreviate_str_repr('caret');
-  colon.abbreviate_str_repr('colon');
-  comma.abbreviate_str_repr('comma');
-  dash.abbreviate_str_repr('dash');
-  dash_arrow.abbreviate_str_repr('dash_arrow');
-  decr_equals.abbreviate_str_repr('decr_equals');
-  plus_equals.abbreviate_str_repr('plus_equals');
-  dollar.abbreviate_str_repr('dollar');
-  dot.abbreviate_str_repr('dot');
-  ellipsis.abbreviate_str_repr('ellipsis');
-  equals_arrow.abbreviate_str_repr('eq_arrow');
-  equals.abbreviate_str_repr('equals');
-  hash.abbreviate_str_repr('hash');
-  percent.abbreviate_str_repr('percent');
-  pipe.abbreviate_str_repr('pipe');
-  pound.abbreviate_str_repr('pound');
-  question.abbreviate_str_repr('question');
-  range.abbreviate_str_repr('range');
-  semicolon.abbreviate_str_repr('semicolon');
-  shebang.abbreviate_str_repr('shebang');
-  slash.abbreviate_str_repr('slash');
-  // -------------------------------------------------------------------------------------------------
-  // C-like numbers:
-  const c_bin              = r(/0b[01]/);
-  const c_char             = r(/'\\?[^\']'/);
-  const c_hex              = r(/0x[0-9a-f]+/);
-  const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
-  const c_octal            = r(/0o[0-7]+/);
-  const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-  const c_sint             = r(/[+-]?\d+/)
-  const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
-  const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-  const c_uint             = r(/\d+/);
-  const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
-  c_bin                    .abbreviate_str_repr('c_bin');
-  c_char                   .abbreviate_str_repr('c_char');
-  c_hex                    .abbreviate_str_repr('c_hex');
-  c_ident                  .abbreviate_str_repr('c_ident');
-  c_octal                  .abbreviate_str_repr('c_octal');
-  c_sfloat                 .abbreviate_str_repr('c_sfloat');
-  c_sint                   .abbreviate_str_repr('c_sint');
-  c_snumber                .abbreviate_str_repr('c_snumber');
-  c_ufloat                 .abbreviate_str_repr('c_ufloat');
-  c_uint                   .abbreviate_str_repr('c_uint');
-  // -------------------------------------------------------------------------------------------------
-  // other C-like terminals:
-  const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
-  const c_bitwise_and      = l('&');
-  const c_bitwise_bool_op  = r(/&&|\|\|/);
-  const c_bitwise_not      = l('~');
-  const c_bitwise_or       = l('|');
-  const c_bitwise_xor      = l('^');
-  const c_bool             = choice('true', 'false');
-  const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
-  const c_incr_decr        = r(/\+\+|--/);
-  const c_shift            = r(/<<|>>/);
-  const c_shift_assign     = r(/<<=|>>=/);
-  const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
-  c_arith_assign           .abbreviate_str_repr('c_arith_assign');
-  c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
-  c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
-  c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
-  c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
-  c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
-  c_bool                   .abbreviate_str_repr('c_bool');
-  c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
-  c_incr_decr              .abbreviate_str_repr('c_incr_decr');
-  c_shift                  .abbreviate_str_repr('c_shift');
-  c_shift_assign           .abbreviate_str_repr('c_shift_assign');
-  c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
-  // -------------------------------------------------------------------------------------------------
-  // dotted chains:
-  const dot_chained        = rule => plus(rule, dot); 
-  // -------------------------------------------------------------------------------------------------
-  // common comment styles:
-  const c_block_comment    = r(/\/\*[^]*?\*\//);
-  const c_comment          = choice(() => c_line_comment,
-                                    () => c_block_comment);
-  const c_line_comment     = r(/\/\/[^\n]*/);
-  const py_line_comment    = r(/#[^\n]*/); 
-  c_block_comment          .abbreviate_str_repr('c_block_comment');
-  c_comment                .abbreviate_str_repr('c_comment');
-  c_line_comment           .abbreviate_str_repr('c_line_comment');
-  py_line_comment          .abbreviate_str_repr('py_line_comment');
-  // -------------------------------------------------------------------------------------------------
-  // ternary helper combinator:
-  const ternary            =
-        ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
-          xform(seq(cond_rule, question, then_rule, colon, else_rule),
-                arr => [ arr[0], arr[2], arr[4] ]));
-  // -------------------------------------------------------------------------------------------------
-  // misc unsorted Rules:
-  const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
-  kebab_ident.abbreviate_str_repr('kebab_ident');
-  // -------------------------------------------------------------------------------------------------
-  // C-like function calls:
-  const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
-        seq(fun_rule,
-            wst_cutting_enc(open,
-                            wst_star(arg_rule, sep),
-                            close));
-  // -------------------------------------------------------------------------------------------------
-  // convenience combinators:
-  // -------------------------------------------------------------------------------------------------
-  const head          = (...rules) => first(seq(...rules));
-  const cadr          = (...rules) => second(seq(...rules));
-  const wst_cadr      = (...rules) => second(wst_seq(...rules));
-  const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
-  const cutting_head  = (...rules) => first(cutting_seq(...rules));
-  const push          = ((value, rule) =>
-    xform(rule, arr => [value, ...arr]));
-  const enclosing     = (left, enclosed, right) =>
-        xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
-  // =================================================================================================
-  // END of COMMON-GRAMMAR.JS CONTENT SECTION.
-  // =================================================================================================
+}
+// -------------------------------------------------------------------------------------------------
+const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
+const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
+// =================================================================================================
 
 
-  // =================================================================================================
-  // BASIC JSON GRAMMAR SECTION:
-  // =================================================================================================
-  const make_JsonArray_rule = value_rule => 
-        wst_cutting_enc(lsqr,
-                        wst_star(value_rule,
-                                 comma),
-                        rsqr);
-  // -------------------------------------------------------------------------------------------------
-  // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
-  const Json = choice(() => JsonObject,
-                      () => JsonArray,
-                      () => json_number,
-                      () => json_string,
-                      () => json_true,
-                      () => json_false,
-                      () => json_null);
-  // Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
-  const JsonObject = xform(arr =>  Object.fromEntries(arr), 
-                           wst_cutting_enc(lbrc,
-                                           wst_star(
-                                             xform(arr => [arr[0], arr[2]],
-                                                   wst_seq(() => json_string, colon, Json)),
-                                             comma),
-                                           rbrc));
-  // Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
-  const JsonArray = make_JsonArray_rule(Json);
+// =================================================================================================
+function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
+  const tag = Symbol(name);
 
-  // String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
-  const json_string = xform(JSON.parse,
-                            /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
-  // UnicodeEscape ← "u" [0-9A-Fa-f]{4}
-  const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
-  // Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
-  const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
-  // True ← "true"
-  const json_true = xform(x => true, /true\b/);
-  // False ← "false"
-  const json_false = xform(x => false, /false\b/);
-  // Null ← "null"
-  const json_null = xform(x => null, /null\b/);
-  // Minus ← "-"
-  const json_minus = l('-');
-  // IntegralPart ← "0" / [1-9] [0-9]*
-  const json_integralPart = r(/0|[1-9][0-9]*/);
-  // FractionalPart ← "." [0-9]+
-  const json_fractionalPart = r(/\.[0-9]+/);
-  // ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
-  const json_exponentPart = r(/[eE][+-]?\d+/);
-  // Number ← Minus? IntegralPart FractionalPart? ExponentPart?
-  const reify_json_number = arr => {
-    // lm.log(() => `REIFY ${inspect_fun(arr)}`);
+  const decorate = function (rule) {
+    rule = make_rule_func(rule);
+
+    if (!rule)
+      return rule;
+
+    if (rule[tag])
+      return rule;
+
+    // Unwrap if Choice of tagged rules
+    if (rule instanceof Choice &&
+        rule.options.every(option => option[tag])) {
+      const unwrapped_options = rule.options.map(option => option.__original_rule || option);
+      const rebuilt_choice = new Choice(...unwrapped_options);
+      
+      // lm.log(() => `constructed ${inspect_fun(rebuilt_choice)}`);
+      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
+      // lm.log(() => `decorated ${inspect_fun(decorated)}`);
+      return decorated;
+    }
+
+    if (rule instanceof Sequence) {
+      if (elem_index == 1 &&
+          rule.elements[0][tag])
+        return rule;
+      else if (elem_index == 0 &&
+               rule.elements[rule.elements.length - 1][tag])
+        return rule;
+    }
     
-    const multiplier      = arr[0] ? -1 : 1;
-    const integer_part    = arr[1];
-    const fractional_part = arr[2];
-    const exponent        = arr[3];
-    const number          = multiplier * ((integer_part + fractional_part)**exponent);
+    if (rule instanceof Rule &&
+        rule.direct_children().length > 0 &&
+        rule.direct_children().every(x => x[tag]))
+      return rule;
 
-    // lm.log(() => `ARR: ${inspect_fun(arr)}`);
-    return number;
-    // return arr;
+    const builder = elem_index == 0 ? first : second;
+    
+    const built = builder(elem_index == 0
+                          ? seq(rule, whitespace_rule)
+                          : seq(whitespace_rule, rule));
+    
+    built[tag] = true;
+    built.__original_rule = rule;
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    // if (prettify_whitespace_combinators)
+    //   built.__impl_toString = function(visited, next_id, ref_counts) {
+    //     if (typeof this.__toString !== 'function')
+    //       lm.log(() => `suspiciousa: ${inspect_fun(this)}`);
+    //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
+    //   };
+
+    return built;
   };
-  const json_number = xform(reify_json_number,
-                            seq(optional(json_minus),
-                                xform(parseInt, json_integralPart),
-                                optional(xform(parseFloat, json_fractionalPart), 0.0),
-                                xform(parseInt, optional(json_exponentPart, 1))));
-  // S ← [ U+0009 U+000A U+000D U+0020 ]+
-  const json_S = r(/\s+/);
-  Json.abbreviate_str_repr('Json');
-  JsonObject.abbreviate_str_repr('JsonObject');
-  JsonArray.abbreviate_str_repr('JsonArray');
-  json_string.abbreviate_str_repr('json_string');
-  json_unicodeEscape.abbreviate_str_repr('json_unicodeEscape');
-  json_escape.abbreviate_str_repr('json_escape');
-  json_true.abbreviate_str_repr('json_true');
-  json_false.abbreviate_str_repr('json_false');
-  json_null.abbreviate_str_repr('json_null');
-  json_minus.abbreviate_str_repr('json_minus');
-  json_integralPart.abbreviate_str_repr('json_integralPart');
-  json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
-  json_exponentPart.abbreviate_str_repr('json_exponentPart');
-  json_number.abbreviate_str_repr('json_number');
-  json_S.abbreviate_str_repr('json_S');
-  // =================================================================================================
-  // END OF BASIC JSON GRAMMAR SECTION.
-  // =================================================================================================
+
+  return decorate;
+}
+// =================================================================================================
 
 
-  // =================================================================================================
-  // JSONC GRAMMAR SECTION:
-  // =================================================================================================
-  const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
-        second(wst_seq(wst_star(comment_rule),
-                       choice_rule,
-                       wst_star(comment_rule)));
-  const make_JsoncArray_rule = (value_rule,
-                                comment_rule = () => jsonc_comment) => 
-        make_JsonArray_rule(second(seq(wst_star(comment_rule),
-                                       value_rule,
-                                       wst_star(comment_rule))));
-  const make_JsoncObject_rule = (key_rule, value_rule,
-                                 { comment_rule = () => jsonc_comment,
-                                   sequence_combinator = wst_cutting_seq } = {}) => 
-        choice(
-          xform(arr => ({}), wst_seq(lbrc, rbrc)),
-          xform(arr => {
-            const new_arr = [ [arr[0], arr[2] ], ...(arr[4]??[]) ];
-            return Object.fromEntries(new_arr);
-          },
-                sequence_combinator(
-                  wst_enc(lbrc, key_rule, colon),
-                  wst_star(comment_rule),
-                  value_rule,
-                  wst_star(comment_rule),
-                  optional(second(wst_seq(comma,
-                                          wst_star(
-                                            xform(arr =>  [arr[1], arr[5]],
-                                                  wst_seq(wst_star(comment_rule),
-                                                          key_rule,
-                                                          wst_star(comment_rule),
-                                                          colon,
-                                                          wst_star(comment_rule),
-                                                          value_rule, 
-                                                          wst_star(comment_rule)
-                                                         )),
-                                            comma)),
-                                 )),
-                  rbrc)))
-  // -------------------------------------------------------------------------------------------------
-  const Jsonc = make_Jsonc_rule(
-    choice(() => JsoncObject, () => JsoncArray, json_string,
-           json_null,           json_true,
-           json_false,          json_number));
-  const JsoncArray = make_JsoncArray_rule(Jsonc);
-  const JsoncObject = make_JsoncObject_rule(json_string, Json);
-  const jsonc_comment = choice(c_block_comment, c_line_comment);
-  Jsonc.abbreviate_str_repr('Jsonc');
-  JsoncArray.abbreviate_str_repr('JsoncArray');
-  JsoncObject.abbreviate_str_repr('JsoncObject');
-  jsonc_comment.abbreviate_str_repr('jsonc_comment');
-  // =================================================================================================
-  // END OF JSONC GRAMMAR SECTION.
-  // =================================================================================================
+// =================================================================================================
+// COMMON-GRAMMAR.JS CONTENT SECTION:
+// =================================================================================================
+// Code in this section originally copy/pasted from the common-grammar.js file in my
+// 'jparse' project circa ac2979f but updated since
+// 
+// Not all of this section is actually used by the wildcards-plus script right 
+// now, but it's easier to just copy/paste in the whole file than it is to
+// bother working out which parts can be removed and snipping them out, and who
+// knows, maybe I'll use more of it in the future.
+// 
+// Original project at: https://github.com/ariane-emory/jparse/
+// =================================================================================================
+// Convenient Rules/combinators for common terminals and constructs:
+// =================================================================================================
+const STOP = expect(never_match);
+STOP.abbreviate_str_repr("STOP");
+// -------------------------------------------------------------------------------------------------
+// whitespace:
+const whites_star        = r(/\s*/);
+const whites_plus        = r(/\s+/);
+const hwhites_star       = r(/[ \t]*/);
+const hwhites_plus       = r(/[ \t]+/);
+// whites_star.memoize = false;
+// whites_plus.memoize = false;
+whites_star.abbreviate_str_repr('whites*');
+whites_plus.abbreviate_str_repr('whites+');
+hwhites_star.abbreviate_str_repr('hwhites*');
+hwhites_plus.abbreviate_str_repr('hwhites+');
+// -------------------------------------------------------------------------------------------------
+const lws = make_whitespace_decorator2("LWS", 1, whites_star);
+const tws = make_whitespace_decorator2("TWS", 0, whites_star);
+const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+// -------------------------------------------------------------------------------------------------
+// whitespace tolerant combinators:
+// -------------------------------------------------------------------------------------------------
+const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
+      ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
+const make_wst_seq_combinator = (base_combinator, lws_rule) =>
+      //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
+      (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
+// -------------------------------------------------------------------------------------------------
+const wst_choice      = (...options) => lws(choice(...options));
+const wst_star        = make_wst_quantified_combinator(star, lws);
+const wst_plus        = make_wst_quantified_combinator(plus, lws);
+const wst_seq         = make_wst_seq_combinator(seq, lws);
+const wst_enc         = make_wst_seq_combinator(enc, lws);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
+const hwst_choice      = (...options) => lws(choice(...options));
+const hwst_star        = make_wst_quantified_combinator(star, lhws);
+const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
+const hwst_seq         = make_wst_seq_combinator(seq, lhws);
+const hwst_enc         = make_wst_seq_combinator(enc, lhws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
+const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
+const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
+const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
+const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
+// -------------------------------------------------------------------------------------------------
+// simple 'words':
+// -------------------------------------------------------------------------------------------------
+const alpha_snake             = r(/[a-zA-Z_]+/);
+const lc_alpha_snake          = r(/[a-z_]+/);
+const uc_alpha_snake          = r(/[A-Z_]+/);
+alpha_snake.abbreviate_str_repr('alpha_snake');
+lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
+uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
+// -------------------------------------------------------------------------------------------------
+// leading/trailing whitespace:
+// -------------------------------------------------------------------------------------------------
+// common numbers:
+const udecimal           = r(/\d+\.\d+/);
+const urational          = r(/\d+\/[1-9]\d*/);
+const uint               = r(/\d+/);
+const sdecimal           = r(/[+-]?\d+\.\d+/);
+const srational          = r(/[+-]?\d+\/[1-9]\d*/);
+const sint               = r(/[+-]?\d+/)
+udecimal.abbreviate_str_repr('udecimal');
+urational.abbreviate_str_repr('urational');
+uint.abbreviate_str_repr('uint');
+sdecimal.abbreviate_str_repr('sdecimal');
+srational.abbreviate_str_repr('srational');
+sint.abbreviate_str_repr('sint');
+// -------------------------------------------------------------------------------------------------
+// common separated quantified rules:
+const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
+const plus_comma_sep     = rule => plus(rule, /\s*\,\s*/);
+const star_whites_sep    = rule => star(rule, whites_plus);
+const plus_whites_sep    = rule => plus(rule, whites_plus);
+// -------------------------------------------------------------------------------------------------
+// string-like terminals:
+const stringlike         = quote => r_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`;
+const dq_string          = stringlike('"');
+const raw_dq_string      = r(/r"[^"]*"/);
+const sq_string          = stringlike("'");
+const template_string    = r(/`(?:[^\\`]|\\.)*`/);
+const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+dq_string.abbreviate_str_repr('dq_string');
+raw_dq_string.abbreviate_str_repr('raw_dq_string');
+sq_string.abbreviate_str_repr('sq_string');
+template_string.abbreviate_str_repr('template_string');
+triple_dq_string.abbreviate_str_repr('triple_dq_string');
+// -------------------------------------------------------------------------------------------------
+// keyword helper:
+const keyword            = word => {
+  if (word instanceof Regex)
+    return keyword(word.regexp);
+
+  if (word instanceof RegExp)
+    return keyword(word.source);
+  
+  return r(RegExp_raw(`\b${word}\b`));
+};
+// -------------------------------------------------------------------------------------------------
+// parenthesis-like terminals:
+const gt                 = l('>');
+const rtri               = l('>');
+const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+const lpar               = l('(');
+const lsqr               = l('[]'[0]);
+const lt                 = l('<');
+const ltri               = l('<');
+const rbrc               = l('{}'[1]);
+const rpar               = l(')');
+const rsqr               = l('[]'[1]);
+gt.abbreviate_str_repr('gt');
+lbrc.abbreviate_str_repr('lbrc');
+lpar.abbreviate_str_repr('lpar');
+lsqr.abbreviate_str_repr('lsqr');
+lt.abbreviate_str_repr('lt');
+ltri.abbreviate_str_repr('ltri');
+rbrc.abbreviate_str_repr('rbrc');
+rpar.abbreviate_str_repr('rpar');
+rsqr.abbreviate_str_repr('rsqr');
+rtri.abbreviate_str_repr('rtri');
+// -------------------------------------------------------------------------------------------------
+// common enclosed rules:
+const par_enc            = rule => cutting_enc(lpar, rule, rpar);
+const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
+const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
+const tri_enc            = rule => cutting_enc(lt,   rule, gt);
+// const wse                = rule => enc(whites_star, rule, whites_star);
+// const wse                = rule => {
+//   rule = enc(whites_star, rule, whites_star);
+
+//   rule.__impl_toString = function(visited, next_id, ref_counts) {
+//     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
+//     return `WSE(${rule_str})`;
+//   }
+
+//   return rule;
+// };
+// -------------------------------------------------------------------------------------------------
+// basic arithmetic ops:
+const factor_op          = r(/[\/\*\%]/);
+const term_op            = r(/[\+\-]/);
+factor_op.abbreviate_str_repr('factor_op');
+term_op.abbreviate_str_repr('term_op');
+// -------------------------------------------------------------------------------------------------
+// Pascal-like terminals:
+const pascal_assign_op   = l('=');
+pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
+// -------------------------------------------------------------------------------------------------
+// Python-like terminals:
+const python_exponent_op = l('**');
+const python_logic_word  = r(/and|or|not|xor/);
+python_exponent_op.abbreviate_str_repr('python_exponent_op');
+python_logic_word.abbreviate_str_repr('python_logic_word');
+// -------------------------------------------------------------------------------------------------
+// common punctuation:
+const at                 = l('@');
+const ampersand          = l('&');
+const asterisk           = l('*');
+const bang               = l('!');
+const bslash             = l('\\');
+const caret              = l('^');
+const colon              = l(':');
+const comma              = l(',');
+const dash               = l('-');
+const dash_arrow         = l('->');
+const dollar             = l('$');
+const dot                = l('.');
+const ellipsis           = l('...');
+const equals             = l('=');
+const equals_arrow       = l('=>');
+const hash               = l('#');
+const decr_equals        = l('-=');
+const plus_equals        = l('+=');
+const percent            = l('%');
+const pipe               = l('|');
+const pound              = l('#');
+const question           = l('?');
+const range              = l('..');
+const semicolon          = l(';');
+const shebang            = l('#!');
+const slash              = l('/');
+ampersand.abbreviate_str_repr('ampersand');
+at.abbreviate_str_repr('at');
+asterisk.abbreviate_str_repr('asterisk');
+bang.abbreviate_str_repr('bang');
+bslash.abbreviate_str_repr('bslash');
+caret.abbreviate_str_repr('caret');
+colon.abbreviate_str_repr('colon');
+comma.abbreviate_str_repr('comma');
+dash.abbreviate_str_repr('dash');
+dash_arrow.abbreviate_str_repr('dash_arrow');
+decr_equals.abbreviate_str_repr('decr_equals');
+plus_equals.abbreviate_str_repr('plus_equals');
+dollar.abbreviate_str_repr('dollar');
+dot.abbreviate_str_repr('dot');
+ellipsis.abbreviate_str_repr('ellipsis');
+equals_arrow.abbreviate_str_repr('eq_arrow');
+equals.abbreviate_str_repr('equals');
+hash.abbreviate_str_repr('hash');
+percent.abbreviate_str_repr('percent');
+pipe.abbreviate_str_repr('pipe');
+pound.abbreviate_str_repr('pound');
+question.abbreviate_str_repr('question');
+range.abbreviate_str_repr('range');
+semicolon.abbreviate_str_repr('semicolon');
+shebang.abbreviate_str_repr('shebang');
+slash.abbreviate_str_repr('slash');
+// -------------------------------------------------------------------------------------------------
+// C-like numbers:
+const c_bin              = r(/0b[01]/);
+const c_char             = r(/'\\?[^\']'/);
+const c_hex              = r(/0x[0-9a-f]+/);
+const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
+const c_octal            = r(/0o[0-7]+/);
+const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
+const c_sint             = r(/[+-]?\d+/)
+const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
+const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
+const c_uint             = r(/\d+/);
+const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
+c_bin                    .abbreviate_str_repr('c_bin');
+c_char                   .abbreviate_str_repr('c_char');
+c_hex                    .abbreviate_str_repr('c_hex');
+c_ident                  .abbreviate_str_repr('c_ident');
+c_octal                  .abbreviate_str_repr('c_octal');
+c_sfloat                 .abbreviate_str_repr('c_sfloat');
+c_sint                   .abbreviate_str_repr('c_sint');
+c_snumber                .abbreviate_str_repr('c_snumber');
+c_ufloat                 .abbreviate_str_repr('c_ufloat');
+c_uint                   .abbreviate_str_repr('c_uint');
+// -------------------------------------------------------------------------------------------------
+// other C-like terminals:
+const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
+const c_bitwise_and      = l('&');
+const c_bitwise_bool_op  = r(/&&|\|\|/);
+const c_bitwise_not      = l('~');
+const c_bitwise_or       = l('|');
+const c_bitwise_xor      = l('^');
+const c_bool             = choice('true', 'false');
+const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
+const c_incr_decr        = r(/\+\+|--/);
+const c_shift            = r(/<<|>>/);
+const c_shift_assign     = r(/<<=|>>=/);
+const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
+c_arith_assign           .abbreviate_str_repr('c_arith_assign');
+c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
+c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
+c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
+c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
+c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
+c_bool                   .abbreviate_str_repr('c_bool');
+c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
+c_incr_decr              .abbreviate_str_repr('c_incr_decr');
+c_shift                  .abbreviate_str_repr('c_shift');
+c_shift_assign           .abbreviate_str_repr('c_shift_assign');
+c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
+// -------------------------------------------------------------------------------------------------
+// dotted chains:
+const dot_chained        = rule => plus(rule, dot); 
+// -------------------------------------------------------------------------------------------------
+// common comment styles:
+const c_block_comment    = r(/\/\*[^]*?\*\//);
+const c_comment          = choice(() => c_line_comment,
+                                  () => c_block_comment);
+const c_line_comment     = r(/\/\/[^\n]*/);
+const py_line_comment    = r(/#[^\n]*/); 
+c_block_comment          .abbreviate_str_repr('c_block_comment');
+c_comment                .abbreviate_str_repr('c_comment');
+c_line_comment           .abbreviate_str_repr('c_line_comment');
+py_line_comment          .abbreviate_str_repr('py_line_comment');
+// -------------------------------------------------------------------------------------------------
+// ternary helper combinator:
+const ternary            =
+      ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
+        xform(seq(cond_rule, question, then_rule, colon, else_rule),
+              arr => [ arr[0], arr[2], arr[4] ]));
+// -------------------------------------------------------------------------------------------------
+// misc unsorted Rules:
+const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
+kebab_ident.abbreviate_str_repr('kebab_ident');
+// -------------------------------------------------------------------------------------------------
+// C-like function calls:
+const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
+      seq(fun_rule,
+          wst_cutting_enc(open,
+                          wst_star(arg_rule, sep),
+                          close));
+// -------------------------------------------------------------------------------------------------
+// convenience combinators:
+// -------------------------------------------------------------------------------------------------
+const head          = (...rules) => first(seq(...rules));
+const cadr          = (...rules) => second(seq(...rules));
+const wst_cadr      = (...rules) => second(wst_seq(...rules));
+const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
+const cutting_head  = (...rules) => first(cutting_seq(...rules));
+const push          = ((value, rule) =>
+  xform(rule, arr => [value, ...arr]));
+const enclosing     = (left, enclosed, right) =>
+      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
+// =================================================================================================
+// END of COMMON-GRAMMAR.JS CONTENT SECTION.
+// =================================================================================================
 
 
-  // =================================================================================================
-  // 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
-  // =================================================================================================
-  const rjsonc_single_quoted_string =
-        xform(
-          s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
-          /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
-  const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
-  const Rjsonc = make_Jsonc_rule(
-    choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
-           json_null,           json_true,
-           json_false,          json_number));
-  const RjsoncArray = make_JsoncArray_rule(Rjsonc);
-  const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
-  rjsonc_string.abbreviate_str_repr('rjsonc_string');
-  rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
-  Rjsonc.abbreviate_str_repr('Rjsonc');
-  RjsoncArray.abbreviate_str_repr('RjsoncArray');
-  RjsoncObject.abbreviate_str_repr('RjsoncObject');
-  // -------------------------------------------------------------------------------------------------
-  // wst_cutting_enc(lsqr,
-  //                 wst_star(second(seq(jsonc_comments,
-  //                                     Rjsonc,
-  //                                     jsonc_comments)),
-  //                          comma),
-  //                 rsqr);
+// =================================================================================================
+// BASIC JSON GRAMMAR SECTION:
+// =================================================================================================
+const make_JsonArray_rule = value_rule => 
+      wst_cutting_enc(lsqr,
+                      wst_star(value_rule,
+                               comma),
+                      rsqr);
+// -------------------------------------------------------------------------------------------------
+// JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
+const Json = choice(() => JsonObject,
+                    () => JsonArray,
+                    () => json_number,
+                    () => json_string,
+                    () => json_true,
+                    () => json_false,
+                    () => json_null);
+// Object ← "{" ( String ":" JSON ( "," String ":" JSON )*  / S? ) "}"
+const JsonObject = xform(arr =>  Object.fromEntries(arr), 
+                         wst_cutting_enc(lbrc,
+                                         wst_star(
+                                           xform(arr => [arr[0], arr[2]],
+                                                 wst_seq(() => json_string, colon, Json)),
+                                           comma),
+                                         rbrc));
+// Array ← "[" ( JSON ( "," JSON )*  / S? ) "]"
+const JsonArray = make_JsonArray_rule(Json);
+
+// String ← S? ["] ( [^ " \ U+0000-U+001F ] / Escape )* ["] S?
+const json_string = xform(JSON.parse,
+                          /"(?:[^"\\\u0000-\u001F]|\\["\\/bfnrt]|\\u[0-9a-fA-F]{4})*"/);
+// UnicodeEscape ← "u" [0-9A-Fa-f]{4}
+const json_unicodeEscape = r(/u[0-9A-Fa-f]{4}/);
+// Escape ← [\] ( [ " / \ b f n r t ] / UnicodeEscape )
+const json_escape = seq('\\', choice(/["\\/bfnrt]/, json_unicodeEscape));
+// True ← "true"
+const json_true = xform(x => true, /true\b/);
+// False ← "false"
+const json_false = xform(x => false, /false\b/);
+// Null ← "null"
+const json_null = xform(x => null, /null\b/);
+// Minus ← "-"
+const json_minus = l('-');
+// IntegralPart ← "0" / [1-9] [0-9]*
+const json_integralPart = r(/0|[1-9][0-9]*/);
+// FractionalPart ← "." [0-9]+
+const json_fractionalPart = r(/\.[0-9]+/);
+// ExponentPart ← ( "e" / "E" ) ( "+" / "-" )? [0-9]+
+const json_exponentPart = r(/[eE][+-]?\d+/);
+// Number ← Minus? IntegralPart FractionalPart? ExponentPart?
+const reify_json_number = arr => {
+  // lm.log(() => `REIFY ${inspect_fun(arr)}`);
+  
+  const multiplier      = arr[0] ? -1 : 1;
+  const integer_part    = arr[1];
+  const fractional_part = arr[2];
+  const exponent        = arr[3];
+  const number          = multiplier * ((integer_part + fractional_part)**exponent);
+
+  // lm.log(() => `ARR: ${inspect_fun(arr)}`);
+  return number;
+  // return arr;
+};
+const json_number = xform(reify_json_number,
+                          seq(optional(json_minus),
+                              xform(parseInt, json_integralPart),
+                              optional(xform(parseFloat, json_fractionalPart), 0.0),
+                              xform(parseInt, optional(json_exponentPart, 1))));
+// S ← [ U+0009 U+000A U+000D U+0020 ]+
+const json_S = r(/\s+/);
+Json.abbreviate_str_repr('Json');
+JsonObject.abbreviate_str_repr('JsonObject');
+JsonArray.abbreviate_str_repr('JsonArray');
+json_string.abbreviate_str_repr('json_string');
+json_unicodeEscape.abbreviate_str_repr('json_unicodeEscape');
+json_escape.abbreviate_str_repr('json_escape');
+json_true.abbreviate_str_repr('json_true');
+json_false.abbreviate_str_repr('json_false');
+json_null.abbreviate_str_repr('json_null');
+json_minus.abbreviate_str_repr('json_minus');
+json_integralPart.abbreviate_str_repr('json_integralPart');
+json_fractionalPart.abbreviate_str_repr('json_fractionalPart');
+json_exponentPart.abbreviate_str_repr('json_exponentPart');
+json_number.abbreviate_str_repr('json_number');
+json_S.abbreviate_str_repr('json_S');
+// =================================================================================================
+// END OF BASIC JSON GRAMMAR SECTION.
+// =================================================================================================
 
 
-  // const make_RjsoncObject_rule = (key_rule, value_rule)  => 
-  //       choice(
-  //         xform(arr => ({}), wst_seq(lbrc, rbrc)),
-  //         xform(arr => {
-  //           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
-  //           return Object.fromEntries(new_arr);
-  //         },
-  //               wst_cutting_seq(
-  //                 wst_enc(lbrc, key_rule, colon), 
-  //                 jsonc_comments,
-  //                 value_rule,
-  //                 jsonc_comments,
-  //                 optional(second(wst_seq(comma,
-  //                                         wst_star(
-  //                                           xform(arr =>  [arr[1], arr[5]],
-  //                                                 wst_seq(jsonc_comments,
-  //                                                         key_rule,
-  //                                                         jsonc_comments,
-  //                                                         colon,
-  //                                                         jsonc_comments,
-  //                                                         value_rule,
-  //                                                         jsonc_comments
-  //                                                        )),
-  //                                           comma)),
-  //                                )),
-  //                 rbrc)));
-  // =================================================================================================
-  // END OF 'relaxed' JSONC GRAMMAR SECTION.
-  // =================================================================================================
+// =================================================================================================
+// JSONC GRAMMAR SECTION:
+// =================================================================================================
+const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
+      second(wst_seq(wst_star(comment_rule),
+                     choice_rule,
+                     wst_star(comment_rule)));
+const make_JsoncArray_rule = (value_rule,
+                              comment_rule = () => jsonc_comment) => 
+      make_JsonArray_rule(second(seq(wst_star(comment_rule),
+                                     value_rule,
+                                     wst_star(comment_rule))));
+const make_JsoncObject_rule = (key_rule, value_rule,
+                               { comment_rule = () => jsonc_comment,
+                                 sequence_combinator = wst_cutting_seq } = {}) => 
+      choice(
+        xform(arr => ({}), wst_seq(lbrc, rbrc)),
+        xform(arr => {
+          const new_arr = [ [arr[0], arr[2] ], ...(arr[4]??[]) ];
+          return Object.fromEntries(new_arr);
+        },
+              sequence_combinator(
+                wst_enc(lbrc, key_rule, colon),
+                wst_star(comment_rule),
+                value_rule,
+                wst_star(comment_rule),
+                optional(second(wst_seq(comma,
+                                        wst_star(
+                                          xform(arr =>  [arr[1], arr[5]],
+                                                wst_seq(wst_star(comment_rule),
+                                                        key_rule,
+                                                        wst_star(comment_rule),
+                                                        colon,
+                                                        wst_star(comment_rule),
+                                                        value_rule, 
+                                                        wst_star(comment_rule)
+                                                       )),
+                                          comma)),
+                               )),
+                rbrc)))
+// -------------------------------------------------------------------------------------------------
+const Jsonc = make_Jsonc_rule(
+  choice(() => JsoncObject, () => JsoncArray, json_string,
+         json_null,           json_true,
+         json_false,          json_number));
+const JsoncArray = make_JsoncArray_rule(Jsonc);
+const JsoncObject = make_JsoncObject_rule(json_string, Json);
+const jsonc_comment = choice(c_block_comment, c_line_comment);
+Jsonc.abbreviate_str_repr('Jsonc');
+JsoncArray.abbreviate_str_repr('JsoncArray');
+JsoncObject.abbreviate_str_repr('JsoncObject');
+jsonc_comment.abbreviate_str_repr('jsonc_comment');
+// =================================================================================================
+// END OF JSONC GRAMMAR SECTION.
+// =================================================================================================
 
 
-  // =================================================================================================
-  // WeightedPicker CLASS AND RELATED VARS:
-  // =================================================================================================
-  const always = () => true;
-  const never  = () => false;
-  const picker_priority = Object.freeze({
-    avoid_repetition_short:        'Avoiding repetition (short term only)',
-    avoid_repetition_long:         'Avoiding repetition', 
-    ensure_weighted_distribution:  'Ensuring a weighted distribution',
-    true_randomness:               'Just plain old randomness',
-  });
-  const id = (x) => x;
-  const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
-  const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
-  // const picker_priority_descriptions_to_names = new Map(
-  //   Object.entries(picker_priority).map(([k, v]) => [v, k])
-  // );
-  // -------------------------------------------------------------------------------------------------
-  class WeightedPicker {
-    // -----------------------------------------------------------------------------------------------
-    constructor(options = []) {
-      // lm.log(() => `CONSTRUCT WITH ${inspect_fun(options)}`);
+// =================================================================================================
+// 'relaxed' JSONC GRAMMAR SECTION: JSONC but with relaxed key quotation.
+// =================================================================================================
+const rjsonc_single_quoted_string =
+      xform(
+        s => JSON.parse('"' + s.slice(1, -1).replace(/\\'/g, "'").replace(/"/g, '\\"') + '"'),
+        /'(?:[^'\\\u0000-\u001F]|\\['"\\/bfnrt]|\\u[0-9a-fA-F]{4})*'/);
+const rjsonc_string = choice(json_string, rjsonc_single_quoted_string);
+const Rjsonc = make_Jsonc_rule(
+  choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
+         json_null,           json_true,
+         json_false,          json_number));
+const RjsoncArray = make_JsoncArray_rule(Rjsonc);
+const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+rjsonc_string.abbreviate_str_repr('rjsonc_string');
+rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
+Rjsonc.abbreviate_str_repr('Rjsonc');
+RjsoncArray.abbreviate_str_repr('RjsoncArray');
+RjsoncObject.abbreviate_str_repr('RjsoncObject');
+// -------------------------------------------------------------------------------------------------
+// wst_cutting_enc(lsqr,
+//                 wst_star(second(seq(jsonc_comments,
+//                                     Rjsonc,
+//                                     jsonc_comments)),
+//                          comma),
+//                 rsqr);
+
+
+// const make_RjsoncObject_rule = (key_rule, value_rule)  => 
+//       choice(
+//         xform(arr => ({}), wst_seq(lbrc, rbrc)),
+//         xform(arr => {
+//           const new_arr = [ [arr[0], arr[2]], ...(arr[4][0]??[]) ];
+//           return Object.fromEntries(new_arr);
+//         },
+//               wst_cutting_seq(
+//                 wst_enc(lbrc, key_rule, colon), 
+//                 jsonc_comments,
+//                 value_rule,
+//                 jsonc_comments,
+//                 optional(second(wst_seq(comma,
+//                                         wst_star(
+//                                           xform(arr =>  [arr[1], arr[5]],
+//                                                 wst_seq(jsonc_comments,
+//                                                         key_rule,
+//                                                         jsonc_comments,
+//                                                         colon,
+//                                                         jsonc_comments,
+//                                                         value_rule,
+//                                                         jsonc_comments
+//                                                        )),
+//                                           comma)),
+//                                )),
+//                 rbrc)));
+// =================================================================================================
+// END OF 'relaxed' JSONC GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// WeightedPicker CLASS AND RELATED VARS:
+// =================================================================================================
+const always = () => true;
+const never  = () => false;
+const picker_priority = Object.freeze({
+  avoid_repetition_short:        'Avoiding repetition (short term only)',
+  avoid_repetition_long:         'Avoiding repetition', 
+  ensure_weighted_distribution:  'Ensuring a weighted distribution',
+  true_randomness:               'Just plain old randomness',
+});
+const id = (x) => x;
+const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
+const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
+// const picker_priority_descriptions_to_names = new Map(
+//   Object.entries(picker_priority).map(([k, v]) => [v, k])
+// );
+// -------------------------------------------------------------------------------------------------
+class WeightedPicker {
+  // -----------------------------------------------------------------------------------------------
+  constructor(options = []) {
+    // lm.log(() => `CONSTRUCT WITH ${inspect_fun(options)}`);
+    
+    this.options = []; // array of [weight, value]
+    this.used_indices = new Map();
+    this.last_pick_index = null;
+
+    for (const [weight, value] of options)
+      this.add(weight, value);
+  }
+  // -----------------------------------------------------------------------------------------------
+  add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
+    
+    this.options.push({weight: weight, value: value });
+  }
+  // -----------------------------------------------------------------------------------------------
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never, each = id,
+       priority = null) {
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
+
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
+    
+    if (log_picker_enabled)
+      lm.log(() => `PICK ${min_count}-${max_count}`);
+    
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++)
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
+
+    if (log_picker_enabled)
+      lm.log(() => `PICKED ITEMS: ${inspect_fun(res)}`);
+
+    return res;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __gather_legal_option_indices(allow_if, forbid_if) {
+    const legal_option_indices = [];
+    
+    for (let ix = 0; ix < this.options.length; ix++) {
+      const option = this.options[ix];
       
-      this.options = []; // array of [weight, value]
-      this.used_indices = new Map();
-      this.last_pick_index = null;
-
-      for (const [weight, value] of options)
-        this.add(weight, value);
+      if (option.weight !== 0 &&
+          allow_if(option.value) &&
+          !forbid_if(option.value))
+        legal_option_indices.push(ix);
     }
-    // -----------------------------------------------------------------------------------------------
-    add(weight, value) {
-      if (! value instanceof ASTAnonWildcardAlternative)
-        throw new Error(`bad value: ${inspect_fun(value)}`);
-      
-      this.options.push({weight: weight, value: value });
+
+    return legal_option_indices;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
+
+    if (log_picker_enabled)
+      lm.log(() => `AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -----------------------------------------------------------------------------------------------  
+  __indices_are_exhausted(option_indices, priority) {
+    if (log_picker_enabled) {
+      lm.log(() => `this.options      = ${compress(inspect_fun(this.options))}`);
+      lm.log(() => `this.used_indices = ${compress(inspect_fun(this.used_indices))}`);
     }
-    // -----------------------------------------------------------------------------------------------
-    __record_index_usage(index) {
-      this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-      this.last_pick_index = index;
+    
+    if (! priority)
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+
+    if (this.used_indices.size == 0)
+      return false;
+
+    let exhausted_indices = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
+      exhausted_indices = new Set(this.used_indices.keys());
     }
-    // -----------------------------------------------------------------------------------------------
-    pick(min_count = 1, max_count = min_count,
-         allow_if = always, forbid_if = never, each = id,
-         priority = null) {
-      if (!(typeof min_count === 'number'   && 
-            typeof max_count === 'number'   &&
-            typeof allow_if  === 'function' &&
-            typeof forbid_if === 'function' &&
-            typeof each      === 'function' &&
-            typeof priority  === 'string'))
-        throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+    else if (priority == picker_priority.ensure_weighted_distribution) {
+      exhausted_indices = new Set();
 
-      // if (! priority)
-      //   throw new Error("no priority");
+      for (const [used_index, usage_count] of this.used_indices) {
+        const option = this.options[used_index];
 
-      if ((min_count > 1 || max_count > 1) && 
-          priority === picker_priority.avoid_repetition_short)
-        this.__clear_used_indices();
-      
-      if (log_picker_enabled)
-        lm.log(() => `PICK ${min_count}-${max_count}`);
-      
-      const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-      const res = [];
-      
-      for (let ix = 0; ix < count; ix++)
-        res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
-
-      if (log_picker_enabled)
-        lm.log(() => `PICKED ITEMS: ${inspect_fun(res)}`);
-
-      return res;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __gather_legal_option_indices(allow_if, forbid_if) {
-      const legal_option_indices = [];
-      
-      for (let ix = 0; ix < this.options.length; ix++) {
-        const option = this.options[ix];
-        
-        if (option.weight !== 0 &&
-            allow_if(option.value) &&
-            !forbid_if(option.value))
-          legal_option_indices.push(ix);
+        if (usage_count >= option.weight)
+          exhausted_indices.add(used_index);
       }
-
-      return legal_option_indices;
     }
-    // -----------------------------------------------------------------------------------------------
-    __clear_used_indices() {
-      this.used_indices.clear();
-      this.last_pick_index = null;
+    else if (priority === picker_priority.true_randomness) {
+      return false;
+    }
+    else {
+      throw new Error(`bad priority: ${inspect_fun(priority)}`);
+    }
+    
+    return exhausted_indices.isSupersetOf(new Set(option_indices));
+  }
+  // -----------------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) {
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    }
+    else if (priority === picker_priority.ensure_weighted_distribution) {
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    }
+    else if (priority === picker_priority.true_randomness) {
+      ret = this.options[option_index].weight;
+    }
+    else {
+      throw Error("unexpected priority");
+    }
 
+    if (log_picker_enabled)
+      lm.log(() => `RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return Math.max(0, ret);
+  };
+  // -----------------------------------------------------------------------------------------------
+  #pick_one(allow_if, forbid_if, priority) {
+    if (!(typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
+    
+    if (log_picker_enabled) {
+      lm.log(() => `PICK ONE =================================================================================`);
+      lm.log(() => `PRIORITY        = ${inspect_fun(priority)}`);
+      lm.log(() => `USED_INDICES    = ${inspect_fun(this.used_indices)}`);
+      lm.log(() => `LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
+    }
+    
+    if (! (priority && allow_if && forbid_if))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+
+    if (log_picker_enabled) {
+      lm.log(() => `PICK_ONE!`);
+      lm.log(() => `PICK FROM ${inspect_fun(this)}`);
+    }
+
+    if (this.options.length === 0) {
       if (log_picker_enabled)
-        lm.log(() => `AFTER __clear: ${inspect_fun(this.used_indices)}`);
+        lm.log(() => `PICK_ONE: NO OPTIONS 1!`);
+      
+      return null;
     }
-    // -----------------------------------------------------------------------------------------------  
-    __indices_are_exhausted(option_indices, priority) {
-      if (log_picker_enabled) {
-        lm.log(() => `this.options      = ${compress(inspect_fun(this.options))}`);
-        lm.log(() => `this.used_indices = ${compress(inspect_fun(this.used_indices))}`);
-      }
+
+    let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    
+    if (this.__indices_are_exhausted(legal_option_indices, priority)) {
+      if (log_picker_enabled)
+        lm.log(() => `PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
       
-      if (! priority)
-        throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-
-      if (this.used_indices.size == 0)
-        return false;
-
-      let exhausted_indices = null;
-      
-      if (priority === picker_priority.avoid_repetition_long ||
-          priority === picker_priority.avoid_repetition_short) {
-        exhausted_indices = new Set(this.used_indices.keys());
-      }
-      else if (priority == picker_priority.ensure_weighted_distribution) {
-        exhausted_indices = new Set();
-
-        for (const [used_index, usage_count] of this.used_indices) {
-          const option = this.options[used_index];
-
-          if (usage_count >= option.weight)
-            exhausted_indices.add(used_index);
+      if (priority === picker_priority.avoid_repetition_long) {
+        if (this.last_pick_index !== null) {
+          const last_pick_index = this.last_pick_index;
+          this.__clear_used_indices();
+          this.__record_index_usage(last_pick_index);
         }
-      }
-      else if (priority === picker_priority.true_randomness) {
-        return false;
-      }
-      else {
-        throw new Error(`bad priority: ${inspect_fun(priority)}`);
-      }
-      
-      return exhausted_indices.isSupersetOf(new Set(option_indices));
-    }
-    // -----------------------------------------------------------------------------------------------
-    __effective_weight(option_index, priority) {
-      if (! ((option_index || option_index === 0) && priority))
-        throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-      
-      let ret = null;
-      
-      if (priority === picker_priority.avoid_repetition_long ||
-          priority === picker_priority.avoid_repetition_short) {
-        ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-      }
-      else if (priority === picker_priority.ensure_weighted_distribution) {
-        ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-      }
-      else if (priority === picker_priority.true_randomness) {
-        ret = this.options[option_index].weight;
-      }
-      else {
-        throw Error("unexpected priority");
-      }
-
-      if (log_picker_enabled)
-        lm.log(() => `RET IS ${typeof ret} ${inspect_fun(ret)}`);
-      
-      return Math.max(0, ret);
-    };
-    // -----------------------------------------------------------------------------------------------
-    #pick_one(allow_if, forbid_if, priority) {
-      if (!(typeof allow_if  === 'function' &&
-            typeof forbid_if === 'function' &&
-            typeof priority  === 'string'))
-        throw new Error(`bad #pick_one arge: ${inspect_fun(arguments)}`);
-      
-      if (log_picker_enabled) {
-        lm.log(() => `PICK ONE =================================================================================`);
-        lm.log(() => `PRIORITY        = ${inspect_fun(priority)}`);
-        lm.log(() => `USED_INDICES    = ${inspect_fun(this.used_indices)}`);
-        lm.log(() => `LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
-      }
-      
-      if (! (priority && allow_if && forbid_if))
-        throw new Error(`missing arg: ${inspect_fun(arguments)}`);
-
-      if (log_picker_enabled) {
-        lm.log(() => `PICK_ONE!`);
-        lm.log(() => `PICK FROM ${inspect_fun(this)}`);
-      }
-
-      if (this.options.length === 0) {
-        if (log_picker_enabled)
-          lm.log(() => `PICK_ONE: NO OPTIONS 1!`);
-        
-        return null;
-      }
-
-      let legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-      
-      if (this.__indices_are_exhausted(legal_option_indices, priority)) {
-        if (log_picker_enabled)
-          lm.log(() => `PICK_ONE: CLEARING ${inspect_fun(this.used_indices)}!`);
-        
-        if (priority === picker_priority.avoid_repetition_long) {
-          if (this.last_pick_index !== null) {
-            const last_pick_index = this.last_pick_index;
-            this.__clear_used_indices();
-            this.__record_index_usage(last_pick_index);
-          }
-          else /* ensure_weighted_distribution, true_randomness */ {
-            this.__clear_used_indices();
-          }
-        }
-        else {
+        else /* ensure_weighted_distribution, true_randomness */ {
           this.__clear_used_indices();
         }
-
-        if (log_picker_enabled)
-          lm.log(() => `AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
-        
-        legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
       }
-      
-      if (legal_option_indices.length === 0) {
-        if (log_picker_enabled)
-          lm.log(() => `PICK_ONE: NO LEGAL OPTIONS 2!`);
-
-        return null;
-      }
-
-      if (legal_option_indices.length === 1) {
-        if (log_picker_enabled)
-          lm.log(() => `only one legal option in ${inspect_fun(legal_option_indices)}!`);
-        
-        this.__record_index_usage(legal_option_indices[0]);
-
-        if (log_picker_enabled)
-          lm.log(() => `BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
-        
-        return this.options[legal_option_indices[0]].value;
+      else {
+        this.__clear_used_indices();
       }
 
       if (log_picker_enabled)
-        lm.log(() => `pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+        lm.log(() => `AFTER CLEARING: ${inspect_fun(this.used_indices)}`);
+      
+      legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+    }
+    
+    if (legal_option_indices.length === 0) {
+      if (log_picker_enabled)
+        lm.log(() => `PICK_ONE: NO LEGAL OPTIONS 2!`);
 
-      let total_weight = 0;
+      return null;
+    }
+
+    if (legal_option_indices.length === 1) {
+      if (log_picker_enabled)
+        lm.log(() => `only one legal option in ${inspect_fun(legal_option_indices)}!`);
+      
+      this.__record_index_usage(legal_option_indices[0]);
 
       if (log_picker_enabled)
-        lm.log(() => `BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+        lm.log(() => `BEFORE BAIL 2: ${inspect_fun(this.used_indices)}`);
       
-      for (const legal_option_ix of legal_option_indices) {
-        const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+      return this.options[legal_option_indices[0]].value;
+    }
 
-        if (log_picker_enabled) {
-          lm.log(() => `effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-          lm.log(() => `COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
-          lm.log(() => `ADJUSTED BY ${adjusted_weight}, ${priority}`);
-        }
-        
-        total_weight += adjusted_weight;
+    if (log_picker_enabled)
+      lm.log(() => `pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+
+    let total_weight = 0;
+
+    if (log_picker_enabled)
+      lm.log(() => `BEFORE TOTAL_WEIGHT, ${priority}: ${inspect_fun(this.used_indices)}`);
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+
+      if (log_picker_enabled) {
+        lm.log(() => `effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
+        lm.log(() => `COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(() => `ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
+      
+      total_weight += adjusted_weight;
+    }
 
-      // Since we now avoid adding options with a weight of 0, this should never be true:
-      if (total_weight === 0) {
-        throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
-                        `legal_options = ${inspect_fun(legal_option_indices.map(ix =>
+    // Since we now avoid adding options with a weight of 0, this should never be true:
+    if (total_weight === 0) {
+      throw new Error(`PICK_ONE: TOTAL WEIGHT === 0, this should not happen? ` +
+                      `legal_options = ${inspect_fun(legal_option_indices.map(ix =>
                           [
                             ix,
                             this.__effective_weight(ix, priority),
                             this.options[ix]
                           ]
                         ))}, ` +
-                        `used_indices = ${inspect_fun(this.used_indices)}`);
-      }
-      
-      let random = Math.random() * total_weight;
-
-      if (log_picker_enabled) {
-        lm.log(() => `----------------------------------------------------------------------------------`);
-        lm.log(() => `RANDOM IS ${random}`);
-        lm.log(() => `TOTAL_WEIGHT IS ${total_weight}`);
-        lm.log(() => `USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
-      }
-      
-      for (const legal_option_ix of legal_option_indices) {
-        const option          = this.options[legal_option_ix];
-        const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
-
-        if (adjusted_weight === 0)
-          continue;
-        
-        if (log_picker_enabled)
-          lm.log(() => `ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
-        
-        if (random < adjusted_weight) {
-          this.__record_index_usage(legal_option_ix);
-          return option.value;
-        }
-
-        random -= adjusted_weight;
-      }
-
-      throw new Error("random selection failed");
+                      `used_indices = ${inspect_fun(this.used_indices)}`);
     }
+    
+    let random = Math.random() * total_weight;
+
+    if (log_picker_enabled) {
+      lm.log(() => `----------------------------------------------------------------------------------`);
+      lm.log(() => `RANDOM IS ${random}`);
+      lm.log(() => `TOTAL_WEIGHT IS ${total_weight}`);
+      lm.log(() => `USED_INDICES ARE ${inspect_fun(this.used_indices)}`);
+    }
+    
+    for (const legal_option_ix of legal_option_indices) {
+      const option          = this.options[legal_option_ix];
+      const adjusted_weight = this.__effective_weight(legal_option_ix, priority);
+
+      if (adjusted_weight === 0)
+        continue;
+      
+      if (log_picker_enabled)
+        lm.log(() => `ADJUSTED_WEIGHT OF ${inspect_fun(option)} IS ${adjusted_weight}`);
+      
+      if (random < adjusted_weight) {
+        this.__record_index_usage(legal_option_ix);
+        return option.value;
+      }
+
+      random -= adjusted_weight;
+    }
+
+    throw new Error("random selection failed");
   }
-  // =================================================================================================
-  // END OF WeightedPicker CLASS AND RELATED VARS.
-  // =================================================================================================
+}
+// =================================================================================================
+// END OF WeightedPicker CLASS AND RELATED VARS.
+// =================================================================================================
 
 
-  // =================================================================================================
-  // MISCELLANEOUS HELPER FUNCTIONS SECTION:
-  // =================================================================================================
-  const arr_is_prefix_of_arr = (() => {
-    const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
+// =================================================================================================
+// MISCELLANEOUS HELPER FUNCTIONS SECTION:
+// =================================================================================================
+const arr_is_prefix_of_arr = (() => {
+  const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
-    return function(prefix_arr, full_arr, prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED) {
-      if (prefix_arr.length > full_arr.length)
+  return function(prefix_arr, full_arr, prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED) {
+    if (prefix_arr.length > full_arr.length)
+      return false;
+
+    for (let ix = 0; ix < prefix_arr.length; ix++) {
+      if (prefix_wildcard_value !== PREFIX_WILDCARD_NOT_SUPPLIED &&
+          prefix_arr[ix] === prefix_wildcard_value)
+        continue;
+
+      if (prefix_arr[ix] !== full_arr[ix])
         return false;
-
-      for (let ix = 0; ix < prefix_arr.length; ix++) {
-        if (prefix_wildcard_value !== PREFIX_WILDCARD_NOT_SUPPLIED &&
-            prefix_arr[ix] === prefix_wildcard_value)
-          continue;
-
-        if (prefix_arr[ix] !== full_arr[ix])
-          return false;
-      }
-
-      return true;
-    };
-  })();
-  // -------------------------------------------------------------------------------------------------
-  function benchmark(thunk, {
-    batch_count    = 50,
-    reps_per_batch = 10000,
-    print_div      = 10,
-    quiet          = true,
-  } = {}) {
-    let running_avg  = 0;
-    let result       = null;
-    let start_mem    = -Infinity; // placeholder value, don't worry.
-    const start_time = performance.now();
-
-    const fn = () => measure_time(() => {
-      for (let ix = 0; ix < reps_per_batch; ix++) {
-        result = thunk();
-      }
-    });
-    
-    for (let oix = 0; oix < batch_count; oix++) {
-      // lm.log(() => `oix: ${oix}`);
-      
-      global.gc(); // triggers GC
-      start_mem  = process.memoryUsage().heapUsed;
-      
-      const time = fn();
-
-      running_avg = (((running_avg * oix) + time) / (oix + 1));
-
-      if (quiet) {
-        process.stdout.write('.');
-        if (((oix + 1) % 100) == 0)
-          process.stdout.write('\n');
-      }
-      else if (((oix + 1) % print_div) == 0) {
-        process.stdout.write('\n');
-        lm.log(() => '');
-        lm.log(() => `${ordinal_string(oix + 1)} batch of ` +
-                    `${format_pretty_number(reps_per_batch)} ` +
-                    `(out of ${format_pretty_number(batch_count)}): `);
-        lm.log(() => `result:                 ${rjson_stringify(result)}`);
-        lm.log(() => `mem at start:           ${format_pretty_bytes(start_mem)}`);
-        const now = process.memoryUsage().heapUsed;
-        lm.log(() => `mem now:                ${format_pretty_bytes(now)}`);
-        lm.log(() => `mem diff:               ${format_pretty_bytes(now - start_mem)}`);
-        lm.log(() => `time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
-        lm.log(() => `time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
-        lm.log(() => `total runtime:          ` +
-                    `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-                    `seconds`);
-        lm.log(() => `rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
-        lm.log(() => `est. runs/second:       ${Math.round(runs_per_second_est)}`);
-        lm.log(() => `EST. TIME PER MILLION:  ` +
-                    `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
-        process.stdout.write('\n');
-      }
     }
+
+    return true;
+  };
+})();
+// -------------------------------------------------------------------------------------------------
+function benchmark(thunk, {
+  batch_count    = 50,
+  reps_per_batch = 10000,
+  print_div      = 10,
+  quiet          = true,
+} = {}) {
+  let running_avg  = 0;
+  let result       = null;
+  let start_mem    = -Infinity; // placeholder value, don't worry.
+  const start_time = performance.now();
+
+  const fn = () => measure_time(() => {
+    for (let ix = 0; ix < reps_per_batch; ix++) {
+      result = thunk();
+    }
+  });
+  
+  for (let oix = 0; oix < batch_count; oix++) {
+    // lm.log(() => `oix: ${oix}`);
     
-    lm.log(() => '');
-    lm.log(() => `batch_count:            ${batch_count}`);
-    lm.log(() => `reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
-    lm.log(() => `total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
-    lm.log(() => `last result:            ${rjson_stringify(result)}`);
-    const now = process.memoryUsage().heapUsed;
-    lm.log(() => `final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
-    lm.log(() => `total runtime:          ` +
-                `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-                `seconds`);
-    lm.log(() => `rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
-    const single_run_est = running_avg / reps_per_batch;
-    const runs_per_second_est = 1_000_000 / running_avg;
-    lm.log(() => `est. runs/second:       ` +
-                `${format_pretty_number(Math.round(runs_per_second_est))}`);
-    lm.log(() => `EST. TIME PER MILLION:  ` +
-                `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
-                `ms`);
-    lm.log(() => '');
-    return running_avg;
+    global.gc(); // triggers GC
+    start_mem  = process.memoryUsage().heapUsed;
+    
+    const time = fn();
+
+    running_avg = (((running_avg * oix) + time) / (oix + 1));
+
+    if (quiet) {
+      process.stdout.write('.');
+      if (((oix + 1) % 100) == 0)
+        process.stdout.write('\n');
+    }
+    else if (((oix + 1) % print_div) == 0) {
+      process.stdout.write('\n');
+      lm.log(() => '');
+      lm.log(() => `${ordinal_string(oix + 1)} batch of ` +
+             `${format_pretty_number(reps_per_batch)} ` +
+             `(out of ${format_pretty_number(batch_count)}): `);
+      lm.log(() => `result:                 ${rjson_stringify(result)}`);
+      lm.log(() => `mem at start:           ${format_pretty_bytes(start_mem)}`);
+      const now = process.memoryUsage().heapUsed;
+      lm.log(() => `mem now:                ${format_pretty_bytes(now)}`);
+      lm.log(() => `mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+      lm.log(() => `time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+      lm.log(() => `time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+      lm.log(() => `total runtime:          ` +
+             `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+             `seconds`);
+      lm.log(() => `rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+      lm.log(() => `est. runs/second:       ${Math.round(runs_per_second_est)}`);
+      lm.log(() => `EST. TIME PER MILLION:  ` +
+             `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+      process.stdout.write('\n');
+    }
   }
-  // -------------------------------------------------------------------------------------------------
-  function capitalize(string) {
-    // lm.log(() => `Capitalizing ${typeof string} ${inspect_fun(string)}`);
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function choose_indefinite_article(word) {
-    if (!word)
-      return 'a'; // fallback
+  
+  lm.log(() => '');
+  lm.log(() => `batch_count:            ${batch_count}`);
+  lm.log(() => `reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+  lm.log(() => `total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
+  lm.log(() => `last result:            ${rjson_stringify(result)}`);
+  const now = process.memoryUsage().heapUsed;
+  lm.log(() => `final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
+  lm.log(() => `total runtime:          ` +
+         `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+         `seconds`);
+  lm.log(() => `rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
+  const single_run_est = running_avg / reps_per_batch;
+  const runs_per_second_est = 1_000_000 / running_avg;
+  lm.log(() => `est. runs/second:       ` +
+         `${format_pretty_number(Math.round(runs_per_second_est))}`);
+  lm.log(() => `EST. TIME PER MILLION:  ` +
+         `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+         `ms`);
+  lm.log(() => '');
+  return running_avg;
+}
+// -------------------------------------------------------------------------------------------------
+function capitalize(string) {
+  // lm.log(() => `Capitalizing ${typeof string} ${inspect_fun(string)}`);
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+// -------------------------------------------------------------------------------------------------
+function choose_indefinite_article(word) {
+  if (!word)
+    return 'a'; // fallback
 
-    const lower = word.toLowerCase();
+  const lower = word.toLowerCase();
 
-    // Words that begin with vowel *sounds*
-    const vowelSoundExceptions = [
-      /^e[uw]/,          // eulogy, Europe
-      /^onc?e\b/,        // once
-      /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
-      /^u[bcfhjkqrstn]/, // unicorn, useful, usual
-      /^uk/,             // UK (spoken "you-kay")
-      /^ur[aeiou]/,      // uranium
-    ];
+  // Words that begin with vowel *sounds*
+  const vowelSoundExceptions = [
+    /^e[uw]/,          // eulogy, Europe
+    /^onc?e\b/,        // once
+    /^uni([^nmd]|$)/,  // university, unique, union but not "unimportant"
+    /^u[bcfhjkqrstn]/, // unicorn, useful, usual
+    /^uk/,             // UK (spoken "you-kay")
+    /^ur[aeiou]/,      // uranium
+  ];
 
-    const silentHWords = [
-      'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
-    ];
+  const silentHWords = [
+    'honest', 'honor', 'hour', 'heir', 'herb' // 'herb' only in American English
+  ];
 
-    const acronymStartsWithVowelSound = /^[aeiou]/i;
-    const consonantYooSound = /^u[bcfhjkqrstn]/i;
+  const acronymStartsWithVowelSound = /^[aeiou]/i;
+  const consonantYooSound = /^u[bcfhjkqrstn]/i;
 
-    if (silentHWords.includes(lower))
-      return 'an';
+  if (silentHWords.includes(lower))
+    return 'an';
 
-    if (vowelSoundExceptions.some(re => re.test(lower)))
-      return 'a';
-
-    // Words beginning with vowel letters
-    if ('aeiou'.includes(lower[0]))
-      return 'an';
-
+  if (vowelSoundExceptions.some(re => re.test(lower)))
     return 'a';
+
+  // Words beginning with vowel letters
+  if ('aeiou'.includes(lower[0]))
+    return 'an';
+
+  return 'a';
+}
+// -------------------------------------------------------------------------------------------------
+function format_pretty_bytes(bytes) {
+  const units = ['bytes', 'KB', 'MB', 'GB'];
+  const base = 1024;
+
+  const sign = Math.sign(bytes);
+  let absBytes = Math.abs(bytes);
+
+  let i = 0;
+  while (absBytes >= base && i < units.length - 1) {
+    absBytes /= base;
+    i++;
   }
-  // -------------------------------------------------------------------------------------------------
-  function format_pretty_bytes(bytes) {
-    const units = ['bytes', 'KB', 'MB', 'GB'];
-    const base = 1024;
 
-    const sign = Math.sign(bytes);
-    let absBytes = Math.abs(bytes);
+  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
+}
+// -------------------------------------------------------------------------------------------------
+function format_pretty_list(arr) {
+  const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
 
-    let i = 0;
-    while (absBytes >= base && i < units.length - 1) {
-      absBytes /= base;
-      i++;
+  if (items.length === 0)
+    return '';
+  if (items.length === 1)
+    return items[0];
+  if (items.length === 2)
+    return `${items[0]} and ${items[1]}`;
+
+  const ret = `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+  
+  return ret;
+}
+// ------------------------------------------------------------------------------------------------
+function format_pretty_number(num) {
+  const [intPart, fracPart] = num.toString().split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fracPart ? `${withCommas}.${fracPart}` : withCommas;
+}
+// -------------------------------------------------------------------------------------------------
+function format_simple_time(date = new Date()) {
+  return date.toLocaleTimeString('en-US', {
+    hour:   'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+// -------------------------------------------------------------------------------------------------
+function indent_lines(indent, str, indent_str = "| ") {
+  if (typeof str !== 'string')
+    throw new Error(`not a string: ${inspect.fun(str)}`);
+  
+  const indent_string = indent_str.repeat(indent);
+  const indented_str  = str
+        .split("\n")
+        .map(line => `${indent_string}${line}`)
+        .join("\n");
+
+  return indented_str;
+}
+// -------------------------------------------------------------------------------------------------
+function intercalate(separator, array, { final_separator = null } = {}) {
+  if (array.length === 0) return [];
+
+  const result = [array[0]];
+
+  for (let ix = 1; ix < array.length; ix++) {
+    const sep = (final_separator && ix === array.length - 1)
+          ? final_separator
+          : separator;
+    result.push(sep, array[ix]);
+  }
+
+  return result;
+}
+// -------------------------------------------------------------------------------------------------
+function is_empty_object(obj) {
+  return obj && typeof obj === 'object' &&
+    Object.keys(obj).length === 0 &&
+    obj.constructor === Object;
+}
+// -------------------------------------------------------------------------------------------------
+function is_primitive(val) {
+  return val === null ||
+    (typeof val !== 'object' && typeof val !== 'function');
+}
+// -------------------------------------------------------------------------------------------------
+function is_plain_object(value) {
+  return (
+    typeof value === 'object' &&
+      value !== null &&
+      Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+// -------------------------------------------------------------------------------------------------
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,     // deletion
+        dp[i][j - 1] + 1,     // insertion
+        dp[i - 1][j - 1] + cost  // substitution
+      );
+    }
+  }
+
+  // lm.log(() => `Levenshtein distance between '${a}' and '${b}':`);
+  // lm.log(() => `${inspect_fun(dp)}.`);
+
+  return dp[m][n];
+}
+// -------------------------------------------------------------------------------------------------
+function measure_time(fun) {
+  const now = dt_hosted
+        ? Date.now
+        : performance.now.bind(performance);
+
+  const start = now();
+  fun();
+  const end = now();
+
+  return end - start;
+}
+// -------------------------------------------------------------------------------------------------
+function rand_int(x, y) {
+  y ||= x;
+  const min = Math.min(x, y);
+  const max = Math.max(x, y);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// -------------------------------------------------------------------------------------------------
+function raw(strings, ...values) {
+  return String.raw(strings, ...values);
+}
+// -------------------------------------------------------------------------------------------------
+function RegExp_raw(strings, ...values) {
+  const raw_source = raw(strings, ...values);
+  return new RegExp(raw_source);
+}
+// -------------------------------------------------------------------------------------------------
+function rjson_stringify(obj) {
+  if (obj === undefined)
+    return 'undefined';
+  
+  return JSON.stringify(obj)
+    .replace(/"(\w+)"\s*:/g, ' $1: ')
+    .replace(/{ /g, '{')
+    .replace(/},{/g, '}, {');
+}
+// -------------------------------------------------------------------------------------------------
+let smart_join_trap_counter  = 0;
+let smart_join_trap_target;
+// smart_join_trap_target = 1;
+// -------------------------------------------------------------------------------------------------
+function smart_join(arr, { correct_articles = undefined } = {}) {
+  if (correct_articles === undefined)
+    throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
+
+  smart_join_trap_counter += 1;
+
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+    lm.log(() => `smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
+
+
+  if (! arr || typeof arr === 'string')
+    return arr;
+
+  arr = [...arr.flat(Infinity).filter(x=> x)];
+
+  // if (arr.includes("''") || arr.includes('""'))
+  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+
+  if (arr.length === 0) 
+    return '';
+  else if (arr.length === 1)
+    return arr[0];
+
+  if (smart_join_trap_counter === smart_join_trap_target) {
+    lm.log(() => `SMART_JOIN TRAPPED`, false);
+    
+    throw stop(); 
+  }
+
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
+  const linkingp     = (ch)  => "_-".includes(ch);
+  // const whitep       = (ch)  => " \n".includes(ch);
+  
+  // handle "a" → "an" if necessary:
+  const articleCorrection = (originalArticle, nextWord) => {
+    const expected = choose_indefinite_article(nextWord);
+    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
+      return originalArticle === 'A' ? 'An' : 'an';
+    }
+    return originalArticle;
+  };
+  
+  let left_word = arr[0];  // ?.toString() ?? "";
+  let str       = left_word;
+
+  for (let ix = 1; ix < arr.length; ix++)  {
+    // if (str.includes(`,,`))
+    //   throw new Error("STOP");
+    
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
+    let next_char            = null;
+
+    const add_a_space = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `SPACE!`, true);
+
+      prev_char  = ' ';
+      str       += ' ';
     }
 
-    const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
-    return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function format_pretty_list(arr) {
-    const items = arr.map(String); // Convert everything to strings like "null" and 7 → "7"
-
-    if (items.length === 0)
-      return '';
-    if (items.length === 1)
-      return items[0];
-    if (items.length === 2)
-      return `${items[0]} and ${items[1]}`;
-
-    const ret = `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
-    
-    return ret;
-  }
-  // ------------------------------------------------------------------------------------------------
-  function format_pretty_number(num) {
-    const [intPart, fracPart] = num.toString().split(".");
-    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return fracPart ? `${withCommas}.${fracPart}` : withCommas;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function format_simple_time(date = new Date()) {
-    return date.toLocaleTimeString('en-US', {
-      hour:   'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-  }
-  // -------------------------------------------------------------------------------------------------
-  function indent_lines(indent, str, indent_str = "| ") {
-    if (typeof str !== 'string')
-      throw new Error(`not a string: ${inspect.fun(str)}`);
-    
-    const indent_string = indent_str.repeat(indent);
-    const indented_str  = str
-          .split("\n")
-          .map(line => `${indent_string}${line}`)
-          .join("\n");
-
-    return indented_str;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function intercalate(separator, array, { final_separator = null } = {}) {
-    if (array.length === 0) return [];
-
-    const result = [array[0]];
-
-    for (let ix = 1; ix < array.length; ix++) {
-      const sep = (final_separator && ix === array.length - 1)
-            ? final_separator
-            : separator;
-      result.push(sep, array[ix]);
-    }
-
-    return result;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function is_empty_object(obj) {
-    return obj && typeof obj === 'object' &&
-      Object.keys(obj).length === 0 &&
-      obj.constructor === Object;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function is_primitive(val) {
-    return val === null ||
-      (typeof val !== 'object' && typeof val !== 'function');
-  }
-  // -------------------------------------------------------------------------------------------------
-  function is_plain_object(value) {
-    return (
-      typeof value === 'object' &&
-        value !== null &&
-        Object.getPrototypeOf(value) === Object.prototype
-    );
-  }
-  // -------------------------------------------------------------------------------------------------
-  function levenshtein(a, b) {
-    const m = a.length, n = b.length;
-    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-    for (let i = 0; i <= m; i++) dp[i][0] = i;
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1,     // deletion
-          dp[i][j - 1] + 1,     // insertion
-          dp[i - 1][j - 1] + cost  // substitution
-        );
-      }
-    }
-
-    // lm.log(() => `Levenshtein distance between '${a}' and '${b}':`);
-    // lm.log(() => `${inspect_fun(dp)}.`);
-
-    return dp[m][n];
-  }
-  // -------------------------------------------------------------------------------------------------
-  function measure_time(fun) {
-    const now = dt_hosted
-          ? Date.now
-          : performance.now.bind(performance);
-
-    const start = now();
-    fun();
-    const end = now();
-
-    return end - start;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function rand_int(x, y) {
-    y ||= x;
-    const min = Math.min(x, y);
-    const max = Math.max(x, y);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-  // -------------------------------------------------------------------------------------------------
-  function raw(strings, ...values) {
-    return String.raw(strings, ...values);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function RegExp_raw(strings, ...values) {
-    const raw_source = raw(strings, ...values);
-    return new RegExp(raw_source);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function rjson_stringify(obj) {
-    if (obj === undefined)
-      return 'undefined';
-    
-    return JSON.stringify(obj)
-      .replace(/"(\w+)"\s*:/g, ' $1: ')
-      .replace(/{ /g, '{')
-      .replace(/},{/g, '}, {');
-  }
-  // -------------------------------------------------------------------------------------------------
-  let smart_join_trap_counter  = 0;
-  let smart_join_trap_target;
-  // smart_join_trap_target = 1;
-  // -------------------------------------------------------------------------------------------------
-  function smart_join(arr, { correct_articles = undefined } = {}) {
-    if (correct_articles === undefined)
-      throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
-
-    smart_join_trap_counter += 1;
-
-    if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
-      lm.log(() => `smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-             log_level__expand_and_walk);
-
-
-    if (! arr || typeof arr === 'string')
-      return arr;
-
-    arr = [...arr.flat(Infinity).filter(x=> x)];
-
-    // if (arr.includes("''") || arr.includes('""'))
-    //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
-
-    if (arr.length === 0) 
-      return '';
-    else if (arr.length === 1)
-      return arr[0];
-
-    if (smart_join_trap_counter === smart_join_trap_target) {
-      lm.log(() => `SMART_JOIN TRAPPED`, false);
+    const chomp_left_side = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `CHOMP LEFT!`, true);
       
-      throw stop(); 
-    }
-
-    // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-    const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-    const linkingp     = (ch)  => "_-".includes(ch);
-    // const whitep       = (ch)  => " \n".includes(ch);
-    
-    // handle "a" → "an" if necessary:
-    const articleCorrection = (originalArticle, nextWord) => {
-      const expected = choose_indefinite_article(nextWord);
-      if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-        return originalArticle === 'A' ? 'An' : 'an';
-      }
-      return originalArticle;
-    };
-    
-    let left_word = arr[0];  // ?.toString() ?? "";
-    let str       = left_word;
-
-    for (let ix = 1; ix < arr.length; ix++)  {
-      // if (str.includes(`,,`))
-      //   throw new Error("STOP");
-      
-      let right_word           = null;
-      let prev_char            = null;
-      let prev_char_is_escaped = null;
-      let next_char_is_escaped = null;
-      let next_char            = null;
-
-      const add_a_space = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `SPACE!`, true);
-
-        prev_char  = ' ';
-        str       += ' ';
-      }
-
-      const chomp_left_side = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `CHOMP LEFT!`, true);
-        
-        str      = str.slice(0, -1);
-        left_word = left_word.slice(0, -1);
-        
-        update_pos_vars();
-      };
-      
-      const chomp_right_side = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `CHOMP RIGHT!`, true);
-
-        arr[ix] = arr[ix].slice(1);
-
-        update_pos_vars();
-      }
-
-      const consume_right_word = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `CONSUME ${inspect_fun(right_word)}!`, true);
-
-        // if (right_word === '""' || right_word === "''")
-        //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-
-        left_word  = right_word;
-        str       += left_word;
-      }
-
-      const move_chars_left = (n) => {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `SHIFT ${n} CHARACTERS!`, true);
-
-        const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-        const shifted_str = right_word.substring(0, n);
-
-        arr[ix]   = right_word.substring(n);
-        str       = str.substring(0, str.length - overcut) + shifted_str;
-        left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-        
-        update_pos_vars();
-      };
-      
-      const update_pos_vars = () => {
-        right_word           = arr[ix]; // ?.toString() ?? "";
-        prev_char            = left_word[left_word.length - 1] ?? "";
-        prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-        next_char_is_escaped = right_word[0] === '\\';
-        next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
-
-        if (log_level__smart_join >= 2)
-          lm.log(() => `ix = ${inspect_fun(ix)}, ` +
-                 `str = ${inspect_fun(str)}, ` +
-                 `left_word = ${inspect_fun(left_word)}, ` +         
-                 `right_word = ${inspect_fun(right_word)}, ` +       
-                 `prev_char = ${inspect_fun(prev_char)}, ` +         
-                 `next_char = ${inspect_fun(next_char)}, ` + 
-                 `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                 `next_char_is_escaped = ${next_char_is_escaped}`, true);
-      };
+      str      = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
       
       update_pos_vars();
-      
-      if (right_word === '') {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `JUMP EMPTY!`, true);
+    };
+    
+    const chomp_right_side = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `CHOMP RIGHT!`, true);
 
-        continue;
-      }
+      arr[ix] = arr[ix].slice(1);
 
-      if (right_word === '<') {
-        str += '<';
-        continue;
-      }
-
-      while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
-        move_chars_left(3);
-      
-      while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
-        move_chars_left(1);
-
-      // Normalize article if needed:
-      if (correct_articles) {
-        const article_match = str.match(/(?:^|\s)([Aa])$/);
-        
-        if (article_match) {
-          const originalArticle = article_match[1];
-          const updatedArticle = articleCorrection(originalArticle, right_word);
-
-          if (updatedArticle !== originalArticle) 
-            str = str.slice(0, -originalArticle.length) + updatedArticle;
-        }
-      }
-
-      let chomped = false;
-
-      if (!prev_char_is_escaped && prev_char === '<') {
-        chomp_left_side();
-        chomped = true;
-      }
-      
-      if (str.endsWith('<')) {
-        chomp_left_side();
-        chomped = true;
-      }
-
-      if (right_word.startsWith('<')) {
-        chomp_right_side();
-        chomped = true;
-      }
-
-      if (right_word === '') {
-        if (log_level__smart_join >= 2)
-          lm.log(() => `JUMP EMPTY (LATE)!`, true);
-
-        continue;
-      }
-
-      if (!chomped &&
-          !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))
-        add_a_space();
-
-      consume_right_word();
+      update_pos_vars();
     }
 
-    if (log_level__smart_join >= 1)
-      lm.log(() => `smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
-             log_level__expand_and_walk);
+    const consume_right_word = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `CONSUME ${inspect_fun(right_word)}!`, true);
 
-    // lm.log(() => `${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
+      left_word  = right_word;
+      str       += left_word;
+    }
+
+    const move_chars_left = (n) => {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `SHIFT ${n} CHARACTERS!`, true);
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
+
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      
+      update_pos_vars();
+    };
+    
+    const update_pos_vars = () => {
+      right_word           = arr[ix]; // ?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char_is_escaped = right_word[0] === '\\';
+      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
+
+      if (log_level__smart_join >= 2)
+        lm.log(() => `ix = ${inspect_fun(ix)}, ` +
+               `str = ${inspect_fun(str)}, ` +
+               `left_word = ${inspect_fun(left_word)}, ` +         
+               `right_word = ${inspect_fun(right_word)}, ` +       
+               `prev_char = ${inspect_fun(prev_char)}, ` +         
+               `next_char = ${inspect_fun(next_char)}, ` + 
+               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+               `next_char_is_escaped = ${next_char_is_escaped}`, true);
+    };
+    
+    update_pos_vars();
+    
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `JUMP EMPTY!`, true);
+
+      continue;
+    }
+
+    if (right_word === '<') {
+      str += '<';
+      continue;
+    }
+
+    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
+      move_chars_left(3);
+    
+    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
+      move_chars_left(1);
+
+    // Normalize article if needed:
+    if (correct_articles) {
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
+
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
+      }
+    }
+
+    let chomped = false;
+
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    
+    if (str.endsWith('<')) {
+      chomp_left_side();
+      chomped = true;
+    }
+
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
+    }
+
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(() => `JUMP EMPTY (LATE)!`, true);
+
+      continue;
+    }
+
+    if (!chomped &&
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n') &&
+        !right_word.startsWith('\\ ') && 
+        !punctuationp (next_char)     && 
+        !linkingp     (prev_char)     &&
+        !linkingp     (next_char)     &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
+      add_a_space();
+
+    consume_right_word();
+  }
+
+  if (log_level__smart_join >= 1)
+    lm.log(() => `smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
+
+  // lm.log(() => `${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+
+  return str;
+}
+// -------------------------------------------------------------------------------------------------
+// DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
+// -------------------------------------------------------------------------------------------------
+function structured_clone(value, {
+  seen = new WeakMap(),           // For shared reference reuse
+  ancestors = new WeakSet(),      // For cycle detection
+  unshare = false
+} = {}) {
+  if (value === null || typeof value !== "object")
+    return value;
+
+  if (ancestors.has(value))
+    throw new TypeError("Cannot clone cyclic structure");
+  
+  if (!unshare && seen.has(value))
+    return seen.get(value);
+
+  ancestors.add(value); // Add to call stack tracking
+
+  let clone;
+
+  if (Array.isArray(value)) {
+    clone = [];
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.push(structured_clone(item, { seen, ancestors, unshare }));
+  }
+  else if (value instanceof Set) {
+    clone = new Set();
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const item of value) 
+      clone.add(structured_clone(item, { seen, ancestors, unshare }));    
+  }
+  else if (value instanceof Map) {
+    clone = new Map();
+
+    if (!unshare)
+      seen.set(value, clone);
+    
+    for (const [k, v] of value.entries()) 
+      clone.set(structured_clone(k, { seen, ancestors, unshare }),
+                structured_clone(v, { seen, ancestors, unshare }));
+    
+  }
+  else if (value instanceof Date) {
+    clone = new Date(value);
+  }
+  else if (value instanceof RegExp) {
+    clone = new RegExp(value);
+  }
+  else {
+    clone = {};
+
+    if (!unshare)
+      seen.set(value, clone);
+
+    for (const key of Object.keys(value)) 
+      clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
+  }
+
+  ancestors.delete(value); // Cleanup recursion tracking
+
+  return clone;
+}
+// -------------------------------------------------------------------------------------------------
+if (test_structured_clone) {
+  const shared = { msg: "hi" };
+  let obj = { a: shared, b: shared };
+  // test #1: preserve shared references, this one seems to work:
+  {
+    const clone = structured_clone(obj);
+
+    if (clone.a !== clone.b)
+      throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
+
+    lm.log(() => `test #1 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #2: break shared references (unshare), this one seems to work:
+  {
+    const clone = structured_clone(obj, { unshare: true });
+
+    if (clone.a === clone.b)
+      throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
+
+    lm.log(() => `test #2 succesfully cloned object ${inspect_fun(obj)}`);
+  }
+  // test #4: should fail do to cycle, with unshare = false:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj);
+
+    // If we get here, no error was thrown = fail
+    throw new Error(`test #3 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #3 should have failed.')
+      throw err;
+    else 
+      lm.log(() => `test #3 failed as intended.`);
+  }
+  // test #4: should fail do to cycle, with unshare = true:
+  try {
+    obj = {};
+    obj.self = obj; // Create a cycle
+    structured_clone(obj, { unshare: true }); 
+
+    throw new Error(`test #4 should have failed.`);
+  } catch (err) {
+    if (err.message === 'test #4 should have failed.') 
+      throw err;
+    else
+      lm.log(() => `test #3 failed as intended.`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    if (dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  // If it's reasonably close (adjust threshold as needed)
+  return (closest && closest_distance <= 2)
+    ? `Did you mean '${closest}'?`
+    : '';
+}
+// -------------------------------------------------------------------------------------------------
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
+  let type_str =
+      typeof thing === 'object'
+      ? (thing === null
+         ? 'null '
+         : `${thing.constructor.name} ` ?? 'Object ')
+      : `${typeof thing} `;
+
+  if (type_str === '')
+    throw new Error("wtf");
+  
+  let thing_str;
+
+  if (thing instanceof ASTNode) {
+    thing_str = thing.toString();
+    if (! always_include_type_str)
+      type_str  = '';
+  }
+  else if (Array.isArray(thing)) {
+    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
+  }
+  else if (typeof thing === 'string') {
+    thing_str = inspect_fun(thing);
+  }
+  else if (typeof thing === 'object') {
+    try {
+      thing_str = abbreviate(compress(inspect_fun(thing)));
+    } catch {
+      thing_str = thing.toString(); // fallback
+    }
+  }
+  else {
+    thing_str = String(thing);
+  }
+
+  return `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; // thing_str_repr.abbrev_length);
+}
+thing_str_repr.abbrev_length = 100;
+// -------------------------------------------------------------------------------------------------
+function unescape(str) {
+  if (typeof str !== 'string')
     return str;
-  }
-  // -------------------------------------------------------------------------------------------------
-  // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
-  // -------------------------------------------------------------------------------------------------
-  function structured_clone(value, {
-    seen = new WeakMap(),           // For shared reference reuse
-    ancestors = new WeakSet(),      // For cycle detection
-    unshare = false
-  } = {}) {
-    if (value === null || typeof value !== "object")
-      return value;
-
-    if (ancestors.has(value))
-      throw new TypeError("Cannot clone cyclic structure");
-    
-    if (!unshare && seen.has(value))
-      return seen.get(value);
-
-    ancestors.add(value); // Add to call stack tracking
-
-    let clone;
-
-    if (Array.isArray(value)) {
-      clone = [];
-
-      if (!unshare)
-        seen.set(value, clone);
-
-      for (const item of value) 
-        clone.push(structured_clone(item, { seen, ancestors, unshare }));
-    }
-    else if (value instanceof Set) {
-      clone = new Set();
-
-      if (!unshare)
-        seen.set(value, clone);
-
-      for (const item of value) 
-        clone.add(structured_clone(item, { seen, ancestors, unshare }));    
-    }
-    else if (value instanceof Map) {
-      clone = new Map();
-
-      if (!unshare)
-        seen.set(value, clone);
-      
-      for (const [k, v] of value.entries()) 
-        clone.set(structured_clone(k, { seen, ancestors, unshare }),
-                  structured_clone(v, { seen, ancestors, unshare }));
-      
-    }
-    else if (value instanceof Date) {
-      clone = new Date(value);
-    }
-    else if (value instanceof RegExp) {
-      clone = new RegExp(value);
-    }
-    else {
-      clone = {};
-
-      if (!unshare)
-        seen.set(value, clone);
-
-      for (const key of Object.keys(value)) 
-        clone[key] = structured_clone(value[key], { seen, ancestors, unshare });
-    }
-
-    ancestors.delete(value); // Cleanup recursion tracking
-
-    return clone;
-  }
-  // -------------------------------------------------------------------------------------------------
-  if (test_structured_clone) {
-    const shared = { msg: "hi" };
-    let obj = { a: shared, b: shared };
-    // test #1: preserve shared references, this one seems to work:
-    {
-      const clone = structured_clone(obj);
-
-      if (clone.a !== clone.b)
-        throw new Error(`${inspect_fun(clone.a)} !== ${inspect_fun(clone.b)}`);
-
-      lm.log(() => `test #1 succesfully cloned object ${inspect_fun(obj)}`);
-    }
-    // test #2: break shared references (unshare), this one seems to work:
-    {
-      const clone = structured_clone(obj, { unshare: true });
-
-      if (clone.a === clone.b)
-        throw new Error(`${inspect_fun(clone.a)} === ${inspect_fun(clone.b)}`);
-
-      lm.log(() => `test #2 succesfully cloned object ${inspect_fun(obj)}`);
-    }
-    // test #4: should fail do to cycle, with unshare = false:
-    try {
-      obj = {};
-      obj.self = obj; // Create a cycle
-      structured_clone(obj);
-
-      // If we get here, no error was thrown = fail
-      throw new Error(`test #3 should have failed.`);
-    } catch (err) {
-      if (err.message === 'test #3 should have failed.')
-        throw err;
-      else 
-        lm.log(() => `test #3 failed as intended.`);
-    }
-    // test #4: should fail do to cycle, with unshare = true:
-    try {
-      obj = {};
-      obj.self = obj; // Create a cycle
-      structured_clone(obj, { unshare: true }); 
-
-      throw new Error(`test #4 should have failed.`);
-    } catch (err) {
-      if (err.message === 'test #4 should have failed.') 
-        throw err;
-      else
-        lm.log(() => `test #3 failed as intended.`);
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  function suggest_closest(name, candidates) {
-    let closest = null;
-    let closest_distance = Infinity;
-
-    for (const cand of candidates) {
-      const dist = levenshtein(name, cand);
-      if (dist < closest_distance) {
-        closest = cand;
-        closest_distance = dist;
-      }
-    }
-
-    // If it's reasonably close (adjust threshold as needed)
-    return (closest && closest_distance <= 2)
-      ? `Did you mean '${closest}'?`
-      : '';
-  }
-  // -------------------------------------------------------------------------------------------------
-  function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
-    let type_str =
-        typeof thing === 'object'
-        ? (thing === null
-           ? 'null '
-           : `${thing.constructor.name} ` ?? 'Object ')
-        : `${typeof thing} `;
-
-    if (type_str === '')
-      throw new Error("wtf");
-    
-    let thing_str;
-
-    if (thing instanceof ASTNode) {
-      thing_str = thing.toString();
-      if (! always_include_type_str)
-        type_str  = '';
-    }
-    else if (Array.isArray(thing)) {
-      thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
-    }
-    else if (typeof thing === 'string') {
-      thing_str = inspect_fun(thing);
-    }
-    else if (typeof thing === 'object') {
-      try {
-        thing_str = abbreviate(compress(inspect_fun(thing)));
-      } catch {
-        thing_str = thing.toString(); // fallback
-      }
-    }
-    else {
-      thing_str = String(thing);
-    }
-
-    return `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; // thing_str_repr.abbrev_length);
-  }
-  thing_str_repr.abbrev_length = 100;
-  // -------------------------------------------------------------------------------------------------
-  function unescape(str) {
-    if (typeof str !== 'string')
-      return str;
-    
-    return str
-      .replace(/\\n/g,   '\n')
-      .replace(/\\ /g,   ' ')
-      .replace(/\\(.)/g, '$1')
-  };
-  // =================================================================================================
-  // END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
-  // =================================================================================================
+  
+  return str
+    .replace(/\\n/g,   '\n')
+    .replace(/\\ /g,   ' ')
+    .replace(/\\(.)/g, '$1')
+};
+// =================================================================================================
+// END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
+// =================================================================================================
 
 
-  // =================================================================================================
-  // HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111,
-  // =================================================================================================
-  // these are used by the context.munge_configuration() method and some walk cases.
-  // var values adapted from the file config.fbs in
-  // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-  // ----------------------------------------------------------------------------------------------------
-  const dt_samplers = [   // order is significant, do not rearrange!
-    'DPM++ 2M Karras',    // 0
-    'Euler a',            // 1
-    'DDIM',               // 2
-    'PLMS',               // 3
-    'DPM++ SDE Karras',   // 4
-    'UniPC',              // 5
-    'LCM',                // 6
-    'Euler A Substep',    // 7
-    'DPM++ SDE Substep',  // 8
-    'TCD',                // 9
-    'Euler A Trailing',   // 10
-    'DPM++ SDE Trailing', // 11
-    'DPM++ 2M AYS',       // 12
-    'Euler A AYS',        // 13
-    'DPM++ SDE AYS',      // 14
-    'DPM++ 2M Trailing',  // 15
-    'DDIM Trailing',      // 16
-  ];
-  const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
-  // -------------------------------------------------------------------------------------------------
-  const configuration_key_names = [
-    // [ dt_name, automatic1111_name ],
-    // -----------------------------------------------------------------------------------------------
-    // identical keys:
-    // -----------------------------------------------------------------------------------------------
-    { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
-    { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-    { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
-    { dt_name: 'model',                             automatic1111_name: 'model'                                      },
-    { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
-    { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-      shorthands: ['sampler_index', 'sampler_name',                                                                ] },
-    { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
-    { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
-    { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-    { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
-    { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-    { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
+// =================================================================================================
+// HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111,
+// =================================================================================================
+// these are used by the context.munge_configuration() method and some walk cases.
+// var values adapted from the file config.fbs in
+// https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
+// ----------------------------------------------------------------------------------------------------
+const dt_samplers = [   // order is significant, do not rearrange!
+  'DPM++ 2M Karras',    // 0
+  'Euler a',            // 1
+  'DDIM',               // 2
+  'PLMS',               // 3
+  'DPM++ SDE Karras',   // 4
+  'UniPC',              // 5
+  'LCM',                // 6
+  'Euler A Substep',    // 7
+  'DPM++ SDE Substep',  // 8
+  'TCD',                // 9
+  'Euler A Trailing',   // 10
+  'DPM++ SDE Trailing', // 11
+  'DPM++ 2M AYS',       // 12
+  'Euler A AYS',        // 13
+  'DPM++ SDE AYS',      // 14
+  'DPM++ 2M Trailing',  // 15
+  'DDIM Trailing',      // 16
+];
+const dt_samplers_caps_correction = new Map(dt_samplers.map(s => [ s.toLowerCase(), s ]));
+// -------------------------------------------------------------------------------------------------
+const configuration_key_names = [
+  // [ dt_name, automatic1111_name ],
+  // -----------------------------------------------------------------------------------------------
+  // identical keys:
+  // -----------------------------------------------------------------------------------------------
+  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
+  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
+  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
+  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
+  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
+  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
+  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
+  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
 
-    { dt_name: 'height',                            automatic1111_name: 'height',
-      shorthands: [ 'h', 'ih', ] },
-    { dt_name: 'width',                             automatic1111_name: 'width',
-      shorthands: [ 'w', 'iw', ] },
-    { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
-      shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ] },
-    { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
-      shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ] },
-    { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
-      shorthands: [ 'oih', 'oh', 'originalHeight', ] },
-    { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
-      shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
-    { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
-      shorthands: [ 'tih', 'th', 'targetHeight', ] },
-    { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
-      shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
-    // -----------------------------------------------------------------------------------------------
-    // differing keys:
-    // -----------------------------------------------------------------------------------------------
-    { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
-    { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
-    { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
-    { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
-    { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
-      shorthands: [ 'clip_l', 'clipl' ] },
-    { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
-    { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
-    { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
-    { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
-    { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
-    { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
-    { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
-    { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
-    { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
-    { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
-    { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
-    { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
-      shorthands: [ 'guidance',                                                                                    ] },
-    { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
-    { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-      shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
-    { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height', /*_explanation', */
-      shorthands: [ 'firstphase_height', 'hrfh', ] },
-    { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail',
-      shorthands: [ 'hrf_strength', ] },
-    { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width', /*_explanation', */
-      shorthands: [ 'firstphase_width', 'hrfw', ] },
-    { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-    { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-    { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-    { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-    { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-    { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
-    { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-      shorthands: ['neg', 'negative' ] },
-    { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
-    { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-      shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-    { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-    { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-    { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-    { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-    { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
-    { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-      shorthands: [ 'separate_clipl',                                                                              ] },  
-    { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-      shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-    { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-    { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-    { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-    { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-    { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-    { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-    { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-    { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
-    { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-      shorthands: [ 't5' ] },
-    { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-    { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-    { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-    { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-    { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-    { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-    { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-    { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-    { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
-    { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
-      shorthands: [ "znp" ] },
-  ];
-  // -------------------------------------------------------------------------------------------------
-  function get_other_name(return_key, find_key, find_value) {
+  { dt_name: 'height',                            automatic1111_name: 'height',
+    shorthands: [ 'h', 'ih', ] },
+  { dt_name: 'width',                             automatic1111_name: 'width',
+    shorthands: [ 'w', 'iw', ] },
+  { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ] },
+  { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ] },
+  { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
+    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+  { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+  { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
+    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+  { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
+  // -----------------------------------------------------------------------------------------------
+  // differing keys:
+  // -----------------------------------------------------------------------------------------------
+  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
+  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
+  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
+  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
+  { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
+    shorthands: [ 'clip_l', 'clipl' ] },
+  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
+  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
+  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
+  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
+  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
+  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
+  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
+  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
+  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
+  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
+  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+  { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
+    shorthands: [ 'guidance',                                                                                    ] },
+  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+  { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
+    shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height', /*_explanation', */
+    shorthands: [ 'firstphase_height', 'hrfh', ] },
+  { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail',
+    shorthands: [ 'hrf_strength', ] },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width', /*_explanation', */
+    shorthands: [ 'firstphase_width', 'hrfw', ] },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
+    shorthands: ['neg', 'negative' ] },
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+  { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+  { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
+    shorthands: [ 'separate_clipl',                                                                              ] },  
+  { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
+    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+  { dt_name: 't5Text',                            automatic1111_name: 't5_text',
+    shorthands: [ 't5' ] },
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+  { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
+    shorthands: [ "znp" ] },
+];
+// -------------------------------------------------------------------------------------------------
+function get_other_name(return_key, find_key, find_value) {
+  if (log_name_lookups_enabled)
+    lm.log(() => `\nLOOKING UP ${return_key} FOR ` +
+           `${inspect_fun(find_key)} ` +
+           `${inspect_fun(find_value)}`);
+
+  let find_value_lc = find_value.toLowerCase();
+
+  // -----------------------------------------------------------------------------------------------
+  // is find_value a shorthand?
+  // -----------------------------------------------------------------------------------------------
+  let got     = configuration_key_names.find(obj => 
+    obj?.shorthands?.includes(find_value_lc))
+
+  if (got) {
     if (log_name_lookups_enabled)
-      lm.log(() => `\nLOOKING UP ${return_key} FOR ` +
-             `${inspect_fun(find_key)} ` +
-             `${inspect_fun(find_value)}`);
+      lm.log(() => `RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
 
-    let find_value_lc = find_value.toLowerCase();
+    return got[return_key];
+  }
 
-    // -----------------------------------------------------------------------------------------------
-    // is find_value a shorthand?
-    // -----------------------------------------------------------------------------------------------
-    let got     = configuration_key_names.find(obj => 
-      obj?.shorthands?.includes(find_value_lc))
+  // -----------------------------------------------------------------------------------------------
+  // is it just miscapitalized?
+  // -----------------------------------------------------------------------------------------------
+  got = configuration_key_names.find(obj => {
+    if (log_name_lookups_enabled)
+      lm.log(() => `test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
+             `${inspect_fun(find_value_lc)} = ` +
+             `${obj[return_key].toLowerCase() === find_value_lc}`);
+    return obj[return_key].toLowerCase() === find_value_lc;
+  });
 
-    if (got) {
-      if (log_name_lookups_enabled)
-        lm.log(() => `RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+  if (got) {
+    if (log_name_lookups_enabled)
+      lm.log(() => `RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+    
+    return got[return_key];
+  } 
 
-      return got[return_key];
-    }
+  // -----------------------------------------------------------------------------------------------
+  // look up the alternate key:
+  // -----------------------------------------------------------------------------------------------
+  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
 
-    // -----------------------------------------------------------------------------------------------
-    // is it just miscapitalized?
-    // -----------------------------------------------------------------------------------------------
-    got = configuration_key_names.find(obj => {
-      if (log_name_lookups_enabled)
-        lm.log(() => `test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-               `${inspect_fun(find_value_lc)} = ` +
-               `${obj[return_key].toLowerCase() === find_value_lc}`);
-      return obj[return_key].toLowerCase() === find_value_lc;
+  if (got) {
+    if (log_name_lookups_enabled)
+      lm.log(() => `GOT ${return_key} FOR ` +
+             `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+    
+    return got[return_key];
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // didn't find it on either sise, just return the argument:
+  // -----------------------------------------------------------------------------------------------
+  if (log_name_lookups_enabled) 
+    lm.log(() => `RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+
+  // possibly an error? maybe not always.
+  return find_value;
+}
+// -------------------------------------------------------------------------------------------------
+function get_dt_name(name) {
+  return get_other_name('dt_name',            'automatic1111_name', name);
+}
+// -------------------------------------------------------------------------------------------------
+function get_automatic1111_name(name) {
+  return get_other_name('automatic1111_name', 'dt_name',            name);
+}
+// -------------------------------------------------------------------------------------------------
+function get_our_name(name) {
+  const res = (dt_hosted
+               ? get_dt_name
+               : get_automatic1111_name)(name);
+
+  // lm.log(() => `got our name for ${name}: ${res}`);
+  
+  return res;
+}
+// =================================================================================================
+// END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
+// =================================================================================================
+
+
+// =================================================================================================
+// Context CLASS:
+// =================================================================================================
+var last_context_id = 0;
+// -------------------------------------------------------------------------------------------------
+function get_next_context_id() {
+  last_context_id += 1;
+  return last_context_id;
+}
+// -------------------------------------------------------------------------------------------------
+class Context {
+  #configuration;
+  // -----------------------------------------------------------------------------------------------
+  constructor({ 
+    flags                        = [], 
+    scalar_variables             = new Map(),
+    named_wildcards              = new Map(),
+    noisy                        = false,
+    files                        = [],
+    configuration                = {},
+    top_file                     = true,
+    pick_one_priority            = picker_priority.ensure_weighted_distribution,
+    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    prior_pick_one_priority      = pick_one_priority,
+    prior_pick_multiple_priority = pick_multiple_priority,
+    negative_prompt              = null,
+    in_lora                      = false,
+  } = {}) {
+    this.context_id                   = get_next_context_id();
+    this.flags                        = flags;
+    this.scalar_variables             = scalar_variables;
+    this.named_wildcards              = named_wildcards;
+    this.noisy                        = noisy;
+    this.files                        = files;
+    this.configuration                = configuration;
+    this.top_file                     = top_file;
+    this.pick_one_priority            = pick_one_priority;
+    this.prior_pick_one_priority      = prior_pick_one_priority;
+    this.pick_multiple_priority       = pick_multiple_priority;
+    this.prior_pick_multiple_priority = prior_pick_multiple_priority;
+    this.in_lora                      = in_lora;
+    
+    if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
+      this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  clone(obj = {}) {
+    // lm.log(() => `CLONING CONTEXT ${inspect_fun(this)}`);
+    
+    const copy = new Context({
+      flags:                        structured_clone(this.flags),
+      scalar_variables:             new Map(this.scalar_variables), // slightly shared
+      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      noisy:                        this.noisy,
+      files:                        structured_clone(this.files),
+      configuration:                this.configuration, 
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.pick_multiple_priority,
     });
 
-    if (got) {
-      if (log_name_lookups_enabled)
-        lm.log(() => `RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
-      
-      return got[return_key];
-    } 
+    if (this.configuration.loras && copy.configuration.loras &&
+        this.configuration.loras === copy.configuration.loras)
+      throw new Error("oh no");
 
-    // -----------------------------------------------------------------------------------------------
-    // look up the alternate key:
-    // -----------------------------------------------------------------------------------------------
-    got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+    // lm.log(() => `CLONED CONTEXT`);
+    
+    Object.assign(copy, obj);
 
-    if (got) {
-      if (log_name_lookups_enabled)
-        lm.log(() => `GOT ${return_key} FOR ` +
-               `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  shallow_copy(obj = {}) {
+    var copy = new Context({
+      flags:                        this.flags,
+      scalar_variables:             this.scalar_variables,
+      named_wildcards:              this.named_wildcards,
+      noisy:                        this.noisy,
+      files:                        this.files,
+      top_file:                     this.top_file,
+      pick_one_priority:            this.pick_one_priority,
+      prior_pick_one_priority:      this.prior_pick_one_priority,
+      pick_multiple_priority:       this.pick_multiple_priority,
+      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      negative_prompt:              this.negative_prompt,
+    });
+
+    // avoid copying this by assigning to #configuration instead of using
+    // configuration argument to constructor:
+    copy.#configuration = this.configuration;
+
+    Object.assign(copy, obj);
+    
+    return copy;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get configuration() {
+    return this.#configuration;
+  }
+  // -----------------------------------------------------------------------------------------------
+  set configuration(config) {
+    // lm.log(() => `CLONING CONFIGURATION!`);
+    this.#configuration = structured_clone(config, { unshare: true });
+  }
+  // -----------------------------------------------------------------------------------------------
+  add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
+    this.configuration.loras ||= [];
+
+    const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
+
+    if (index !== -1) {
+      if (! replace)
+        return;
       
-      return got[return_key];
+      this.configuration.loras.splice(index, 1); // Remove the existing entry
     }
+    
+    this.configuration.loras.push(lora);
 
-    // -----------------------------------------------------------------------------------------------
-    // didn't find it on either sise, just return the argument:
-    // -----------------------------------------------------------------------------------------------
-    if (log_name_lookups_enabled) 
-      lm.log(() => `RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
-
-    // possibly an error? maybe not always.
-    return find_value;
+    // if (log_configuration_enabled)
+    //   log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
   }
   // -------------------------------------------------------------------------------------------------
-  function get_dt_name(name) {
-    return get_other_name('dt_name',            'automatic1111_name', name);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function get_automatic1111_name(name) {
-    return get_other_name('automatic1111_name', 'dt_name',            name);
-  }
-  // -------------------------------------------------------------------------------------------------
-  function get_our_name(name) {
-    const res = (dt_hosted
-                 ? get_dt_name
-                 : get_automatic1111_name)(name);
+  flag_is_set(test_flag) {
+    let res = false;
 
-    // lm.log(() => `got our name for ${name}: ${res}`);
+    for (const flag of this.flags) {
+      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
+        res = true;
+        break;
+      }
+    }
     
     return res;
   }
-  // =================================================================================================
-  // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // Context CLASS:
-  // =================================================================================================
-  var last_context_id = 0;
-  // -------------------------------------------------------------------------------------------------
-  function get_next_context_id() {
-    last_context_id += 1;
-    return last_context_id;
-  }
-  // -------------------------------------------------------------------------------------------------
-  class Context {
-    #configuration;
-    // -----------------------------------------------------------------------------------------------
-    constructor({ 
-      flags                        = [], 
-      scalar_variables             = new Map(),
-      named_wildcards              = new Map(),
-      noisy                        = false,
-      files                        = [],
-      configuration                = {},
-      top_file                     = true,
-      pick_one_priority            = picker_priority.ensure_weighted_distribution,
-      pick_multiple_priority       = picker_priority.avoid_repetition_short,
-      prior_pick_one_priority      = pick_one_priority,
-      prior_pick_multiple_priority = pick_multiple_priority,
-      negative_prompt              = null,
-      in_lora                      = false,
-    } = {}) {
-      this.context_id                   = get_next_context_id();
-      this.flags                        = flags;
-      this.scalar_variables             = scalar_variables;
-      this.named_wildcards              = named_wildcards;
-      this.noisy                        = noisy;
-      this.files                        = files;
-      this.configuration                = configuration;
-      this.top_file                     = top_file;
-      this.pick_one_priority            = pick_one_priority;
-      this.prior_pick_one_priority      = prior_pick_one_priority;
-      this.pick_multiple_priority       = pick_multiple_priority;
-      this.prior_pick_multiple_priority = prior_pick_multiple_priority;
-      this.in_lora                      = in_lora;
-      
-      if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
-        this.set_flag(["dt_hosted"]);
+  // -----------------------------------------------------------------------------------------------
+  set_flag(new_flag, replace_existing = false) {
+    // skip already set flags:
+    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
+      // if (log_flags_enabled)
+      //   lm.log(() => `skipping, already set`);
+      return;
     }
-    // -----------------------------------------------------------------------------------------------
-    clone(obj = {}) {
-      // lm.log(() => `CLONING CONTEXT ${inspect_fun(this)}`);
-      
-      const copy = new Context({
-        flags:                        structured_clone(this.flags),
-        scalar_variables:             new Map(this.scalar_variables), // slightly shared
-        named_wildcards:              new Map(this.named_wildcards),  // slightly shared
-        noisy:                        this.noisy,
-        files:                        structured_clone(this.files),
-        configuration:                this.configuration, 
-        top_file:                     this.top_file,
-        pick_one_priority:            this.pick_one_priority,
-        prior_pick_one_priority:      this.prior_pick_one_priority,
-        pick_multiple_priority:       this.pick_multiple_priority,      
-        prior_pick_multiple_priority: this.pick_multiple_priority,
-      });
+    
+    if (log_flags_enabled) 
+      lm.log(() => `adding ${compress(inspect_fun(new_flag))} to flags ` +
+             `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-      if (this.configuration.loras && copy.configuration.loras &&
-          this.configuration.loras === copy.configuration.loras)
-        throw new Error("oh no");
+    //if (replace_existing)
+    {
+      const new_flag_head = new_flag.slice(0, -1);
 
-      // lm.log(() => `CLONED CONTEXT`);
-      
-      Object.assign(copy, obj);
-
-      return copy;
-    }
-    // -----------------------------------------------------------------------------------------------
-    shallow_copy(obj = {}) {
-      var copy = new Context({
-        flags:                        this.flags,
-        scalar_variables:             this.scalar_variables,
-        named_wildcards:              this.named_wildcards,
-        noisy:                        this.noisy,
-        files:                        this.files,
-        top_file:                     this.top_file,
-        pick_one_priority:            this.pick_one_priority,
-        prior_pick_one_priority:      this.prior_pick_one_priority,
-        pick_multiple_priority:       this.pick_multiple_priority,
-        prior_pick_multiple_priority: this.pick_multiple_priority,      
-        negative_prompt:              this.negative_prompt,
-      });
-
-      // avoid copying this by assigning to #configuration instead of using
-      // configuration argument to constructor:
-      copy.#configuration = this.configuration;
-
-      Object.assign(copy, obj);
-      
-      return copy;
-    }
-    // -----------------------------------------------------------------------------------------------
-    get configuration() {
-      return this.#configuration;
-    }
-    // -----------------------------------------------------------------------------------------------
-    set configuration(config) {
-      // lm.log(() => `CLONING CONFIGURATION!`);
-      this.#configuration = structured_clone(config, { unshare: true });
-    }
-    // -----------------------------------------------------------------------------------------------
-    add_lora_uniquely(lora, { indent = 0, replace = true } = {}) {
-      this.configuration.loras ||= [];
-
-      const index = this.configuration.loras.findIndex(existing => existing.file === lora.file);
-
-      if (index !== -1) {
-        if (! replace)
-          return;
-        
-        this.configuration.loras.splice(index, 1); // Remove the existing entry
-      }
-      
-      this.configuration.loras.push(lora);
-
-      // if (log_configuration_enabled)
-      //   log(`added LoRA ${compress(inspect_fun(lora))} to ${this}`);
-    }
-    // -------------------------------------------------------------------------------------------------
-    flag_is_set(test_flag) {
-      let res = false;
-
-      for (const flag of this.flags) {
-        if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
-          res = true;
-          break;
+      this.flags = this.flags.filter(existing_flag => {
+        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+          // if (log_flags_enabled)
+          //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+          //          `new flag ${compress(inspect_fun(new_flag))}`);
+          return false;
         }
-      }
-      
-      return res;
-    }
-    // -----------------------------------------------------------------------------------------------
-    set_flag(new_flag, replace_existing = false) {
-      // skip already set flags:
-      if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-        // if (log_flags_enabled)
-        //   lm.log(() => `skipping, already set`);
-        return;
-      }
-      
-      if (log_flags_enabled) 
-        lm.log(() => `adding ${compress(inspect_fun(new_flag))} to flags ` +
-               `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-      //if (replace_existing)
-      {
-        const new_flag_head = new_flag.slice(0, -1);
-
-        this.flags = this.flags.filter(existing_flag => {
-          if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+        if (replace_existing)
+          if (new_flag_head.length != 0 &&
+              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
             // if (log_flags_enabled)
-            //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-            //          `new flag ${compress(inspect_fun(new_flag))}`);
-            return false;
+            //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a child of ` +
+            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+            return false; 
           }
-
-          if (replace_existing)
-            if (new_flag_head.length != 0 &&
-                arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-              // if (log_flags_enabled)
-              //   lm.log(() => `discard ${inspect_fun(existing_flag)} because it is a child of ` +
-              //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-              return false; 
-            }
-          
-          return true;
-        });
-      }
-
-      this.flags.push(new_flag);
+        
+        return true;
+      });
     }
-    // -----------------------------------------------------------------------------------------------
-    unset_flag(flag) {
-      // if (log_flags_enabled)
-      //   lm.log(() => `BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-      
-      this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
-      // if (log_flags_enabled)
-      //   lm.log(() => `AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    }
-    // -----------------------------------------------------------------------------------------------
-    reset_temporaries() {
-      this.flags = [];
-      this.scalar_variables = new Map();
+    this.flags.push(new_flag);
+  }
+  // -----------------------------------------------------------------------------------------------
+  unset_flag(flag) {
+    // if (log_flags_enabled)
+    //   lm.log(() => `BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    
+    this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
 
-      for (const [name, nwc] of this.named_wildcards) {
-        if (nwc instanceof ASTLatchedNamedWildcard) {
-          // lm.log(() => `unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
-          this.named_wildcards.set(name, nwc.original_value);
-        } /* else {
-             lm.log(() => `NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
-             } */
-      }
-    }
-    // -------------------------------------------------------------------------------------------------
-    munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-      // const log = msg => lm.log(() => `${' '.repeat(indent*2)}${msg}`);
+    // if (log_flags_enabled)
+    //   lm.log(() => `AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  reset_temporaries() {
+    this.flags = [];
+    this.scalar_variables = new Map();
 
-      // lm.log(() => `MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-
-      const munged_configuration = structured_clone(this.configuration);
-
-      if (is_empty_object(munged_configuration))
-        return munged_configuration;
-
-      if (munged_configuration.model === '') {
-        lm.log(() => `WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-               `what you meant to do, your prompt template may contain an error!`,
-               log_level__expand_and_walk);
-        delete munged_configuration.model;
-      }
-      else if (munged_configuration.model) {
-        munged_configuration.model = munged_configuration.model.toLowerCase();
-
-        if (munged_configuration.model.endsWith('.ckpt')) {
-          // do nothing
-        }
-        else if (munged_configuration.model.endsWith('_svd')) 
-          munged_configuration.model = `${munged_configuration.model}.ckpt`;
-        else if (munged_configuration.model.endsWith('_q5p')) 
-          munged_configuration.model = `${munged_configuration.model}.ckpt`;
-        else if (munged_configuration.model.endsWith('_q8p')) 
-          munged_configuration.model = `${munged_configuration.model}.ckpt`;
-        else if (munged_configuration.model.endsWith('_f16')) 
-          munged_configuration.model = `${munged_configuration.model}.ckpt`;
-        else 
-          munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
-      }
-      
-      // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-      if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
-        const lc  = munged_configuration.sampler.toLowerCase();
-        const got = dt_samplers_caps_correction.get(lc);
-
-        if (got)
-          munged_configuration.sampler = got;
-        else
-          lm.log(() => `WARNING: did not find sampler ` +
-                 `'${munged_configuration.sampler}', ` +
-                 `we're probably going to crash in a moment`);
-      }
-      
-      if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
-        if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-          lm.log(() => `correcting munged_configuration.sampler = ` +
-                 `${inspect_fun(munged_configuration.sampler)} to ` +
-                 `munged_configuration.sampler = ` +
-                 `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
-                 log_level__expand_and_walk);
-          const index = dt_samplers.indexOf(munged_configuration.sampler);
-
-          if (index === -1) {
-            lm.log(() => `WARNING: could not find index of sampler ` +
-                   `'${munged_configuration.sampler}'. `+
-                   `Are you sure you used the correct name? ` +
-                   `deleting sampler from configuration`);
-
-            delete munged_configuration.sampler;
-          }
-          else {
-            munged_configuration.sampler = index;
-          }
-        }
-      }
-      // when running in Node.js, sampler needs to be a string:
-      else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-        lm.log(() => `correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-               `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
-               log_level__expand_and_walk);
-        munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-      }
-
-      // 'fix' seed if n_iter > 1, doing this seems convenient?
-      if (! munged_configuration.seed ||
-          (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
-        const n_iter_key = get_our_name('n_iter');
-
-        if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
-          if (log_configuration_enabled)
-            lm.log(() => `%seed = -1 due to n_iter > 1`,
-                   log_level__expand_and_walk);
-
-          munged_configuration.seed = -1;
-        }
-        else if (typeof munged_configuration.seed !== 'number') {
-          const random = Math.floor(Math.random() * (2 ** 32));
-          
-          if (log_configuration_enabled)
-            lm.log(() => `%seed = ${random} due to no seed`,
-                   log_level__expand_and_walk);
-
-          munged_configuration.seed = random;
-        }
-      }
-
-      // if (log_configuration_enabled)
-      //   lm.log(() => `MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
-
-      this.configuration =  munged_configuration;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `Context<#${this.context_id}>`;
+    for (const [name, nwc] of this.named_wildcards) {
+      if (nwc instanceof ASTLatchedNamedWildcard) {
+        // lm.log(() => `unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
+        this.named_wildcards.set(name, nwc.original_value);
+      } /* else {
+           lm.log(() => `NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
+           } */
     }
   }
-  // =================================================================================================
-  // END OF Context CLASS.
-  // =================================================================================================
+  // -------------------------------------------------------------------------------------------------
+  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
+    // const log = msg => lm.log(() => `${' '.repeat(indent*2)}${msg}`);
+
+    // lm.log(() => `MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
+
+    const munged_configuration = structured_clone(this.configuration);
+
+    if (is_empty_object(munged_configuration))
+      return munged_configuration;
+
+    if (munged_configuration.model === '') {
+      lm.log(() => `WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
+             `what you meant to do, your prompt template may contain an error!`,
+             log_level__expand_and_walk);
+      delete munged_configuration.model;
+    }
+    else if (munged_configuration.model) {
+      munged_configuration.model = munged_configuration.model.toLowerCase();
+
+      if (munged_configuration.model.endsWith('.ckpt')) {
+        // do nothing
+      }
+      else if (munged_configuration.model.endsWith('_svd')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_q5p')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_q8p')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else if (munged_configuration.model.endsWith('_f16')) 
+        munged_configuration.model = `${munged_configuration.model}.ckpt`;
+      else 
+        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+    }
+    
+    // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
+    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+      const lc  = munged_configuration.sampler.toLowerCase();
+      const got = dt_samplers_caps_correction.get(lc);
+
+      if (got)
+        munged_configuration.sampler = got;
+      else
+        lm.log(() => `WARNING: did not find sampler ` +
+               `'${munged_configuration.sampler}', ` +
+               `we're probably going to crash in a moment`);
+    }
+    
+    if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
+      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+        lm.log(() => `correcting munged_configuration.sampler = ` +
+               `${inspect_fun(munged_configuration.sampler)} to ` +
+               `munged_configuration.sampler = ` +
+               `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+               log_level__expand_and_walk);
+        const index = dt_samplers.indexOf(munged_configuration.sampler);
+
+        if (index === -1) {
+          lm.log(() => `WARNING: could not find index of sampler ` +
+                 `'${munged_configuration.sampler}'. `+
+                 `Are you sure you used the correct name? ` +
+                 `deleting sampler from configuration`);
+
+          delete munged_configuration.sampler;
+        }
+        else {
+          munged_configuration.sampler = index;
+        }
+      }
+    }
+    // when running in Node.js, sampler needs to be a string:
+    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
+      lm.log(() => `correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
+             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
+             log_level__expand_and_walk);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+    }
+
+    // 'fix' seed if n_iter > 1, doing this seems convenient?
+    if (! munged_configuration.seed ||
+        (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
+      const n_iter_key = get_our_name('n_iter');
+
+      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+        if (log_configuration_enabled)
+          lm.log(() => `%seed = -1 due to n_iter > 1`,
+                 log_level__expand_and_walk);
+
+        munged_configuration.seed = -1;
+      }
+      else if (typeof munged_configuration.seed !== 'number') {
+        const random = Math.floor(Math.random() * (2 ** 32));
+        
+        if (log_configuration_enabled)
+          lm.log(() => `%seed = ${random} due to no seed`,
+                 log_level__expand_and_walk);
+
+        munged_configuration.seed = random;
+      }
+    }
+
+    // if (log_configuration_enabled)
+    //   lm.log(() => `MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
+
+    this.configuration =  munged_configuration;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `Context<#${this.context_id}>`;
+  }
+}
+// =================================================================================================
+// END OF Context CLASS.
+// =================================================================================================
 
 
-  // =================================================================================================
-  // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
-  // =================================================================================================
-  const prelude_text = `
+// =================================================================================================
+// HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+// =================================================================================================
+const prelude_text = `
 @__set_gender_if_unset  = unsafe_guards
                           { {?female #gender.female // just to make forcing an option a little terser.
                             |?male   #gender.male
@@ -8572,2315 +8572,2315 @@ class Sequence extends Rule {
 | ?wizards_artist.boris_vallejo fantasy, science-fiction, magic, nature, muscles, femininity,
 }}
 `;
-  // -------------------------------------------------------------------------------------------------
-  let prelude_parse_result = null;
-  // -------------------------------------------------------------------------------------------------
-  function load_prelude(into_context = new Context()) {
-    if (prelude_disabled)
-      return into_context;
-    
-    if (log_loading_prelude)
-      lm.log(() => `loading prelude...`);
-
-    const elapsed = measure_time(() => {
-      const old_log_flags_enabled = log_flags_enabled;
-      log_flags_enabled = false;
-      
-      if (! prelude_parse_result) {
-        const old_log_match_enabled = log_match_enabled;
-        log_match_enabled = false; 
-        prelude_parse_result = Prompt.match(prelude_text);
-        log_match_enabled = old_log_match_enabled;
-      }
-
-      // lm.log(() => `prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-      const ignored = expand_wildcards(prelude_parse_result.value, into_context,
-                                       { correct_articles: true });
-      
-      log_flags_enabled = old_log_flags_enabled;
-
-      // log_flags_enabled = true;
-      
-      if (ignored === undefined)
-        throw new Error("crap");
-
-      // lm.log(() => `NWCS: ${inspect_fun(into_context.named_wildcards)}`);
-    });
-    
-    if (log_loading_prelude)
-      lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
-
+// -------------------------------------------------------------------------------------------------
+let prelude_parse_result = null;
+// -------------------------------------------------------------------------------------------------
+function load_prelude(into_context = new Context()) {
+  if (prelude_disabled)
     return into_context;
+  
+  if (log_loading_prelude)
+    lm.log(() => `loading prelude...`);
+
+  const elapsed = measure_time(() => {
+    const old_log_flags_enabled = log_flags_enabled;
+    log_flags_enabled = false;
+    
+    if (! prelude_parse_result) {
+      const old_log_match_enabled = log_match_enabled;
+      log_match_enabled = false; 
+      prelude_parse_result = Prompt.match(prelude_text);
+      log_match_enabled = old_log_match_enabled;
+    }
+
+    // lm.log(() => `prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                     { correct_articles: true });
+    
+    log_flags_enabled = old_log_flags_enabled;
+
+    // log_flags_enabled = true;
+    
+    if (ignored === undefined)
+      throw new Error("crap");
+
+    // lm.log(() => `NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+  });
+  
+  if (log_loading_prelude)
+    lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
+
+  return into_context;
+}
+// =================================================================================================
+// END OF PRELUDE HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+// =================================================================================================
+
+
+// =================================================================================================
+// THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
+// =================================================================================================
+let expand_wildcards_trap_counter = 0; // not yet used
+// -------------------------------------------------------------------------------------------------
+function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
+  if (thing            === undefined ||
+      context          === undefined ||
+      correct_articles === undefined)
+    throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+  // -----------------------------------------------------------------------------------------------
+  if (typeof thing === 'string') {
+    if (log_level__expand_and_walk >= 1)
+      lm.log(() => `nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+    return thing;
   }
-  // =================================================================================================
-  // END OF PRELUDE HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
-  // =================================================================================================
+  // -----------------------------------------------------------------------------------------------
+  function picker_allow(option) {
+    for (const check_flag of option.check_flags) {
+      let found = false;
+      
+      for (const flag of check_flag.flags) {
+        if (context.flag_is_set(flag)) {
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found)
+        return false;
+    }
+    
+    return true;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function picker_forbid(option) {
+    for (const not_flag of option.not_flags)
+      if (context.flag_is_set(not_flag.flag))
+        return true;
+    return false;
+  };
+  // -----------------------------------------------------------------------------------------------
+  function picker_each(pick) {
+    // lm.log(() => `pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
+    const ret = lm.indent(() =>
+      walk(pick?.body ?? '', 
+           { correct_articles: correct_articles }));
 
+    if (log_level__expand_and_walk >= 2)
+      lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
+             `<${thing_str_repr(pick)}> => ` + 
+             `${thing_str_repr(ret)}`, true)
 
-  // =================================================================================================
-  // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
-  // =================================================================================================
-  let expand_wildcards_trap_counter = 0; // not yet used
-  // -------------------------------------------------------------------------------------------------
-  function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
-    if (thing            === undefined ||
-        context          === undefined ||
-        correct_articles === undefined)
-      throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-    // -----------------------------------------------------------------------------------------------
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warning_str(str) {
+    return `[WARNING: ${str}!]`;
+  }
+  // -----------------------------------------------------------------------------------------------
+  // const log = (guard_bool, msg, with_indentation = true) => { 
+  //   if (! msg && msg !== '') throw new Error("bomb 1");
+  //   if (guard_bool) lm.log(msg, with_indentation);
+  // };
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, { correct_articles = undefined } = {}) {
+    if (correct_articles === undefined)
+      throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // const log = (guard_bool, msg, with_indentation = true) => {
+    //   if (! msg && msg !== '') throw new Error("bomb 1");
+    //   if (guard_bool) lm.log(() => msg, with_indentation);
+    // };
+
+    class ThrownReturn {
+      constructor(value, quiet = false) {
+        this.value = value;
+        this.quiet = quiet;
+      }
+    }
+
     if (typeof thing === 'string') {
-      if (log_level__expand_and_walk >= 1)
-        lm.log(() => `nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      if (log_level__expand_and_walk)
+        lm.log(() => `nothing to walk in ${thing_str_repr(thing)}, returning as is`);
       return thing;
     }
-    // -----------------------------------------------------------------------------------------------
-    function picker_allow(option) {
-      for (const check_flag of option.check_flags) {
-        let found = false;
-        
-        for (const flag of check_flag.flags) {
-          if (context.flag_is_set(flag)) {
-            found = true;
-            break;
+
+    log(log_level__expand_and_walk,
+        `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
+
+    try {
+      // -------------------------------------------------------------------------------------------
+      // Arrays:
+      // -------------------------------------------------------------------------------------------
+      if (Array.isArray(thing)) {
+        const ret = [];
+
+        lm.indent(() => {
+          for (let ix = 0; ix < thing.length; ix++) {
+            log(log_level__expand_and_walk,
+                `Walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
+               );
+
+            const elem_ret =
+                  lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
+
+            if (elem_ret)
+              ret.push(elem_ret);
+
+            log(log_level__expand_and_walk,
+                `walking array element #${ix + 1} `+
+                `of ${thing.length} ` +
+                `${thing_str_repr(thing[ix])} ` +
+                `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
+               );
           }
-        }
+        });
+
+        throw new ThrownReturn(ret);
+      }
+      // -------------------------------------------------------------------------------------------
+      // flags:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTSetFlag) {
+        log(log_flags_enabled >= 2,
+            `setting flag '${thing.flag}'.`);
+
+        context.set_flag(thing.flag);
+
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUnsetFlag) {
+        log(log_flags_enabled >= 2,
+            `unsetting flag '${thing.flag}'.`);
+
+        context.unset_flag(thing.flag);
         
-        if (!found)
-          return false;
+        throw new ThrownReturn(''); // produce nothing
       }
-      
-      return true;
-    };
-    // -----------------------------------------------------------------------------------------------
-    function picker_forbid(option) {
-      for (const not_flag of option.not_flags)
-        if (context.flag_is_set(not_flag.flag))
-          return true;
-      return false;
-    };
-    // -----------------------------------------------------------------------------------------------
-    function picker_each(pick) {
-      // lm.log(() => `pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
-      const ret = lm.indent(() =>
-        walk(pick?.body ?? '', 
-             { correct_articles: correct_articles }));
-
-      if (log_level__expand_and_walk >= 2)
-        lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
-               `<${thing_str_repr(pick)}> => ` + 
-               `${thing_str_repr(ret)}`, true)
-
-      return ret;
-    }
-    // -----------------------------------------------------------------------------------------------
-    function warning_str(str) {
-      return `[WARNING: ${str}!]`;
-    }
-    // -----------------------------------------------------------------------------------------------
-    // const log = (guard_bool, msg, with_indentation = true) => { 
-    //   if (! msg && msg !== '') throw new Error("bomb 1");
-    //   if (guard_bool) lm.log(msg, with_indentation);
-    // };
-    // -----------------------------------------------------------------------------------------------
-    function walk(thing, { correct_articles = undefined } = {}) {
-      if (correct_articles === undefined)
-        throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
-
-      // const log = (guard_bool, msg, with_indentation = true) => {
-      //   if (! msg && msg !== '') throw new Error("bomb 1");
-      //   if (guard_bool) lm.log(() => msg, with_indentation);
-      // };
-
-      class ThrownReturn {
-        constructor(value, quiet = false) {
-          this.value = value;
-          this.quiet = quiet;
-        }
-      }
-
-      if (typeof thing === 'string') {
+      // -------------------------------------------------------------------------------------------
+      // AnonWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTAnonWildcard) {
+        let str = thing.pick(1, 1,
+                             picker_allow, picker_forbid, picker_each, 
+                             context.pick_one_priority)[0];
+        
         if (log_level__expand_and_walk)
-          lm.log(() => `nothing to walk in ${thing_str_repr(thing)}, returning as is`);
-        return thing;
+          lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        // ^ don't need to correct articles for trailers since punctuation can't trigger an
+        //   article correction anyhow.
+
+        throw new ThrownReturn(str);
       }
+      // -------------------------------------------------------------------------------------------
+      // NamedWildcardReferences;
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTNamedWildcardReference) {
+        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
+        
+        if (!got)
+          throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
-      log(log_level__expand_and_walk,
-          `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
+        let res = [];
 
-      try {
-        // -------------------------------------------------------------------------------------------
-        // Arrays:
-        // -------------------------------------------------------------------------------------------
-        if (Array.isArray(thing)) {
-          const ret = [];
-
-          lm.indent(() => {
-            for (let ix = 0; ix < thing.length; ix++) {
-              log(log_level__expand_and_walk,
-                  `Walking array element #${ix + 1} `+
-                  `of ${thing.length} ` +
-                  `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
-                 );
-
-              const elem_ret =
-                    lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
-
-              if (elem_ret)
-                ret.push(elem_ret);
-
-              log(log_level__expand_and_walk,
-                  `walking array element #${ix + 1} `+
-                  `of ${thing.length} ` +
-                  `${thing_str_repr(thing[ix])} ` +
-                  `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
-                 );
-            }
-          });
-
-          throw new ThrownReturn(ret);
-        }
-        // -------------------------------------------------------------------------------------------
-        // flags:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTSetFlag) {
-          log(log_flags_enabled >= 2,
-              `setting flag '${thing.flag}'.`);
-
-          context.set_flag(thing.flag);
-
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTUnsetFlag) {
-          log(log_flags_enabled >= 2,
-              `unsetting flag '${thing.flag}'.`);
-
-          context.unset_flag(thing.flag);
+        let anon_wildcard;
+        
+        if (got instanceof ASTLatchedNamedWildcard) {          
+          anon_wildcard = got.original_value;
           
-          throw new ThrownReturn(''); // produce nothing
+          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+          //   const expanded = lm.indent(() => walk(got.latched_value, 
+          //                                         { correct_articles: correct_articles})); 
+          //   // ^ not quite sure whether to use walk or expand_wildcards here.
+          
+          //   if (expanded)
+          //     res.push(expanded);
+          ///}
+          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
-        // -------------------------------------------------------------------------------------------
-        // AnonWildcards:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTAnonWildcard) {
-          let str = thing.pick(1, 1,
-                               picker_allow, picker_forbid, picker_each, 
-                               context.pick_one_priority)[0];
+        else { // ASTAnonWildcard
+          anon_wildcard = got;
+          
+          const picker_priority = thing.min_count === 1 && thing.max_count === 1
+                ? context.pick_one_priority
+                : context.pick_multiple_priority;
+          
+          res = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                   picker_allow, picker_forbid, picker_each, 
+                                   picker_priority).filter(s => s !== '');
           
           if (log_level__expand_and_walk)
-            lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
+            lm.indent(() => lm.log(() => `picked items ${thing_str_repr(res)}`));
+        }
+        
+        if (thing.capitalize && res.length > 0) 
+          res[0] = capitalize(res[0]);
+
+        let effective_joiner;
+        let intercalate_options = {}
+        let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
+        
+        // lm.log(() => `EFFECTIVE_JOINER:  ${effective_joiner}`);
+        // lm.log(() => `EFFECTIVE_TRAILER: ${effective_trailer}`);
+
+        if (thing.joiner === '&') {
+          effective_joiner = ',';
+          intercalate_options.final_separator = 'and';
+        }
+        else if (thing.joiner)
+          effective_joiner = thing.joiner;
+        else if (',.'.includes(anon_wildcard.trailer))
+          effective_joiner = ',';
+        else
+          effective_joiner = thing.joiner;
+        
+        lm.indent(() => {
+          let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
+                               { correct_articles: false });
+          // ^ don't need to correct articles here since punctuation and the word 'and' both can't
+          //   trigger an article correction anyhow.
           
-          if (thing.trailer && str.length > 0)
-            str = smart_join([str, thing.trailer],
+          if (effective_trailer && str.length > 0)
+            str = smart_join([str, effective_trailer],
                              { correct_articles: false });
           // ^ don't need to correct articles for trailers since punctuation can't trigger an
           //   article correction anyhow.
 
           throw new ThrownReturn(str);
-        }
-        // -------------------------------------------------------------------------------------------
-        // NamedWildcardReferences;
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTNamedWildcardReference) {
-          const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
-          
-          if (!got)
-            throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
+        });
+      }
+      // -------------------------------------------------------------------------------------------
+      // scalar references:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarReference) {
+        let got = context.scalar_variables.get(thing.name) ??
+            warning_str(`scalar '${thing.name}' not found`);
 
-          let res = [];
+        log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
-          let anon_wildcard;
-          
-          if (got instanceof ASTLatchedNamedWildcard) {          
-            anon_wildcard = got.original_value;
-            
-            // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            //   const expanded = lm.indent(() => walk(got.latched_value, 
-            //                                         { correct_articles: correct_articles})); 
-            //   // ^ not quite sure whether to use walk or expand_wildcards here.
-            
-            //   if (expanded)
-            //     res.push(expanded);
-            ///}
-            res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
-          }
-          else { // ASTAnonWildcard
-            anon_wildcard = got;
-            
-            const picker_priority = thing.min_count === 1 && thing.max_count === 1
-                  ? context.pick_one_priority
-                  : context.pick_multiple_priority;
-            
-            res = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                     picker_allow, picker_forbid, picker_each, 
-                                     picker_priority).filter(s => s !== '');
-            
-            if (log_level__expand_and_walk)
-              lm.indent(() => lm.log(() => `picked items ${thing_str_repr(res)}`));
-          }
-          
-          if (thing.capitalize && res.length > 0) 
-            res[0] = capitalize(res[0]);
+        if (thing.capitalize)
+          got = capitalize(got);
 
-          let effective_joiner;
-          let intercalate_options = {}
-          let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
-          
-          // lm.log(() => `EFFECTIVE_JOINER:  ${effective_joiner}`);
-          // lm.log(() => `EFFECTIVE_TRAILER: ${effective_trailer}`);
+        if (thing.trailer && got.length > 0)
+          got = smart_join([got, thing.trailer],
+                           { correct_articles: false });
+        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
+        
+        throw new ThrownReturn(got);
+      }
+      // -------------------------------------------------------------------------------------------
+      // NamedWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLatchNamedWildcard) {
+        const got = context.named_wildcards.get(thing.target.name);
+        
+        if (!got)
+          throw new ThrownReturn(
+            warning_str(`Named wildcard @${thing.target.name} not found`));
 
-          if (thing.joiner === '&') {
-            effective_joiner = ',';
-            intercalate_options.final_separator = 'and';
-          }
-          else if (thing.joiner)
-            effective_joiner = thing.joiner;
-          else if (',.'.includes(anon_wildcard.trailer))
-            effective_joiner = ',';
-          else
-            effective_joiner = thing.joiner;
-          
-          lm.indent(() => {
-            let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
-                                 { correct_articles: false });
-            // ^ don't need to correct articles here since punctuation and the word 'and' both can't
-            //   trigger an article correction anyhow.
-            
-            if (effective_trailer && str.length > 0)
-              str = smart_join([str, effective_trailer],
-                               { correct_articles: false });
-            // ^ don't need to correct articles for trailers since punctuation can't trigger an
-            //   article correction anyhow.
-
-            throw new ThrownReturn(str);
-          });
-        }
-        // -------------------------------------------------------------------------------------------
-        // scalar references:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTScalarReference) {
-          let got = context.scalar_variables.get(thing.name) ??
-              warning_str(`scalar '${thing.name}' not found`);
-
-          log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
-
-          if (thing.capitalize)
-            got = capitalize(got);
-
-          if (thing.trailer && got.length > 0)
-            got = smart_join([got, thing.trailer],
-                             { correct_articles: false });
-          // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
-          
-          throw new ThrownReturn(got);
-        }
-        // -------------------------------------------------------------------------------------------
-        // NamedWildcards:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTLatchNamedWildcard) {
-          const got = context.named_wildcards.get(thing.target.name);
-          
-          if (!got)
+        if (got instanceof ASTLatchedNamedWildcard) {
+          if (double_latching_is_an_error)
             throw new ThrownReturn(
-              warning_str(`Named wildcard @${thing.target.name} not found`));
-
-          if (got instanceof ASTLatchedNamedWildcard) {
-            if (double_latching_is_an_error)
-              throw new ThrownReturn(
-                warning_str(`tried to latch already-latched named wildcard ` +
-                            `'${thing.target.name}', check your template`));
-            else 
-              throw new ThrownReturn(''); // produce nothing
-          }
-
-          lm.indent(() => {
-            const latched =
-                  new ASTLatchedNamedWildcard(
-                    walk(got, { correct_articles: correct_articles }), got);
-
-            log(log_level__expand_and_walk,
-                `latched @${thing.target.name} to value: ` +
-                `${typeof latched.latched_value} ` +
-                `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
-
-            context.named_wildcards.set(thing.target.name, latched);
-          });
-          
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTUnlatchNamedWildcard) {
-          let got = context.named_wildcards.get(thing.name);
-
-          if (!got)
-            throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
-
-          if (! (got instanceof ASTLatchedNamedWildcard)) {
-            if (double_unlatching_is_an_error)
-              throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
-                                                 `'${thing.name}', check your template`));
-            else
-              throw new ThrownReturn(''); // produce nothing
-          }
-          
-          context.named_wildcards.set(thing.name, got.original_value);
-          
-          lm.indent(() =>
-            log(context.noisy,
-                `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
-
-          throw new ThrownReturn(''); // produce no text.
-        } 
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTNamedWildcardDefinition) {
-          if (context.named_wildcards.has(thing.name))
-            log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-                `you may not have intended to do this, check your template!`,
-                log_level__expand_and_walk);
-
-          context.named_wildcards.set(thing.name, thing.wildcard);
-
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // -------------------------------------------------------------------------------------------
-        // internal objects:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTLatchedNamedWildcard) {
-          throw new Error(`something has gone awry, ASTLatchedNamedWildcards shouldn't be ` +
-                          `reached by walk, stop`);
-          
-        }
-        // -------------------------------------------------------------------------------------------
-        // scalar assignment:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTScalarAssignment) {
-          // log(log_level__expand_and_walk >= 2, '');
-          log(log_level__expand_and_walk >= 2,
-              `assigning ${inspect_fun(thing.source)} ` +
-              `to '${thing.destination.name}'`);
-          
-          let   new_val = lm.indent(() => smart_join(walk(thing.source,
-                                                          { correct_articles: correct_articles }),
-                                                     { correct_articles: correct_articles }));
-
-          if (! thing.assign) {
-            const old_val = context.scalar_variables.get(thing.destination.name)??'';
-            new_val = smart_join([old_val, new_val],
-                                 { correct_articles: correct_articles }); 
-          }
-          
-          context.scalar_variables.set(thing.destination.name, new_val);
-
-          log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-              log_level__expand_and_walk);
-          
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // -------------------------------------------------------------------------------------------
-        // UpdateConfigurations:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTUpdateConfigurationUnary ||
-                 thing instanceof ASTUpdateConfigurationBinary) {
-          let value = thing.value;
-          
-          if (value instanceof ASTNode) {
-            const expanded_value = lm.indent(() =>
-              // don't correct articles in config values so that we don't mess up, e.g.,
-              // %sampled = { Euler A AYS };
-              expand_wildcards(thing.value, context, // not walk!
-                               { correct_articles: false })); 
-
-            const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                  ? RjsoncObject
-                                                  : Rjsonc).match(expanded_value);
-
-            if (thing instanceof ASTUpdateConfigurationBinary) {
-              value = jsconc_parsed_expanded_value?.is_finished
-                ? jsconc_parsed_expanded_value.value
-                : expanded_value;
-            }
-            else { // ASTUpdateConfigurationUnary
-              throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                              `rJSONC object, Rjsonc.match(...) result was ` +
-                              inspect_fun(jsconc_parsed_expanded_value));
-            }
-          }
-          else {
-            value = structured_clone(value); // do we need to do this? I forget.
-          }
-
-          if (thing instanceof ASTUpdateConfigurationUnary) { 
-            let new_obj = value;
-
-            for (const key of Object.keys(value)) 
-              new_obj[get_our_name(key)??key] = value[key]
-            
-            context.configuration = thing.assign
-              ? new_obj
-              : { ...context.configuration, ...new_obj };
-
-            lm.indent(() => log(log_configuration_enabled,
-                                `%config ${thing.assign ? '=' : '+='} ` +
-                                `${inspect_fun(new_obj, true)}`,
-                                log_level__expand_and_walk));
-          }
-          else { // ASTUpdateConfigurationBinary
-            const our_name = get_our_name(thing.key); 
-            
-            if (thing.assign) {
-              context.configuration[our_name] = value;
-            }
-            else { // increment
-              if (Array.isArray(value)) {
-                const tmp_arr = context.configuration[our_name]??[];
-
-                if (! Array.isArray(tmp_arr))
-                  throw new Error(`can't add array ${inspect_fun(value)} ` +
-                                  `to non-array ${inspect_fun(tmp_arr)}`);
-                
-                const new_arr = [ ...tmp_arr, ...value ];
-                log(log_expand_and_walk_enabled >= 2,
-                    `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by array ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun(new_arr)}`);
-                
-                context.configuration[our_name] = new_arr;
-              }
-              else if (typeof value === 'object') {
-                const tmp_obj = context.configuration[our_name]??{};
-
-                if (typeof tmp_obj !== 'object')
-                  throw new Error(`can't add object ${inspect_fun(value)} `+
-                                  `to non-object ${inspect_fun(tmp_obj)}`);
-
-                const new_obj = { ...tmp_obj, ...value };
-                log(log_expand_and_walk_enabled >= 2,
-                    `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by object ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun(new_obj)}`);
-
-                context.configuration[our_name] = new_obj;
-              }
-              else if (typeof value === 'number') {
-                const tmp_num = context.configuration[our_name]??0;
-                
-                if (typeof tmp_num !== 'number')
-                  throw new Error(`can't add number ${inspect_fun(value)} `+
-                                  `to non-number ${inspect_fun(tmp_num)}`);
-
-                log(log_expand_and_walk_enabled >= 2,
-                    `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by number ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
-                
-                context.configuration[our_name] = tmp_num + value;
-              }
-              else if (typeof value === 'string') {
-                const tmp_str = context.configuration[our_name]??'';
-
-                if (typeof tmp_str !== 'string')
-                  throw new Error(`can't add string ${inspect_fun(value)} `+
-                                  `to non-string ${inspect_fun(tmp_str)}`);
-
-                log(log_level__expand_and_walk >= 2,
-                    `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by string ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-
-                context.configuration[our_name] =
-                  lm.indent(() => smart_join([tmp_str, value],
-                                             { correct_articles: false })); // never correct here?
-              }
-              else {
-                // probly won't work most of the time, but let's try anyhow, I guess.
-
-                log(log_level__expand_and_walk >= 2,
-                    `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by unknown ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
-
-                context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-              }
-            }
-
-            lm.indent(() => log(log_configuration_enabled,
-                                `%${our_name} ` +
-                                `${thing.assign ? '=' : '+='} ` +
-                                `${inspect_fun(value, true)}`,
-                                log_level__expand_and_walk));
-          }
-          
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // ---------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTSetPickSingle || 
-                 thing instanceof ASTSetPickMultiple) {
-          const cur_key = thing instanceof ASTSetPickSingle
-                ? 'pick_one_priority'
-                : 'pick_multiple_priority';
-          const prior_key = thing instanceof ASTSetPickSingle
-                ? 'prior_pick_one_priority'
-                : 'prior_pick_multiple_priority';
-          const cur_val   = context[cur_key];
-          const prior_val = context[prior_key];
-          const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                             context)).toLowerCase()];
-
-          if (! picker_priority_descriptions.includes(walked))
-            throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
-
-          context[prior_key] = context[cur_key];
-          context[cur_key]   = walked;
-
-          log(log_configuration_enabled,
-              `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-              `${inspect_fun(walked)}.`);
-          
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // ---------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
-          const sub_prompt = thing instanceof ASTUIPrompt
-                ? { desc: 'UI prompt', text: ui_prompt }
-                : { desc: 'UI negative prompt', text: ui_neg_prompt };
-          
-          if (log_level__expand_and_walk >= 2)
-            lm.log(() => `expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
-
-          let res = null;
-
-          try {
-            res = Prompt.match(sub_prompt.text);
-          }
-          catch(err) {
-            if (err instanceof FatalParseError)
-              throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
-            else
-              throw err;
-          }
-
-          if (!res || !res.is_finished)
-            throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
-
-          throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
-        }
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTRevertPickSingle || 
-                 thing instanceof ASTRevertPickMultiple) {
-          const cur_key = thing instanceof ASTRevertPickSingle
-                ? 'pick_one_priority'
-                : 'pick_multiple_priority';
-          const prior_key = thing instanceof ASTRevertPickSingle
-                ? 'prior_pick_one_priority'
-                : 'prior_pick_multiple_priority';
-          const cur_val   = context[cur_key];
-          const prior_val = context[prior_key];
-          
-          log(log_configuration_enabled,
-              `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-              `${inspect_fun(prior_val)}.`);
-          
-          context[cur_key]   = prior_val;
-          context[prior_key] = cur_val;
-
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // -------------------------------------------------------------------------------------------
-        // ASTLora:
-        // -------------------------------------------------------------------------------------------
-        else if (thing instanceof ASTLora) {
-          if (context.in_lora)
-            throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
-
-          const in_lora_context = context.shallow_copy({ in_lora: true });
-          
-          let walked_file = null;
-
-          lm.indent(() => {
-            log(log_level__expand_and_walk,
-                `Expanding LoRA file ` +
-                `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
-            
-            walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
-                                                           { correct_articles: false })); // not walk!
-
-            log(log_level__expand_and_walk,
-                `expanded LoRa file `+
-                `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
-                `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
-          });
-          
-          let walked_weight = null;
-          
-          lm.indent(() => {
-            log(log_level__expand_and_walk,
-                `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
-            
-            walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
-                                                             { correct_articles: false })); // not walk!
-
-            log(log_level__expand_and_walk,
-                `expanded LoRA weight ` +
-                `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
-                `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
-          });
-
-          const weight_match_result = json_number.match(walked_weight);
-
-          if (!weight_match_result || !weight_match_result.is_finished)
-            throw new Error(`LoRA weight must be a number, got ` +
-                            `${inspect_fun(walked_weight)}`);
-
-          let file = walked_file.toLowerCase();
-
-          if (file === '')
-            throw new Error(`LoRA file name is empty!`);
-          
-          if (file.endsWith('.ckpt')) {
-            // do nothing 
-          }
-          else if (file.endsWith('_lora_f16')) {
-            file = `${file}.ckpt`;
-          }
-          else if (file.endsWith('_lora')) {
-            file = `${file}_f16.ckpt`;
-          }
-          else {
-            file = `${file}_lora_f16.ckpt`;
-          }
-
-          const weight = weight_match_result.value;
-          
-          context.add_lora_uniquely({ file: file, weight: weight });
-          
-          throw new ThrownReturn(''); // produce nothing
-        }
-        // ---------------------------------------------------------------------------------------------
-        // uncrecognized type:
-        // ---------------------------------------------------------------------------------------------
-        else {
-          throw new Error(`confusing thing: ` +
-                          (typeof thing === 'object'
-                           ? thing?.constructor.name
-                           : typeof thing) +
-                          ' ' +
-                          inspect_fun(thing));
-        }
-      }
-      catch (obj) {
-        if (! (obj instanceof ThrownReturn))
-          throw obj;
-
-        if (! obj.quiet)
-          log(log_level__expand_and_walk,
-              `walking ` +
-              `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
-              //`in ${context} ` +
-              `returned ` +
-              `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
-
-        return obj.value;
-      }
-    }
-
-    if (log_level__expand_and_walk)
-      lm.log(() => `Expanding wildcards in ` +
-             `${thing_str_repr(thing, { always_include_type_str: true })} `);
-
-    let ret;
-
-    lm.indent(() => {
-      const walked = walk(thing,
-                          { correct_articles: correct_articles })
-
-      ret = unescape(smart_join(walked,
-                                { correct_articles: correct_articles })).replace(/^</, '');
-      // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
-      //   unescape probably should too.
-
-      context.munge_configuration();
-    });
-
-    if (log_level__expand_and_walk)
-      lm.log(() => `expanding wildcards in ` +
-             `${thing_str_repr(thing)} ` + 
-             `returned ` +
-             `${thing_str_repr(ret, { always_include_type_str: true })}`);
-
-    if (ret === '""' || ret === "''")
-      throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
-
-    return ret;
-  }
-  // =================================================================================================
-  // END OF THE MAIN AST-WALKING FUNCTION.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // FLAG AUDITING FUNCTION.
-  // =================================================================================================
-  const audit_semantics_modes = Object.freeze({
-    error:                'error',
-    warning:              'warning', 
-    allow_unsafe_guards:  'allow_unsafe_guards',
-  });
-  // -------------------------------------------------------------------------------------------------
-  function audit_semantics(root_ast_node,
-                           { base_context = null, noisy = false,
-                             audit_semantics_mode = audit_semantics_modes.warning } = {}) {
-    if (root_ast_node === undefined)
-      throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                      `this likely indicates a programmer error`);
-
-    const visited = new Set();
-    const already_warned_msgs = new Set();
-    const dummy_context = base_context
-          ? base_context.clone()
-          : new Context();
-
-    // -----------------------------------------------------------------------------------------------
-    function walk(thing, local_audit_semantics_mode) {    
-      if (typeof local_audit_semantics_mode !== 'string')
-        throw new Error(`bad walk local_audit_semantics_mode: ` +
-                        `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
-      // ---------------------------------------------------------------------------------------------
-      const log = (msg_thunk, indent = true) => {
-        if (noisy)
-          lm.log(() => `${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
-      };
-      function walk_children(thing, mode) {
-        if (typeof mode !== 'string')
-          throw new Error(`bad walk_children mode: ` +
-                          `${abbreviate(compress(inspect_fun(mode)))}`);
-
-        const children = thing.direct_children().filter(child => !is_primitive(child));
-
-        if (children?.length > 0) {
-          log(() => `children: ${children.map(thing_str_repr)}`);
-
-          lm.indent(() => {
-            walk(children, mode);
-          }); // propagate arg
-        }
-      }
-      // ---------------------------------------------------------------------------------------------
-      function warn_or_throw(msg) {
-        if (local_audit_semantics_mode instanceof Context)
-          throw new Error("got Context");
-        
-        msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-        if (local_audit_semantics_mode == audit_semantics_mode.error) {
-          throw new Error(msg);
-        }
-        else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
-                 ! already_warned_msgs.has(msg)) {
-          lm.log(() => msg, false); // false arg for no indentation and not local log function
-          // already_warned_msgs.add(msg);
-        }
-      }
-      // ---------------------------------------------------------------------------------------------
-      function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
-        if (dummy_context.flag_is_set(flag) ||
-            local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
-          return;
-
-        const flag_str = flag.join(".").toLowerCase();
-        const known_flags = dummy_context.flags.map(f => f.join("."));
-        const suggestion = suggest_closest(flag_str, known_flags);
-        warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                      `this suggests that you may have a typo or other error in your template. ` +
-                      `${suggestion}`);
-      }
-      // ---------------------------------------------------------------------------------------------
-      if (is_primitive(thing))
-        return;
-
-      if (visited.has(thing)) {
-        log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
-        
-        return;
-      }
-      
-      visited.add(thing);
-
-      log(() => `audit semantics in ${thing.constructor.name} ` +
-          `'${abbreviate(compress(thing.toString()), 200)}', ` +
-          `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
-
-      lm.indent(() => {
-        // -------------------------------------------------------------------------------------------
-        // typecases:
-        // -------------------------------------------------------------------------------------------
-        if (Array.isArray(thing)) {
-          for (const elem of thing)
-            if (!is_primitive(elem))
-              walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
-        }
-        else if (thing instanceof ASTNamedWildcardDefinition) {
-          if (dummy_context.named_wildcards.has(thing.name))
-            warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                          `you may not have intended to do this, check your template!`);
-
-          dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-        }
-        else if (thing instanceof ASTNamedWildcardReference) {
-          if (!dummy_context.named_wildcards.has(thing.name)) {
-            const known_names = Array.from(dummy_context.named_wildcards.keys());
-            const suggestion = suggest_closest(thing.name, known_names);
-            warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                          `this suggests that you may have a typo or other error in your template. ` +
-                          `${suggestion}`);
-          }
-          
-          const got = dummy_context.named_wildcards.get(thing.name);
-          
-          lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
-        }
-        else if (thing instanceof ASTScalarReference) {
-          if (!dummy_context.scalar_variables.has(thing.name)) {
-            const known_names = Array.from(dummy_context.scalar_variables.keys());
-            const suggestion = suggest_closest(thing.name, known_names);
-            warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
-                          `this suggests that you may have a typo or other error in your template. ` +
-                          `${suggestion}`);
-          }
-          
-          const got = dummy_context.named_wildcards.get(thing.name);
-          
-          walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
-        }
-        else if (thing instanceof ASTScalarAssignment) {
-          dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-          walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
-        }
-        else if (thing instanceof ASTCheckFlags) {
-          if (thing.consequently_set_flag_tail) {
-            // undecided on whether this case deserves a warning... for now, let's avoid one:
-            dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
-          }
-          else {
-            for (const flag of thing.flags) 
-              warn_or_throw_unless_flag_could_be_set_by_now(flag);
-          }
-        }
-        else if (thing instanceof ASTNotFlag) {
-          if (thing.consequently_set_flag_tail)
-            // undecided on whether this case deserves a warning... for now, let's avoid one:
-            dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
-          else if (thing.set_immediately) 
-            // this case probably doesn't deserve a warning, avoid one:
-            dummy_context.set_flag(thing.flag, false);
+              warning_str(`tried to latch already-latched named wildcard ` +
+                          `'${thing.target.name}', check your template`));
           else 
-            warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+            throw new ThrownReturn(''); // produce nothing
         }
-        else if (thing instanceof ASTSetFlag) {
-          dummy_context.set_flag(thing.flag, false);
-        } 
-        else if (thing instanceof ASTUnsetFlag) {
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
-        }
-        else if (thing instanceof ASTAnonWildcard) {
-          const mode = thing.unsafe_guards
-                ? audit_semantics_modes.allow_unsafe_guards
-                : local_audit_semantics_mode; // propagate local_audit_semantics_mode
-          
-          walk_children(thing, mode);
-        }
-        else if (thing instanceof ASTAnonWildcardAlternative) {
-          walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
-        }
-        else if (thing instanceof ASTNode) {
-          walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
-        }
-        else {
-          throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
-        }
-      });
-    }
 
-    walk(root_ast_node, audit_semantics_mode);
-  }
-  // =================================================================================================
-  // END OF THE FLAG AUDITING FUNCTION.
-  // =================================================================================================
+        lm.indent(() => {
+          const latched =
+                new ASTLatchedNamedWildcard(
+                  walk(got, { correct_articles: correct_articles }), got);
 
+          log(log_level__expand_and_walk,
+              `latched @${thing.target.name} to value: ` +
+              `${typeof latched.latched_value} ` +
+              `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
-  // =================================================================================================
-  // SD PROMPT AST CLASSES SECTION:
-  // =================================================================================================
-  class ASTNode {
-    // -----------------------------------------------------------------------------------------------
-    direct_children() {
-      const ret = Array.from(this.__direct_children());
-      
-      return ret;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      // doesn't necessarily need to (but could) include whildren that are not ASTNodes.
-      throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  class ASTLeafNode extends ASTNode {
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [];
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // Flags:
-  // -------------------------------------------------------------------------------------------------
-  class ASTSetFlag extends ASTLeafNode {
-    constructor(flag_arr) {
-      super();
-      this.flag = flag_arr;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `#${this.flag.join('.')}`;
-    }
-  }
-  // --------------------------------------------------------------------------------------------------
-  class ASTUnsetFlag extends ASTLeafNode {
-    constructor(flag_arr) {
-      super();
-      this.flag = flag_arr;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `#!${this.flag.join('.')}`;
-    }
-  }
-  // --------------------------------------------------------------------------------------------------
-  class ASTCheckFlags extends ASTLeafNode {
-    constructor(flag_arrs, consequently_set_flag_tail) {
-      super();
-
-      if (consequently_set_flag_tail && flag_arrs.length != 1 )
-        throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
-
-      this.flags = flag_arrs;
-      this.consequently_set_flag_tail = consequently_set_flag_tail;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      let str = '?';
-
-      const flag_strs = [];
-      
-      for (const flag of this.flags)
-        flag_strs.push(flag.join('.'));
-
-      str += flag_strs.join(',');
-
-      if (this.consequently_set_flag_tail) {
-        str += '.#';
-        str += this.consequently_set_flag_tail.join('.');
-      }
-
-      return str;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  class ASTNotFlag extends ASTLeafNode  { 
-    constructor(flag_arr, { set_immediately = undefined,
-                            consequently_set_flag_tail = undefined } = {}) {
-      super();
-
-      if (set_immediately && consequently_set_flag_tail)
-        throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
-
-      this.flag                       = flag_arr;
-      this.consequently_set_flag_tail = consequently_set_flag_tail
-      this.set_immediately            = set_immediately;
-    }
-    // ----------------------------------------------------------------------------------------------
-    toString() {
-      let str = `!`;
-
-      if (this.set_immediately)
-        str += '#';
-
-      str += this.flag.join('.');
-
-      if (this.consequently_set_flag_tail) {
-        str += '.#';
-        str += this.consequently_set_flag_tail.join('.');
-      }
-
-      return str;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTNamedWildcardDefinition;
-  // -------------------------------------------------------------------------------------------------
-  class ASTNamedWildcardDefinition extends ASTNode {
-    constructor(name, wildcard) {
-      super();
-      this.name = name;
-      this.wildcard = wildcard;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.wildcard ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `@${this.name} = ${this.wildcard}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTNamedWildcardReference:
-  // -------------------------------------------------------------------------------------------------
-  class ASTNamedWildcardReference extends ASTLeafNode {
-    constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
-      super();
-      this.name       = name;
-      this.joiner     = joiner;
-      this.capitalize = capitalize;
-      this.min_count  = min_count;
-      this.max_count  = max_count;
-      this.trailer    = trailer;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      var str = '@';
-
-      if (this.capitalize)
-        str += this.capitalize;
-
-      if (this.min_count != 1  || this.max_count != 1) {
-        if (this.min_count !== this.max_count)
-          str += `${this.min_count}-${this.max_count}`;
-        else
-          str += `${this.max_count}`;
-
-        str += this.joiner;
-      }
-
-      str += this.name;
-      
-      return str;
-    };
-  }
-  // -------------------------------------------------------------------------------------------------
-  // Scalar references:
-  // -------------------------------------------------------------------------------------------------
-  class ASTScalarReference extends ASTLeafNode {
-    constructor(name, capitalize = '', trailer = '') {
-      super();
-      this.name       = name;
-      this.capitalize = capitalize;
-      this.trailer    = trailer;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      let str = '$';
-
-      if (this.capitalize)
-        str += this.capitalize;
-
-      str += this.name;
-      
-      return str;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // Scalar assignment:
-  // -------------------------------------------------------------------------------------------------
-  class ASTScalarAssignment extends ASTNode  {
-    constructor(destination, source, assign) {
-      super();
-      this.destination = destination;
-      this.source      = source;
-      this.assign      = assign;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.source ]; // exclude this.destination, it's just a boxed name
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTLora (for A1111-style LoRA syntax);
-  // -------------------------------------------------------------------------------------------------
-  class ASTLora extends ASTNode {
-    constructor(file, weight) {
-      super();
-      this.file   = file;
-      this.weight = weight;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.file, this.weight ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString(with_types = false ) {
-      return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
-        `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTLatchNamedWildcard:
-  // -------------------------------------------------------------------------------------------------
-  class ASTLatchNamedWildcard extends ASTNode {
-    constructor(ident) {
-      super();
-      this.target = new ASTNamedWildcardReference(ident);
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.target ]; 
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `@#${this.target.name}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTUnlatchNamedWildcard:
-  // -------------------------------------------------------------------------------------------------
-  class ASTUnlatchNamedWildcard extends ASTLeafNode {
-    constructor(name) {
-      super();
-      this.name = name;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `@!${this.name}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTLatchedNamedWildcard:
-  // -------------------------------------------------------------------------------------------------
-  class ASTLatchedNamedWildcard extends ASTNode {
-    constructor(latched_value, original_value) {
-      super();
-      this.latched_value  = latched_value;
-      this.original_value = original_value;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.original_value, /* this.latched_value */ ]; // not sure?
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return this.original_value.toString();
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTAnonWildcard:
-  // -------------------------------------------------------------------------------------------------
-  class ASTAnonWildcard extends ASTNode {
-    constructor(options, { trailer = null, unsafe_guards = false } = {}) {
-      super();
-      this.picker = new WeightedPicker(options
-                                       .filter(o => o.weight !== 0)
-                                       .map(o => [o.weight, o]));
-      this.trailer = trailer;
-      this.unsafe_guards  = unsafe_guards;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return this.picker.options.values().map(x => x.value);
-    }
-    // -----------------------------------------------------------------------------------------------
-    pick(...args) {
-      return this.picker.pick(...args);
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      let str = '';
-
-      if (this.unsafe_guards)
-        str += "unsafe_guards ";
-      
-      str += '{';
-
-      for (let ix = 0; ix < this.picker.options.length; ix++) {
-        const option     = this.picker.options[ix];
-        const repr       = option.value.toString();
-        const has_weight = option.weight != 1;
-        const is_empty   = repr == '';
-        const is_last    = ix == (this.picker.options.length - 1);
-        const has_guards = (option.value.check_flags?.length > 0 ||
-                            option.value.not_flags?.length   > 0);
+          context.named_wildcards.set(thing.target.name, latched);
+        });
         
-        if (!is_empty && !has_weight && !has_guards)
-          str += ' ';
-
-        str += repr;
-
-        if (!is_empty)
-          str += ' ';
-
-        if (!is_last)
-          str += '|';
+        throw new ThrownReturn(''); // produce nothing
       }
-      
-      str += '}';
-      
-      return str;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTAnonWildcardsAlternative:
-  // -------------------------------------------------------------------------------------------------
-  class ASTAnonWildcardAlternative extends ASTNode {
-    constructor(weight, check_flags, not_flags, body) {
-      super();
-      this.weight      = weight;
-      this.check_flags = check_flags;
-      this.not_flags   = not_flags;
-      this.body        = body;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return  [
-        ...this.check_flags,
-        ...this.not_flags,
-        ...this.body,
-      ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      var str = '';
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUnlatchNamedWildcard) {
+        let got = context.named_wildcards.get(thing.name);
 
-      if (this.weight !== 1)
-        str += `${this.weight} `;
+        if (!got)
+          throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
-      var strs = [];
+        if (! (got instanceof ASTLatchedNamedWildcard)) {
+          if (double_unlatching_is_an_error)
+            throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
+                                               `'${thing.name}', check your template`));
+          else
+            throw new ThrownReturn(''); // produce nothing
+        }
+        
+        context.named_wildcards.set(thing.name, got.original_value);
+        
+        lm.indent(() =>
+          log(context.noisy,
+              `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
 
-      for (const check of this.check_flags)
-        strs.push(check.toString());
-      
-      for (const not of this.not_flags)
-        strs.push(not.toString());
-      
-      for (const thing of this.body) {
-        strs.push(thing.toString());
+        throw new ThrownReturn(''); // produce no text.
+      } 
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTNamedWildcardDefinition) {
+        if (context.named_wildcards.has(thing.name))
+          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
+              `you may not have intended to do this, check your template!`,
+              log_level__expand_and_walk);
+
+        context.named_wildcards.set(thing.name, thing.wildcard);
+
+        throw new ThrownReturn(''); // produce nothing
       }
-
-      str += strs.join(' ');
-      
-      return str;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTInclude:
-  // -------------------------------------------------------------------------------------------------
-  class ASTInclude extends ASTLeafNode {
-    constructor(args) {
-      super();
-      this.args      = args;
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `include(${this.args})`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTUpdateConfigurationUnary:
-  // -------------------------------------------------------------------------------------------------
-  class ASTUpdateConfigurationUnary extends ASTNode {
-    constructor(value, assign) {
-      super();
-      this.value = value;
-      this.assign = assign; // otherwise update
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return is_plain_object(this.value) ? [] : [ this.value ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%config ${this.assign? '=' : '+='} ` +
-        `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTUpdateConfigurationBinary:
-  // -------------------------------------------------------------------------------------------------
-  class ASTUpdateConfigurationBinary extends ASTNode {
-    constructor(key, value, assign) {
-      super();
-      this.key    = key;
-      this.value  = value;
-      this.assign = assign;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return is_primitive(this.value) ? [] :  [ this.value ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
-        `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTSetPickMultiple:
-  // -------------------------------------------------------------------------------------------------
-  class ASTSetPickMultiple extends ASTNode {
-    constructor(limited_content) {
-      super();
-      this.limited_content = limited_content;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.limited_content ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%set-pick-multiple = ${this.limited_content}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTSetPickSingle:
-  // -------------------------------------------------------------------------------------------------
-  class ASTSetPickSingle extends ASTNode {
-    constructor(limited_content) {
-      super();
-      this.limited_content = limited_content;
-    }
-    // -----------------------------------------------------------------------------------------------
-    __direct_children() {
-      return [ this.limited_content ];
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%set-pick-single = ${this.limited_content}`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTRevertPickMultiple:
-  // -------------------------------------------------------------------------------------------------
-  class ASTRevertPickMultiple extends ASTLeafNode {
-    constructor() {
-      super();
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%revert-pick-multiple`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTRevertPickSingle:
-  // -------------------------------------------------------------------------------------------------
-  class ASTRevertPickSingle extends ASTLeafNode {
-    constructor() {
-      super();
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%revert-pick-single`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTUIPrompt:
-  // -------------------------------------------------------------------------------------------------
-  class ASTUIPrompt extends ASTLeafNode {
-    constructor() {
-      super();
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%ui-prompt`;
-    }
-  }
-  // -------------------------------------------------------------------------------------------------
-  // ASTUINegPrompt:
-  // -------------------------------------------------------------------------------------------------
-  class ASTUINegPrompt extends ASTLeafNode {
-    constructor() {
-      super();
-    }
-    // -----------------------------------------------------------------------------------------------
-    toString() {
-      return `%ui-neg-prompt`;
-    }
-  }
-  // =================================================================================================
-  // END OF SD PROMPT AST CLASSES SECTION.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // SD PROMPT GRAMMAR SECTION:
-  // =================================================================================================
-  // structural_word_break and its helper combinators:
-  // =================================================================================================
-  const structural_word_break   = r(/(?=[\s|}]|$)/)
-        .abbreviate_str_repr('structural_word_break');
-  // -------------------------------------------------------------------------------------------------
-  const with_swb                = rule => head(rule, structural_word_break);
-  const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
-  // =================================================================================================
-  // terminals:
-  // =================================================================================================
-  const any_assignment_operator = choice(equals, plus_equals)
-        .abbreviate_str_repr('any_assignment_operator');
-  const comments                = wst_star(c_comment)
-        .abbreviate_str_repr('comments');
-  const discarded_comment       = discard(c_comment)
-        .abbreviate_str_repr('discarded_comment');
-  const discarded_comments      = discard(wst_star(c_comment))
-        .abbreviate_str_repr('discarded_comments');
-  const dot_hash                = l('.#')
-        .abbreviate_str_repr('dot_hash');
-  const filename                = r(/[A-Za-z0-9 ._\-()]+/)
-        .abbreviate_str_repr('filename');
-  const ident                   =
-        xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-              str => str.toLowerCase().replace(/-/g, '_'))
-        .abbreviate_str_repr('ident');
-  // const liberal_ident           =
-  //       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-  //             str => str.toLowerCase().replace(/-/g, '_'))
-  //       .abbreviate_str_repr('ident');
-  const swb_uint                = xform(parseInt, with_swb(uint))
-        .abbreviate_str_repr('swb_uint');
-  const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
-  const optional_punctuation_trailer = optional(punctuation_trailer)
-        .abbreviate_str_repr('optional_punctuation_trailer');
-  const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
-        .abbreviate_str_repr('unexpected_punctuation_trailer');
-  // =================================================================================================
-  // plain_text terminal variants:
-  // =================================================================================================
-  const structural_chars        = '{|}';
-  const syntax_chars            = '@#$%;';
-  const comment_beginning       = raw`\/\/|\/\*`;
-  // -------------------------------------------------------------------------------------------------
-  const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
-        raw`(?:\\.|` +
-        raw`(?!`+
-        raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-        raw`${comment_beginning}` +
-        raw`)` +
-        raw`\S)`;
-  // -------------------------------------------------------------------------------------------------
-  const make_plain_text_rule = additional_excluded_chars => 
-        r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
-  // -------------------------------------------------------------------------------------------------
-  const plain_text           = make_plain_text_rule('')
-        .abbreviate_str_repr('plain_text');
-  // const plain_text_no_semis  = make_plain_text_rule(';')
-  //       .abbreviate_str_repr('plain_text_no_semis');
-  // =================================================================================================
-  // A1111-style LoRAs:
-  // =================================================================================================
-  const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
-        .abbreviate_str_repr('A1111StyleLoraWeight');
-  const A1111StyleLora =
-        xform(arr => new ASTLora(arr[2], arr[3]),
-              wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
-                              colon,                                               // [1] 
-                              choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                              optional(wst_cadr(colon,                             // [3]
-                                                choice(A1111StyleLoraWeight,
-                                                       () => LimitedContentNoAWCTrailers)),
-                                       "1.0"), // [4][0]
-                              rtri))
-        .abbreviate_str_repr('A1111StyleLora');
-  // =================================================================================================
-  // mod RJSONC:
-  // =================================================================================================
-  const ExposedRjsonc = 
-        make_Jsonc_rule(choice(head(choice(RjsoncObject,
-                                           RjsoncArray,
-                                           rjsonc_string),
-                                    optional(() => SpecialFunctionTail)),
-                               head(choice(json_null,
-                                           json_true,
-                                           json_false,
-                                           json_number),
-                                    () => SpecialFunctionTail))); 
-  // =================================================================================================
-  // flag-related rules:
-  // =================================================================================================
-  // const flag_ident = xform(dot_chained(ident),
-  //                          arr => {
-  //                            lm.log();
-  //                            lm.log(() => `FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-  //                            lm.log(() => `FLAG_IDENT OUT: ${inspect_fun(arr)}`);
-  //                            return arr;
-  //                          });
-  const flag_ident = xform(seq(choice(ident, '*'),
-                               star(cadr('.',
-                                         choice(xform(parseInt, /\d+\b/), ident, '*')))),
-                           arr => [arr[0], ...arr[1]]);
-  const SimpleCheckFlag =
-        xform(with_swb(seq(question,
-                           flag_ident)),
-              arr => {
-                const args = [arr[1]];
-                return new ASTCheckFlags(args);
-              })
-        .abbreviate_str_repr('SimpleCheckFlag');
-  const SimpleNotFlag =
-        xform(with_swb(seq(bang,
-                           optional(hash),
-                           flag_ident)),
-              arr => {
-                const args = [arr[2],
-                              { set_immediately: !!arr[1]}];
-                return new ASTNotFlag(...args);
-              })
-        .abbreviate_str_repr('SimpleNotFlag');
-  const CheckFlagWithSetConsequent =
-        xform(cutting_with_swb(seq(question,     // [0]
-                                   flag_ident,   // [1]
-                                   dot_hash,     // [2]
-                                   flag_ident)), // [3]
-              arr => {
-                const args = [ [ arr[1] ], arr[3] ]; 
-                return new ASTCheckFlags(...args);
-              })
-        .abbreviate_str_repr('CheckFlagWithSetConsequent');
-  const CheckFlagWithOrAlternatives = // last check alternative
-        xform(cutting_seq(question,                // [0]
-                          plus(flag_ident, comma), // [1]
-                          structural_word_break),  // [2]
-              arr => {
-                const args = [arr[1]];
-                return new ASTCheckFlags(...args);
-              })
-        .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-  const NotFlagWithSetConsequent = // last not alternative
-        xform(cutting_seq(bang,                   // [0]
-                          flag_ident,             // [1]
-                          dot_hash,               // [2]
-                          flag_ident,             // [3]
-                          structural_word_break), // - 
-              arr => {
-                const args = [arr[1],
-                              { consequently_set_flag_tail: arr[3]}]; 
-                return new ASTNotFlag(...args);
-              })
-        .abbreviate_str_repr('NotFlagWithSetConsequent');
-  // -------------------------------------------------------------------------------------------------
-  const SetFlag =
-        xform(arr => new ASTSetFlag(arr),
-              cutting_cadr(hash, flag_ident, structural_word_break))
-        .abbreviate_str_repr('SetFlag');
-  const UnsetFlag =
-        xform(arr=> new ASTUnsetFlag(arr),
-              cutting_cadr(shebang, flag_ident, structural_word_break))
-        .abbreviate_str_repr('UnsetFlag');
-  // -------------------------------------------------------------------------------------------------
-  const unexpected_TestFlag_at_top_level = rule => 
-        unexpected(rule, (rule, input, index) =>
-          new FatalParseError(`check/not flag guards without set consequents at the top level ` +
-                              `would serve no purpose and so are not permitted`,
-                              input, index));
-  const innapropriately_placed_TestFlag = rule => 
-        unexpected(rule, (rule, input, index) =>
-          new FatalParseError(`innapropriately placed test flag`,
-                              input, index));
-  const wrap_TestFlag_in_AnonWildcard    = rule =>
-        xform(rule, flag =>
-          new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
-  // -------------------------------------------------------------------------------------------------
-  const TestFlagInGuardPosition =
-        choice(SimpleCheckFlag,
-               SimpleNotFlag,
-               CheckFlagWithSetConsequent,
-               NotFlagWithSetConsequent,
-               CheckFlagWithOrAlternatives);
-  const TopLevelTestFlag =
-        choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-               .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-               unexpected_TestFlag_at_top_level(SimpleNotFlag)
-               .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-               wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-               .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-               wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-               .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-               unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-               .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
-  const TestFlagInAlternativeContent =
-        choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
-               .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
-               innapropriately_placed_TestFlag(SimpleNotFlag)
-               .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-               innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
-               .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
-               innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
-               .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
-               // Maybe these next two shouldn't be here?
-               // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-               // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-               // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-               // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-               innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
-               .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
-  // =================================================================================================
-  // AnonWildcard-related rules:
-  // =================================================================================================
-  const make_ASTAnonWildcardAlternative = arr => {
-    // lm.log(() => `ARR: ${inspect_fun(arr)}`);
-    const weight = arr[1];
-
-    if (weight == 0)
-      return DISCARD;
-    
-    const flags = ([ ...arr[0], ...arr[2] ]);
-    const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
-    const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
-    const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
-    const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
-          check_flags
-          .filter(f => f.consequently_set_flag_tail)
-          .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
-    const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
-          not_flags
-          .filter(f => f.consequently_set_flag_tail)
-          .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
-    const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
-          not_flags
-          .filter(f => f.set_immediately)
-          .map(f => new ASTSetFlag(f.flag));
-
-    return new ASTAnonWildcardAlternative(
-      weight,
-      check_flags,
-      not_flags,
-      [
-        ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
-        ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
-        ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
-        ...set_or_unset_flags,
-        ...arr[3]
-      ]);
-  }
-  // -------------------------------------------------------------------------------------------------
-  const make_AnonWildcardAlternative_rule = content_rule => 
-        xform(make_ASTAnonWildcardAlternative,
-              seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                  SetFlag, UnsetFlag)),
-                  lws(optional(swb_uint, 1)),                                 
-                  wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                  SetFlag, UnsetFlag)),
-                  lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
-  // -------------------------------------------------------------------------------------------------
-  const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-        xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
-              seq(
-                optional('unsafe_guards'),
-                lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
-                can_have_trailer
-                  ? optional_punctuation_trailer
-                  : unexpected_punctuation_trailer));
-  // -------------------------------------------------------------------------------------------------
-  const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
-        .abbreviate_str_repr('AnonWildcardAlternative');
-  const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
-        .abbreviate_str_repr('AnonWildcard');
-  const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
-        .abbreviate_str_repr('AnonWildcardNoTrailer');
-  // =================================================================================================
-  // non-terminals for the special functions/variables:
-  // =================================================================================================
-  const SpecialFunctionTail =
-        choice(seq(discarded_comments, lws(semicolon)),
-               structural_word_break)
-        .abbreviate_str_repr('SpecialFunctionTail');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionUIPrompt =
-        xform(seq('ui-prompt', SpecialFunctionTail),
-              () => new ASTUIPrompt())
-        .abbreviate_str_repr('SpecialFunctionUIPrompt');
-  // -------------------------------------------------------------------------------------------------
-  const UnexpectedSpecialFunctionUIPrompt =
-        unexpected(SpecialFunctionUIPrompt,
-                   (rule, input, index) =>
-                   new FatalParseError("%ui-prompt is only supported when " +
-                                       "using wildcards-plus.js inside Draw Things, " +
-                                       "NOT when " +
-                                       "running the wildcards-plus-tool.js script",
-                                       input, index - 1))
-        .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionUINegPrompt =
-        xform(seq('ui-neg-prompt', SpecialFunctionTail),
-              () => new ASTUINegPrompt())
-        .abbreviate_str_repr('SpecialFunctionUINegPrompt');
-  // -------------------------------------------------------------------------------------------------
-  const UnexpectedSpecialFunctionUINegPrompt =
-        unexpected(SpecialFunctionUINegPrompt,
-                   (rule, input, index) =>
-                   new FatalParseError("%ui-neg-prompt is only supported when " +
-                                       "using wildcards-plus.js inside Draw Things, " +
-                                       "NOT when " +
-                                       "running the wildcards-plus-tool.js script",
-                                       input, index - 1))
-        .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionInclude =
-        xform(arr => new ASTInclude(arr[1]),
-              head(c_funcall('%include',                   // [0][0]
-                             head(discarded_comments,      // -
-                                  lws(rjsonc_string),      // [0][1]
-                                  discarded_comments,      // -
-                                 )),  
-                   optional(SpecialFunctionTail)))
-        .abbreviate_str_repr('SpecialFunctionInclude');
-  // -------------------------------------------------------------------------------------------------
-  const UnexpectedSpecialFunctionInclude =
-        unexpected(SpecialFunctionInclude,
-                   (rule, input, index) =>
-                   new FatalParseError("%include is only supported when " +
-                                       `using wildcards-plus-tool.js, ` +
-                                       `NOT when ` +
-                                       "running the wildcards-plus.js script " +
-                                       "inside Draw Things",
-                                       input, index - 1))
-        .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionSetPickSingle =
-        xform(arr => new ASTSetPickSingle(arr[1][1]),
-              seq('single-pick',                                            // [0]
-                  discarded_comments,                                       // -
-                  cutting_seq(lws(equals),                                  // [1][0]
-                              discarded_comments,                           // -
-                              lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                         lc_alpha_snake)),        
-                              optional(SpecialFunctionTail))))
-        .abbreviate_str_repr('SpecialFunctionSetPickSingle');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionSetPickMultiple =
-        xform(arr => new ASTSetPickMultiple(arr[1][1]),
-              seq('multi-pick',                                             // [0]
-                  discarded_comments,                                       // -
-                  cutting_seq(lws(equals),                                  // [1][0]
-                              discarded_comments,                           // -
-                              lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                         lc_alpha_snake)),
-                              optional(SpecialFunctionTail)))) 
-        .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionRevertPickSingle =
-        xform(seq('revert-single-pick',
-                  optional(SpecialFunctionTail)),
-              () => new ASTRevertPickSingle())
-        .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionRevertPickMultiple =
-        xform(seq('revert-multi-pick',
-                  optional(SpecialFunctionTail)),
-              () => new ASTRevertPickMultiple())
-        .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionUpdateConfigurationBinary =
-        xform(arr => {
-          // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
-          return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
-        },
-              cutting_seq(seq(c_ident,                                                // [0][0]
-                              discarded_comments,                                     // -
-                              lws(any_assignment_operator),                           // [0][1]
-                              discarded_comments),                                    // -
-                          lws(choice(ExposedRjsonc,                                    // [1]
-                                     head(() => LimitedContent,
-                                          optional(SpecialFunctionTail))))))           // [1][1]
-        .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionUpdateConfigurationUnary =
-        xform(arr => {
-          // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
-          return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
-        },
-              seq(/conf(?:ig)?/,                                                        // [0]
-                  discarded_comments,                                                   // -
-                  cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
-                              discarded_comments,                                       // -
-                              lws(choice(head(RjsoncObject, // mod_RjsoncObject,
-                                              optional(SpecialFunctionTail)),
-                                         head(() => LimitedContentNoAWCTrailers,
-                                              optional(SpecialFunctionTail))))))) // [1][1]
-        .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-  // -------------------------------------------------------------------------------------------------
-  const SpecialFunctionNotInclude =
-        cutting_cadr(percent,
-                     choice(
-                       SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                       SpecialFunctionUpdateConfigurationBinary,
-                       (dt_hosted
-                        ? SpecialFunctionUIPrompt
-                        : UnexpectedSpecialFunctionUIPrompt),
-                       (dt_hosted
-                        ? SpecialFunctionUINegPrompt
-                        : UnexpectedSpecialFunctionUINegPrompt),
-                       SpecialFunctionSetPickSingle,
-                       SpecialFunctionSetPickMultiple,
-                       SpecialFunctionRevertPickSingle,
-                       SpecialFunctionRevertPickMultiple,
-                     ))
-        .abbreviate_str_repr('SpecialFunctionNotInclude');
-  // =================================================================================================
-  // other non-terminals:
-  // =================================================================================================
-  const NamedWildcardReference  =
-        xform(seq(at,                                        // [0]
-                  optional(caret),                           // [1]
-                  optional(xform(parseInt, uint), 1),        // [2]
-                  optional(xform(parseInt,                   // [3]
-                                 cadr(dash, uint))),
-                  optional(/[,\.&|;]/),                      // [4]
-                  ident,                                     // [5]
-                  optional_punctuation_trailer,  // [6]
-                 ), 
-              arr => {
-                const ident   = arr[5];
-                const min_ct  = arr[2];
-                const max_ct  = arr[3] ?? min_ct;
-                const joiner  = arr[4]; // ??''
-                const caret   = arr[1];
-                const trailer = arr[6];
-
-                if (min_ct == 0 && max_ct == 0) {
-                  lm.log(() => `WARNING: retrieving 0 items from a named ` +
-                         `wildcard is a strange thing to do. We'll allow ` +
-                         `it, but you may have made a mistake in your ` +
-                         `template.`,
-                         false)
-                  
-                  return DISCARD;
-                }
-                
-                return new ASTNamedWildcardReference(ident,
-                                                     joiner,
-                                                     caret,
-                                                     min_ct,
-                                                     max_ct,
-                                                     trailer);
-              })
-        .abbreviate_str_repr('NamedWildcardReference');
-  // -------------------------------------------------------------------------------------------------
-  const NamedWildcardDesignator = cadr(at, ident)
-        .abbreviate_str_repr('NamedWildcardDesignator');
-  // -------------------------------------------------------------------------------------------------
-  const NamedWildcardDefinition =
-        xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
-              cutting_seq(head(NamedWildcardDesignator,
-                               discarded_comments,
-                               lws(equals)),
-                          discarded_comments,
-                          head(lws(AnonWildcard),
-                               optional(SpecialFunctionTail))))
-        .abbreviate_str_repr('NamedWildcardDefinition');
-  // -------------------------------------------------------------------------------------------------
-  const NamedWildcardUsage      =
-        xform(seq(at, optional(bang), optional(hash), ident),
-              arr => {
-                const [ bang, hash, ident, objs ] =
-                      [ arr[1], arr[2], arr[3], []];
-                
-                if (!bang && !hash)
-                  return new ASTNamedWildcardReference(ident);
-
-                // goes before hash so that "@!#" works correctly:
-                if (bang) 
-                  objs.push(new ASTUnlatchNamedWildcard(ident));
-
-                if (hash)
-                  objs.push(new ASTLatchNamedWildcard(ident));
-
-                return objs;
-              })
-        .abbreviate_str_repr('NamedWildcardUsage');
-  // -------------------------------------------------------------------------------------------------
-  const ScalarReference         =
-        xform(seq(dollar,
-                  optional(caret),
-                  ident,
-                  optional_punctuation_trailer),
-              arr => new ASTScalarReference(arr[2],
-                                            arr[1],
-                                            arr[3]))
-        .abbreviate_str_repr('ScalarReference');
-  // -------------------------------------------------------------------------------------------------
-  const ScalarDesignator        =
-        xform(seq(dollar, ident),
-              arr => new ASTScalarReference(arr[1]))
-        .abbreviate_str_repr('ScalarDesignator');
-  // -------------------------------------------------------------------------------------------------
-  const ScalarAssignment        =
-        xform(arr =>
-          new ASTScalarAssignment(arr[0],
-                                  arr[1][1],
-                                  arr[1][0] == '='),
-          seq(ScalarDesignator,                                 // [0]
-              discarded_comments,                               // - 
-              cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
-                          discarded_comments,                   // -
-                          lws(choice(
-                            () => rjsonc_string, // [1][1]
-                            () => LimitedContent,
-                            // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
-                          )),
-                          optional(SpecialFunctionTail))))
-        .abbreviate_str_repr('ScalarAssignment');
-  // =================================================================================================
-  // Content-related rules:
-  // =================================================================================================
-  const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
-        choice(
-          NamedWildcardReference,
-          anon_wildcard_rule,
-          ...(plain_text_rule ? [ plain_text_rule ] : []),
-          ScalarReference,
-        );
-  // -------------------------------------------------------------------------------------------------
-  const LimitedContent =
-        make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
-        .abbreviate_str_repr('LimitedContent');
-
-  const LimitedContentNoAWCTrailers =
-        make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
-        .abbreviate_str_repr('LimitedContentNoAWCTrailers');
-
-  // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-  //       .abbreviate_str_repr('LimitedContentNoSemis');
-  // -------------------------------------------------------------------------------------------------
-  // lm.log(() => `THIS:  ${inspect_fun(plain_text)}`);
-  // lm.log(() => `THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
-
-  // const malformed_token =
-  //       // tokens starting with % are actually usually caught before getting here.
-  //       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-  //                  (rule, input, index, match_result) => 
-  //                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
-  const make_malformed_token_rule = rule => 
-        unexpected(rule,
-                   (rule, input, index, match_result) => {
-                     // throw new Error('bomb');
-                     return new FatalParseError(`encountered malformed token: ` +
-                                                `${inspect_fun(match_result.value)}`, input, index);
-                   }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
-  const make_Content_rule       = ({ before_plain_text_rules = [],
-                                     after_plain_text_rules  = [] } = {}) =>
-        choice(
-          ...before_plain_text_rules,
-          plain_text,
-          ...after_plain_text_rules,
-          discarded_comment,
-          NamedWildcardReference,
-          NamedWildcardUsage,
-          SpecialFunctionNotInclude,
-          UnsetFlag, // before SetFlag!
-          SetFlag,
-          ScalarAssignment,
-          ScalarReference,
-          make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
-        );
-
-  // -------------------------------------------------------------------------------------------------
-  // const ContentNoLoras          = make_Content_rule({
-  //   after_plain_text_rules: [
-  //     AnonWildcardNoLoras,
-  //   ],
-  // });
-  const Content                 = make_Content_rule({
-    before_plain_text_rules: [
-      A1111StyleLora,
-      AnonWildcard,
-    ],
-    after_plain_text_rules:  [
-    ],
-  });
-  const TopLevelContent         = make_Content_rule({
-    before_plain_text_rules: [
-      A1111StyleLora,
-      TopLevelTestFlag,
-      AnonWildcard,
-    ],
-    after_plain_text_rules:  [
-      make_malformed_token_rule(r_raw`}\S*`),
-      NamedWildcardDefinition,
-      SpecialFunctionInclude,
-    ],
-  });
-  // const ContentNoLorasStar      = wst_star(ContentNoLoras);
-  const ContentStar             = wst_star(Content);
-  const TopLevelContentStar     = wst_star(TopLevelContent);
-  const Prompt                  = tws(TopLevelContentStar);
-  // =================================================================================================
-  Prompt.finalize();
-  // =================================================================================================
-  // END OF SD PROMPT GRAMMAR SECTION.
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // DEV NOTE: Copy into wildcards-plus.js through this line!
-  // =================================================================================================
-
-
-  // =================================================================================================
-  // MAIN SECTION:
-  // =================================================================================================
-  // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-  const ui_prompt = "@shape = { cube | sphere } there is a @shape here";
-  // -------------------------------------------------------------------------------------------------
-  async function main() {
-    // -----------------------------------------------------------------------------------------------
-    // process the command-line arguments:
-    // -----------------------------------------------------------------------------------------------
-    const args       = process.argv.slice(2);
-    let   count      = 1;
-    let   post       = false;
-    let   confirm    = false;
-    let   from_stdin = false;
-
-    if (args.length == 0) 
-      throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
-                      `(--stdin | <input-file>) [<count>]`);
-
-    if (["-p", "--post"].includes(args[0])) {
-      post = true;
-      args.shift();
-    }
-    else if (["-c", "--confirm"].includes(args[0])) {
-      post    = true;
-      confirm = true;
-      args.shift();
-    }
-
-    if (args.length === 0)
-      throw new Error("ERROR: Must provide --stdin or an input file.");
-
-    if (args[0] === '--stdin') {
-      if (confirm)
-        throw new Error(`the --confirm and --stdin options are incompatible.`);
-      
-      from_stdin = true;
-    }
-
-    if (args.length > 1) 
-      count = parseInt(args[1]);
-
-    // -----------------------------------------------------------------------------------------------
-    // read prompt input:
-    // -----------------------------------------------------------------------------------------------
-    let result = null;
-
-    if (from_stdin) {
-      // Read all stdin into a string
-      let prompt_input = await new Promise((resolve, reject) => {
-        let data = '';
-        input.setEncoding('utf8');
-        input.on('data', chunk => data += chunk);
-        input.on('end', () => resolve(data));
-        input.on('error', err => reject(err));
-      });
-
-      try {
-        result = Prompt.match(prompt_input);
+      // -------------------------------------------------------------------------------------------
+      // internal objects:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLatchedNamedWildcard) {
+        throw new Error(`something has gone awry, ASTLatchedNamedWildcards shouldn't be ` +
+                        `reached by walk, stop`);
+        
       }
-      catch (err) {
-        if (err instanceof FatalParseError) {
-          lm.log(() => `got fatal parse error, halting: ${inspect_fun(err)}`);
-          process.exit(0);
+      // -------------------------------------------------------------------------------------------
+      // scalar assignment:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarAssignment) {
+        // log(log_level__expand_and_walk >= 2, '');
+        log(log_level__expand_and_walk >= 2,
+            `assigning ${inspect_fun(thing.source)} ` +
+            `to '${thing.destination.name}'`);
+        
+        let   new_val = lm.indent(() => smart_join(walk(thing.source,
+                                                        { correct_articles: correct_articles }),
+                                                   { correct_articles: correct_articles }));
+
+        if (! thing.assign) {
+          const old_val = context.scalar_variables.get(thing.destination.name)??'';
+          new_val = smart_join([old_val, new_val],
+                               { correct_articles: correct_articles }); 
+        }
+        
+        context.scalar_variables.set(thing.destination.name, new_val);
+
+        log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+            log_level__expand_and_walk);
+        
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // -------------------------------------------------------------------------------------------
+      // UpdateConfigurations:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUpdateConfigurationUnary ||
+               thing instanceof ASTUpdateConfigurationBinary) {
+        let value = thing.value;
+        
+        if (value instanceof ASTNode) {
+          const expanded_value = lm.indent(() =>
+            // don't correct articles in config values so that we don't mess up, e.g.,
+            // %sampled = { Euler A AYS };
+            expand_wildcards(thing.value, context, // not walk!
+                             { correct_articles: false })); 
+
+          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                ? RjsoncObject
+                                                : Rjsonc).match(expanded_value);
+
+          if (thing instanceof ASTUpdateConfigurationBinary) {
+            value = jsconc_parsed_expanded_value?.is_finished
+              ? jsconc_parsed_expanded_value.value
+              : expanded_value;
+          }
+          else { // ASTUpdateConfigurationUnary
+            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
+                            `rJSONC object, Rjsonc.match(...) result was ` +
+                            inspect_fun(jsconc_parsed_expanded_value));
+          }
         }
         else {
-          throw err;
+          value = structured_clone(value); // do we need to do this? I forget.
         }
-      }
-      
-      process.exit(0);
-    } else if (args.length  === 0) {
-      throw new Error("ERROR: No input file provided.");
-    }
-    else {
-      result = parse_file(args[0]);
-    }
 
-    if (! result?.is_finished)
-      throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
-    
-    // -----------------------------------------------------------------------------------------------
-    // just for debugging:
-    // -----------------------------------------------------------------------------------------------
-    // if (print_ast_enabled)
-    //   lm.log(() => `result: ${inspect_fun(result.value)}`);
+        if (thing instanceof ASTUpdateConfigurationUnary) { 
+          let new_obj = value;
 
-    // if (print_ast_json_enabled)
-    //   lm.log(() => `result (JSON): ${JSON.stringify(result.value)}`);
+          for (const key of Object.keys(value)) 
+            new_obj[get_our_name(key)??key] = value[key]
+          
+          context.configuration = thing.assign
+            ? new_obj
+            : { ...context.configuration, ...new_obj };
 
-    let   AST          = result.value;
-    const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
-    
-    if (print_ast_before_includes_enabled) {
-      LOG_LINE();
-      lm.log(() => `before process_includes:`);
-      LOG_LINE();
-      lm.log(() => `${inspect_fun(AST)}`);
-      // LOG_LINE();
-      // lm.log(() => `before process_includes (as JSON):`);
-      // LOG_LINE();
-      // lm.log(() => `${JSON.stringify(AST)}`);
-    }
-
-    if (print_ast_then_die)
-      process.exit(0);
-
-    AST = process_includes(AST, base_context);
-    
-    if (print_ast_after_includes_enabled) { 
-      LOG_LINE();
-      lm.log(() => `after process_includes:`);
-      LOG_LINE();
-      lm.log(() => `${inspect_fun(AST)}`);
-      // LOG_LINE();
-      // lm.log(() => `after process_includes (as JSON):`);
-      // LOG_LINE();
-      // lm.log(() => `${JSON.stringify(AST)}`);
-    }
-
-    // audit flags:
-    lm.log(() => `auditing...`);
-    const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
-    lm.log(() => `audit took ${elapsed.toFixed(2)} ms`);
-
-    // log_match_enabled          = true;
-    // log_level__expand_and_walk = 1;
-    // log_flags_enabled          = true;
-
-    let posted_count        = 0;
-    let prior_prompt        = null;
-    let prior_configuration = null;
-
-    const stash_priors = (prompt, configuration) => {
-      prior_prompt        = prompt;
-      prior_configuration = structured_clone(configuration);
-    };
-
-    const restore_priors = (prompt, configuration) => {
-      const ret = [ prior_prompt, prior_configuration ];
-      [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
-      return ret;
-    };
-
-    const do_post = (prompt, configuration) => {
-      post_prompt({ prompt: prompt,  configuration: configuration });
-      posted_count += 1; 
-    };
-
-    while (posted_count < count) {
-      LOG_LINE('=');
-      lm.log(() => `Expansion #${posted_count + 1} of ${count}:`);
-      LOG_LINE('=');
-      
-      const context = base_context.clone();
-      context.reset_temporaries();
-      const prompt  = expand_wildcards(AST, context);
-
-      if (! is_empty_object(context.configuration)) {
-        LOG_LINE();
-        lm.log(() => `Final config is :`);
-        LOG_LINE();
-        lm.log(() => inspect_fun(context.configuration));
-      }
-
-      if (context.flags.length > 0) {
-        LOG_LINE();
-        lm.log(() => `Flags after:`);
-        LOG_LINE();
-        lm.log(() => `${inspect_fun(context.flags)}`);
-      }
-      
-      if (context.scalar_variables.size > 0) {
-        LOG_LINE();
-        lm.log(() => `Scalars after:`);
-        LOG_LINE();
-        for (const [key, val] of context.scalar_variables)
-          lm.log(() => `$${key} = ${inspect_fun(val)}`);
-      }
-
-      LOG_LINE();
-      lm.log(() => `Expanded prompt #${posted_count + 1} of ${count} is:`);
-      LOG_LINE();
-      lm.log(() => `${prompt}`);
-      
-      if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
-        LOG_LINE();
-        lm.log(() => `Expanded negative prompt:`);
-        LOG_LINE();
-        lm.log(() => context.configuration.negative_prompt);
-      }
-
-      if (!post) {
-        posted_count += 1; // a lie to make the counter correct.
-      }
-      else {
-        if (!confirm) {
-          LOG_LINE();
-          do_post(prompt, context.configuration);
-          posted_count += 1;
+          lm.indent(() => log(log_configuration_enabled,
+                              `%config ${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(new_obj, true)}`,
+                              log_level__expand_and_walk));
         }
-        else  {
-          lm.log(() => '');
-
-          const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
-                `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
-                `POST the prior prompt)? `;
-          const answer = await ask(question_str);
-
-          if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
-            stash_priors(prompt, context.configuration);
-            continue;
+        else { // ASTUpdateConfigurationBinary
+          const our_name = get_our_name(thing.key); 
+          
+          if (thing.assign) {
+            context.configuration[our_name] = value;
           }
+          else { // increment
+            if (Array.isArray(value)) {
+              const tmp_arr = context.configuration[our_name]??[];
 
-          if (answer.match(/^p.*/i)) {
-            if (prior_prompt) { 
-              LOG_LINE();
-              [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
+              if (! Array.isArray(tmp_arr))
+                throw new Error(`can't add array ${inspect_fun(value)} ` +
+                                `to non-array ${inspect_fun(tmp_arr)}`);
               
-              lm.log(() => `POSTing prior prompt '${prompt}'`);
+              const new_arr = [ ...tmp_arr, ...value ];
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by array ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(new_arr)}`);
               
-              do_post(prompt, context.configuration);
+              context.configuration[our_name] = new_arr;
+            }
+            else if (typeof value === 'object') {
+              const tmp_obj = context.configuration[our_name]??{};
+
+              if (typeof tmp_obj !== 'object')
+                throw new Error(`can't add object ${inspect_fun(value)} `+
+                                `to non-object ${inspect_fun(tmp_obj)}`);
+
+              const new_obj = { ...tmp_obj, ...value };
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by object ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(new_obj)}`);
+
+              context.configuration[our_name] = new_obj;
+            }
+            else if (typeof value === 'number') {
+              const tmp_num = context.configuration[our_name]??0;
               
-              continue;
+              if (typeof tmp_num !== 'number')
+                throw new Error(`can't add number ${inspect_fun(value)} `+
+                                `to non-number ${inspect_fun(tmp_num)}`);
+
+              log(log_expand_and_walk_enabled >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by number ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              
+              context.configuration[our_name] = tmp_num + value;
+            }
+            else if (typeof value === 'string') {
+              const tmp_str = context.configuration[our_name]??'';
+
+              if (typeof tmp_str !== 'string')
+                throw new Error(`can't add string ${inspect_fun(value)} `+
+                                `to non-string ${inspect_fun(tmp_str)}`);
+
+              log(log_level__expand_and_walk >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by string ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+
+              context.configuration[our_name] =
+                lm.indent(() => smart_join([tmp_str, value],
+                                           { correct_articles: false })); // never correct here?
             }
             else {
-              lm.log(() => `can't rewind, no prior prompt`);
+              // probly won't work most of the time, but let's try anyhow, I guess.
+
+              log(log_level__expand_and_walk >= 2,
+                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                  `increment by unknown ${inspect_fun(value)}, ` +
+                  `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+
+              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
             }
           }
-          else { // /^y.*/
-            LOG_LINE();
-            const parsed    = parseInt(answer);
-            const gen_count = isNaN(parsed) ? 1 : parsed;  
-            
-            for (let iix = 0; iix < gen_count; iix++)
-              do_post(prompt, context.configuration);
-          }
+
+          lm.indent(() => log(log_configuration_enabled,
+                              `%${our_name} ` +
+                              `${thing.assign ? '=' : '+='} ` +
+                              `${inspect_fun(value, true)}`,
+                              log_level__expand_and_walk));
+        }
+        
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTSetPickSingle || 
+               thing instanceof ASTSetPickMultiple) {
+        const cur_key = thing instanceof ASTSetPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTSetPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
+                                                                           context)).toLowerCase()];
+
+        if (! picker_priority_descriptions.includes(walked))
+          throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+
+        context[prior_key] = context[cur_key];
+        context[cur_key]   = walked;
+
+        log(log_configuration_enabled,
+            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(walked)}.`);
+        
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // ---------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+        const sub_prompt = thing instanceof ASTUIPrompt
+              ? { desc: 'UI prompt', text: ui_prompt }
+              : { desc: 'UI negative prompt', text: ui_neg_prompt };
+        
+        if (log_level__expand_and_walk >= 2)
+          lm.log(() => `expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+
+        let res = null;
+
+        try {
+          res = Prompt.match(sub_prompt.text);
+        }
+        catch(err) {
+          if (err instanceof FatalParseError)
+            throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
+          else
+            throw err;
+        }
+
+        if (!res || !res.is_finished)
+          throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
+
+        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTRevertPickSingle || 
+               thing instanceof ASTRevertPickMultiple) {
+        const cur_key = thing instanceof ASTRevertPickSingle
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
+        const prior_key = thing instanceof ASTRevertPickSingle
+              ? 'prior_pick_one_priority'
+              : 'prior_pick_multiple_priority';
+        const cur_val   = context[cur_key];
+        const prior_val = context[prior_key];
+        
+        log(log_configuration_enabled,
+            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+            `${inspect_fun(prior_val)}.`);
+        
+        context[cur_key]   = prior_val;
+        context[prior_key] = cur_val;
+
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // -------------------------------------------------------------------------------------------
+      // ASTLora:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTLora) {
+        if (context.in_lora)
+          throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
+
+        const in_lora_context = context.shallow_copy({ in_lora: true });
+        
+        let walked_file = null;
+
+        lm.indent(() => {
+          log(log_level__expand_and_walk,
+              `Expanding LoRA file ` +
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
+          
+          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
+                                                         { correct_articles: false })); // not walk!
+
+          log(log_level__expand_and_walk,
+              `expanded LoRa file `+
+              `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+              `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
+        });
+        
+        let walked_weight = null;
+        
+        lm.indent(() => {
+          log(log_level__expand_and_walk,
+              `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
+          
+          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
+                                                           { correct_articles: false })); // not walk!
+
+          log(log_level__expand_and_walk,
+              `expanded LoRA weight ` +
+              `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+              `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
+        });
+
+        const weight_match_result = json_number.match(walked_weight);
+
+        if (!weight_match_result || !weight_match_result.is_finished)
+          throw new Error(`LoRA weight must be a number, got ` +
+                          `${inspect_fun(walked_weight)}`);
+
+        let file = walked_file.toLowerCase();
+
+        if (file === '')
+          throw new Error(`LoRA file name is empty!`);
+        
+        if (file.endsWith('.ckpt')) {
+          // do nothing 
+        }
+        else if (file.endsWith('_lora_f16')) {
+          file = `${file}.ckpt`;
+        }
+        else if (file.endsWith('_lora')) {
+          file = `${file}_f16.ckpt`;
+        }
+        else {
+          file = `${file}_lora_f16.ckpt`;
+        }
+
+        const weight = weight_match_result.value;
+        
+        context.add_lora_uniquely({ file: file, weight: weight });
+        
+        throw new ThrownReturn(''); // produce nothing
+      }
+      // ---------------------------------------------------------------------------------------------
+      // uncrecognized type:
+      // ---------------------------------------------------------------------------------------------
+      else {
+        throw new Error(`confusing thing: ` +
+                        (typeof thing === 'object'
+                         ? thing?.constructor.name
+                         : typeof thing) +
+                        ' ' +
+                        inspect_fun(thing));
+      }
+    }
+    catch (obj) {
+      if (! (obj instanceof ThrownReturn))
+        throw obj;
+
+      if (! obj.quiet)
+        log(log_level__expand_and_walk,
+            `walking ` +
+            `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
+            //`in ${context} ` +
+            `returned ` +
+            `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
+
+      return obj.value;
+    }
+  }
+
+  if (log_level__expand_and_walk)
+    lm.log(() => `Expanding wildcards in ` +
+           `${thing_str_repr(thing, { always_include_type_str: true })} `);
+
+  let ret;
+
+  lm.indent(() => {
+    const walked = walk(thing,
+                        { correct_articles: correct_articles })
+
+    ret = unescape(smart_join(walked,
+                              { correct_articles: correct_articles })).replace(/^</, '');
+    // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
+    //   unescape probably should too.
+
+    context.munge_configuration();
+  });
+
+  if (log_level__expand_and_walk)
+    lm.log(() => `expanding wildcards in ` +
+           `${thing_str_repr(thing)} ` + 
+           `returned ` +
+           `${thing_str_repr(ret, { always_include_type_str: true })}`);
+
+  if (ret === '""' || ret === "''")
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
+
+  return ret;
+}
+// =================================================================================================
+// END OF THE MAIN AST-WALKING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// FLAG AUDITING FUNCTION.
+// =================================================================================================
+const audit_semantics_modes = Object.freeze({
+  error:                'error',
+  warning:              'warning', 
+  allow_unsafe_guards:  'allow_unsafe_guards',
+});
+// -------------------------------------------------------------------------------------------------
+function audit_semantics(root_ast_node,
+                         { base_context = null, noisy = false,
+                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
+  if (root_ast_node === undefined)
+    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+
+  const visited = new Set();
+  const already_warned_msgs = new Set();
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+
+  // -----------------------------------------------------------------------------------------------
+  function walk(thing, local_audit_semantics_mode) {    
+    if (typeof local_audit_semantics_mode !== 'string')
+      throw new Error(`bad walk local_audit_semantics_mode: ` +
+                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+    // ---------------------------------------------------------------------------------------------
+    const log = (msg_thunk, indent = true) => {
+      if (noisy)
+        lm.log(() => `${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
+    };
+    function walk_children(thing, mode) {
+      if (typeof mode !== 'string')
+        throw new Error(`bad walk_children mode: ` +
+                        `${abbreviate(compress(inspect_fun(mode)))}`);
+
+      const children = thing.direct_children().filter(child => !is_primitive(child));
+
+      if (children?.length > 0) {
+        log(() => `children: ${children.map(thing_str_repr)}`);
+
+        lm.indent(() => {
+          walk(children, mode);
+        }); // propagate arg
+      }
+    }
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw(msg) {
+      if (local_audit_semantics_mode instanceof Context)
+        throw new Error("got Context");
+      
+      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
+
+      if (local_audit_semantics_mode == audit_semantics_mode.error) {
+        throw new Error(msg);
+      }
+      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
+               ! already_warned_msgs.has(msg)) {
+        lm.log(() => msg, false); // false arg for no indentation and not local log function
+        // already_warned_msgs.add(msg);
+      }
+    }
+    // ---------------------------------------------------------------------------------------------
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+      if (dummy_context.flag_is_set(flag) ||
+          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
+        return;
+
+      const flag_str = flag.join(".").toLowerCase();
+      const known_flags = dummy_context.flags.map(f => f.join("."));
+      const suggestion = suggest_closest(flag_str, known_flags);
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
+                    `this suggests that you may have a typo or other error in your template. ` +
+                    `${suggestion}`);
+    }
+    // ---------------------------------------------------------------------------------------------
+    if (is_primitive(thing))
+      return;
+
+    if (visited.has(thing)) {
+      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      
+      return;
+    }
+    
+    visited.add(thing);
+
+    log(() => `audit semantics in ${thing.constructor.name} ` +
+        `'${abbreviate(compress(thing.toString()), 200)}', ` +
+        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+
+    lm.indent(() => {
+      // -------------------------------------------------------------------------------------------
+      // typecases:
+      // -------------------------------------------------------------------------------------------
+      if (Array.isArray(thing)) {
+        for (const elem of thing)
+          if (!is_primitive(elem))
+            walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTNamedWildcardDefinition) {
+        if (dummy_context.named_wildcards.has(thing.name))
+          warn_or_throw(`redefining named wildcard @${thing.name}, ` +
+                        `you may not have intended to do this, check your template!`);
+
+        dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+      }
+      else if (thing instanceof ASTNamedWildcardReference) {
+        if (!dummy_context.named_wildcards.has(thing.name)) {
+          const known_names = Array.from(dummy_context.named_wildcards.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTScalarReference) {
+        if (!dummy_context.scalar_variables.has(thing.name)) {
+          const known_names = Array.from(dummy_context.scalar_variables.keys());
+          const suggestion = suggest_closest(thing.name, known_names);
+          warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`);
+        }
+        
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTScalarAssignment) {
+        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTCheckFlags) {
+        if (thing.consequently_set_flag_tail) {
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+        }
+        else {
+          for (const flag of thing.flags) 
+            warn_or_throw_unless_flag_could_be_set_by_now(flag);
         }
       }
-      
-      stash_priors(prompt, context.configuration);
+      else if (thing instanceof ASTNotFlag) {
+        if (thing.consequently_set_flag_tail)
+          // undecided on whether this case deserves a warning... for now, let's avoid one:
+          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+        else if (thing.set_immediately) 
+          // this case probably doesn't deserve a warning, avoid one:
+          dummy_context.set_flag(thing.flag, false);
+        else 
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      }
+      else if (thing instanceof ASTSetFlag) {
+        dummy_context.set_flag(thing.flag, false);
+      } 
+      else if (thing instanceof ASTUnsetFlag) {
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+      }
+      else if (thing instanceof ASTAnonWildcard) {
+        const mode = thing.unsafe_guards
+              ? audit_semantics_modes.allow_unsafe_guards
+              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
+        
+        walk_children(thing, mode);
+      }
+      else if (thing instanceof ASTAnonWildcardAlternative) {
+        walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+      }
+      else if (thing instanceof ASTNode) {
+        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+      }
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      }
+    });
+  }
+
+  walk(root_ast_node, audit_semantics_mode);
+}
+// =================================================================================================
+// END OF THE FLAG AUDITING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// SD PROMPT AST CLASSES SECTION:
+// =================================================================================================
+class ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  direct_children() {
+    const ret = Array.from(this.__direct_children());
+    
+    return ret;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    // doesn't necessarily need to (but could) include whildren that are not ASTNodes.
+    throw new Error(`__direct_children is not implemented by ${this.constructor.name}`);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class ASTLeafNode extends ASTNode {
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [];
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Flags:
+// -------------------------------------------------------------------------------------------------
+class ASTSetFlag extends ASTLeafNode {
+  constructor(flag_arr) {
+    super();
+    this.flag = flag_arr;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `#${this.flag.join('.')}`;
+  }
+}
+// --------------------------------------------------------------------------------------------------
+class ASTUnsetFlag extends ASTLeafNode {
+  constructor(flag_arr) {
+    super();
+    this.flag = flag_arr;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `#!${this.flag.join('.')}`;
+  }
+}
+// --------------------------------------------------------------------------------------------------
+class ASTCheckFlags extends ASTLeafNode {
+  constructor(flag_arrs, consequently_set_flag_tail) {
+    super();
+
+    if (consequently_set_flag_tail && flag_arrs.length != 1 )
+      throw new Error(`don't supply consequently_set_flag_tail when flag_arrs.length != 1`);
+
+    this.flags = flag_arrs;
+    this.consequently_set_flag_tail = consequently_set_flag_tail;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '?';
+
+    const flag_strs = [];
+    
+    for (const flag of this.flags)
+      flag_strs.push(flag.join('.'));
+
+    str += flag_strs.join(',');
+
+    if (this.consequently_set_flag_tail) {
+      str += '.#';
+      str += this.consequently_set_flag_tail.join('.');
     }
 
-    LOG_LINE('=');
+    return str;
   }
-  // -------------------------------------------------------------------------------------------------
-  let main_disabled = false;
+}
+// -------------------------------------------------------------------------------------------------
+class ASTNotFlag extends ASTLeafNode  { 
+  constructor(flag_arr, { set_immediately = undefined,
+                          consequently_set_flag_tail = undefined } = {}) {
+    super();
 
-  if (! main_disabled)
-    main().catch(err => {
-      lm.error(() => `Unhandled error:\n${err.stack}`);
-      // process.exit(1);
+    if (set_immediately && consequently_set_flag_tail)
+      throw new Error(`don't supply both set_immediately and consequently_set_flag_tail`);
+
+    this.flag                       = flag_arr;
+    this.consequently_set_flag_tail = consequently_set_flag_tail
+    this.set_immediately            = set_immediately;
+  }
+  // ----------------------------------------------------------------------------------------------
+  toString() {
+    let str = `!`;
+
+    if (this.set_immediately)
+      str += '#';
+
+    str += this.flag.join('.');
+
+    if (this.consequently_set_flag_tail) {
+      str += '.#';
+      str += this.consequently_set_flag_tail.join('.');
+    }
+
+    return str;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTNamedWildcardDefinition;
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardDefinition extends ASTNode {
+  constructor(name, wildcard) {
+    super();
+    this.name = name;
+    this.wildcard = wildcard;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.wildcard ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@${this.name} = ${this.wildcard}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTNamedWildcardReference:
+// -------------------------------------------------------------------------------------------------
+class ASTNamedWildcardReference extends ASTLeafNode {
+  constructor(name, joiner = '', capitalize = '', min_count = 1, max_count = 1, trailer = '') {
+    super();
+    this.name       = name;
+    this.joiner     = joiner;
+    this.capitalize = capitalize;
+    this.min_count  = min_count;
+    this.max_count  = max_count;
+    this.trailer    = trailer;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '@';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    if (this.min_count != 1  || this.max_count != 1) {
+      if (this.min_count !== this.max_count)
+        str += `${this.min_count}-${this.max_count}`;
+      else
+        str += `${this.max_count}`;
+
+      str += this.joiner;
+    }
+
+    str += this.name;
+    
+    return str;
+  };
+}
+// -------------------------------------------------------------------------------------------------
+// Scalar references:
+// -------------------------------------------------------------------------------------------------
+class ASTScalarReference extends ASTLeafNode {
+  constructor(name, capitalize = '', trailer = '') {
+    super();
+    this.name       = name;
+    this.capitalize = capitalize;
+    this.trailer    = trailer;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '$';
+
+    if (this.capitalize)
+      str += this.capitalize;
+
+    str += this.name;
+    
+    return str;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// Scalar assignment:
+// -------------------------------------------------------------------------------------------------
+class ASTScalarAssignment extends ASTNode  {
+  constructor(destination, source, assign) {
+    super();
+    this.destination = destination;
+    this.source      = source;
+    this.assign      = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.source ]; // exclude this.destination, it's just a boxed name
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTLora (for A1111-style LoRA syntax);
+// -------------------------------------------------------------------------------------------------
+class ASTLora extends ASTNode {
+  constructor(file, weight) {
+    super();
+    this.file   = file;
+    this.weight = weight;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.file, this.weight ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString(with_types = false ) {
+    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
+      `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTLatchNamedWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTLatchNamedWildcard extends ASTNode {
+  constructor(ident) {
+    super();
+    this.target = new ASTNamedWildcardReference(ident);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.target ]; 
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@#${this.target.name}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTUnlatchNamedWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTUnlatchNamedWildcard extends ASTLeafNode {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `@!${this.name}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTLatchedNamedWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTLatchedNamedWildcard extends ASTNode {
+  constructor(latched_value, original_value) {
+    super();
+    this.latched_value  = latched_value;
+    this.original_value = original_value;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.original_value, /* this.latched_value */ ]; // not sure?
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return this.original_value.toString();
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTAnonWildcard:
+// -------------------------------------------------------------------------------------------------
+class ASTAnonWildcard extends ASTNode {
+  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
+    super();
+    this.picker = new WeightedPicker(options
+                                     .filter(o => o.weight !== 0)
+                                     .map(o => [o.weight, o]));
+    this.trailer = trailer;
+    this.unsafe_guards  = unsafe_guards;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return this.picker.options.values().map(x => x.value);
+  }
+  // -----------------------------------------------------------------------------------------------
+  pick(...args) {
+    return this.picker.pick(...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    let str = '';
+
+    if (this.unsafe_guards)
+      str += "unsafe_guards ";
+    
+    str += '{';
+
+    for (let ix = 0; ix < this.picker.options.length; ix++) {
+      const option     = this.picker.options[ix];
+      const repr       = option.value.toString();
+      const has_weight = option.weight != 1;
+      const is_empty   = repr == '';
+      const is_last    = ix == (this.picker.options.length - 1);
+      const has_guards = (option.value.check_flags?.length > 0 ||
+                          option.value.not_flags?.length   > 0);
+      
+      if (!is_empty && !has_weight && !has_guards)
+        str += ' ';
+
+      str += repr;
+
+      if (!is_empty)
+        str += ' ';
+
+      if (!is_last)
+        str += '|';
+    }
+    
+    str += '}';
+    
+    return str;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTAnonWildcardsAlternative:
+// -------------------------------------------------------------------------------------------------
+class ASTAnonWildcardAlternative extends ASTNode {
+  constructor(weight, check_flags, not_flags, body) {
+    super();
+    this.weight      = weight;
+    this.check_flags = check_flags;
+    this.not_flags   = not_flags;
+    this.body        = body;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return  [
+      ...this.check_flags,
+      ...this.not_flags,
+      ...this.body,
+    ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    var str = '';
+
+    if (this.weight !== 1)
+      str += `${this.weight} `;
+
+    var strs = [];
+
+    for (const check of this.check_flags)
+      strs.push(check.toString());
+    
+    for (const not of this.not_flags)
+      strs.push(not.toString());
+    
+    for (const thing of this.body) {
+      strs.push(thing.toString());
+    }
+
+    str += strs.join(' ');
+    
+    return str;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTInclude:
+// -------------------------------------------------------------------------------------------------
+class ASTInclude extends ASTLeafNode {
+  constructor(args) {
+    super();
+    this.args      = args;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `include(${this.args})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationUnary:
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateConfigurationUnary extends ASTNode {
+  constructor(value, assign) {
+    super();
+    this.value = value;
+    this.assign = assign; // otherwise update
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return is_plain_object(this.value) ? [] : [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%config ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTUpdateConfigurationBinary:
+// -------------------------------------------------------------------------------------------------
+class ASTUpdateConfigurationBinary extends ASTNode {
+  constructor(key, value, assign) {
+    super();
+    this.key    = key;
+    this.value  = value;
+    this.assign = assign;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return is_primitive(this.value) ? [] :  [ this.value ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTSetPickMultiple:
+// -------------------------------------------------------------------------------------------------
+class ASTSetPickMultiple extends ASTNode {
+  constructor(limited_content) {
+    super();
+    this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-multiple = ${this.limited_content}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTSetPickSingle:
+// -------------------------------------------------------------------------------------------------
+class ASTSetPickSingle extends ASTNode {
+  constructor(limited_content) {
+    super();
+    this.limited_content = limited_content;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.limited_content ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%set-pick-single = ${this.limited_content}`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTRevertPickMultiple:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickMultiple extends ASTLeafNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-multiple`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTRevertPickSingle:
+// -------------------------------------------------------------------------------------------------
+class ASTRevertPickSingle extends ASTLeafNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%revert-pick-single`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTUIPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUIPrompt extends ASTLeafNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%ui-prompt`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+// ASTUINegPrompt:
+// -------------------------------------------------------------------------------------------------
+class ASTUINegPrompt extends ASTLeafNode {
+  constructor() {
+    super();
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `%ui-neg-prompt`;
+  }
+}
+// =================================================================================================
+// END OF SD PROMPT AST CLASSES SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// SD PROMPT GRAMMAR SECTION:
+// =================================================================================================
+// structural_word_break and its helper combinators:
+// =================================================================================================
+const structural_word_break   = r(/(?=[\s|}]|$)/)
+      .abbreviate_str_repr('structural_word_break');
+// -------------------------------------------------------------------------------------------------
+const with_swb                = rule => head(rule, structural_word_break);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
+// =================================================================================================
+// terminals:
+// =================================================================================================
+const any_assignment_operator = choice(equals, plus_equals)
+      .abbreviate_str_repr('any_assignment_operator');
+const comments                = wst_star(c_comment)
+      .abbreviate_str_repr('comments');
+const discarded_comment       = discard(c_comment)
+      .abbreviate_str_repr('discarded_comment');
+const discarded_comments      = discard(wst_star(c_comment))
+      .abbreviate_str_repr('discarded_comments');
+const dot_hash                = l('.#')
+      .abbreviate_str_repr('dot_hash');
+const filename                = r(/[A-Za-z0-9 ._\-()]+/)
+      .abbreviate_str_repr('filename');
+const ident                   =
+      xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+            str => str.toLowerCase().replace(/-/g, '_'))
+      .abbreviate_str_repr('ident');
+// const liberal_ident           =
+//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
+//             str => str.toLowerCase().replace(/-/g, '_'))
+//       .abbreviate_str_repr('ident');
+const swb_uint                = xform(parseInt, with_swb(uint))
+      .abbreviate_str_repr('swb_uint');
+const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
+const optional_punctuation_trailer = optional(punctuation_trailer)
+      .abbreviate_str_repr('optional_punctuation_trailer');
+const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
+      .abbreviate_str_repr('unexpected_punctuation_trailer');
+// =================================================================================================
+// plain_text terminal variants:
+// =================================================================================================
+const structural_chars        = '{|}';
+const syntax_chars            = '@#$%;';
+const comment_beginning       = raw`\/\/|\/\*`;
+// -------------------------------------------------------------------------------------------------
+const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
+      raw`(?:\\.|` +
+      raw`(?!`+
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`${comment_beginning}` +
+      raw`)` +
+      raw`\S)`;
+// -------------------------------------------------------------------------------------------------
+const make_plain_text_rule = additional_excluded_chars => 
+      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
+// -------------------------------------------------------------------------------------------------
+const plain_text           = make_plain_text_rule('')
+      .abbreviate_str_repr('plain_text');
+// const plain_text_no_semis  = make_plain_text_rule(';')
+//       .abbreviate_str_repr('plain_text_no_semis');
+// =================================================================================================
+// A1111-style LoRAs:
+// =================================================================================================
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
+      .abbreviate_str_repr('A1111StyleLoraWeight');
+const A1111StyleLora =
+      xform(arr => new ASTLora(arr[2], arr[3]),
+            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
+                            colon,                                               // [1] 
+                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
+                            optional(wst_cadr(colon,                             // [3]
+                                              choice(A1111StyleLoraWeight,
+                                                     () => LimitedContentNoAWCTrailers)),
+                                     "1.0"), // [4][0]
+                            rtri))
+      .abbreviate_str_repr('A1111StyleLora');
+// =================================================================================================
+// mod RJSONC:
+// =================================================================================================
+const ExposedRjsonc = 
+      make_Jsonc_rule(choice(head(choice(RjsoncObject,
+                                         RjsoncArray,
+                                         rjsonc_string),
+                                  optional(() => SpecialFunctionTail)),
+                             head(choice(json_null,
+                                         json_true,
+                                         json_false,
+                                         json_number),
+                                  () => SpecialFunctionTail))); 
+// =================================================================================================
+// flag-related rules:
+// =================================================================================================
+// const flag_ident = xform(dot_chained(ident),
+//                          arr => {
+//                            lm.log();
+//                            lm.log(() => `FLAG_IDENT IN:  ${inspect_fun(arr)}`);
+//                            lm.log(() => `FLAG_IDENT OUT: ${inspect_fun(arr)}`);
+//                            return arr;
+//                          });
+const flag_ident = xform(seq(choice(ident, '*'),
+                             star(cadr('.',
+                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                         arr => [arr[0], ...arr[1]]);
+const SimpleCheckFlag =
+      xform(with_swb(seq(question,
+                         flag_ident)),
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(args);
+            })
+      .abbreviate_str_repr('SimpleCheckFlag');
+const SimpleNotFlag =
+      xform(with_swb(seq(bang,
+                         optional(hash),
+                         flag_ident)),
+            arr => {
+              const args = [arr[2],
+                            { set_immediately: !!arr[1]}];
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('SimpleNotFlag');
+const CheckFlagWithSetConsequent =
+      xform(cutting_with_swb(seq(question,     // [0]
+                                 flag_ident,   // [1]
+                                 dot_hash,     // [2]
+                                 flag_ident)), // [3]
+            arr => {
+              const args = [ [ arr[1] ], arr[3] ]; 
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithSetConsequent');
+const CheckFlagWithOrAlternatives = // last check alternative
+      xform(cutting_seq(question,                // [0]
+                        plus(flag_ident, comma), // [1]
+                        structural_word_break),  // [2]
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
+const NotFlagWithSetConsequent = // last not alternative
+      xform(cutting_seq(bang,                   // [0]
+                        flag_ident,             // [1]
+                        dot_hash,               // [2]
+                        flag_ident,             // [3]
+                        structural_word_break), // - 
+            arr => {
+              const args = [arr[1],
+                            { consequently_set_flag_tail: arr[3]}]; 
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('NotFlagWithSetConsequent');
+// -------------------------------------------------------------------------------------------------
+const SetFlag =
+      xform(arr => new ASTSetFlag(arr),
+            cutting_cadr(hash, flag_ident, structural_word_break))
+      .abbreviate_str_repr('SetFlag');
+const UnsetFlag =
+      xform(arr=> new ASTUnsetFlag(arr),
+            cutting_cadr(shebang, flag_ident, structural_word_break))
+      .abbreviate_str_repr('UnsetFlag');
+// -------------------------------------------------------------------------------------------------
+const unexpected_TestFlag_at_top_level = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
+                            `would serve no purpose and so are not permitted`,
+                            input, index));
+const innapropriately_placed_TestFlag = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`innapropriately placed test flag`,
+                            input, index));
+const wrap_TestFlag_in_AnonWildcard    = rule =>
+      xform(rule, flag =>
+        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
+// -------------------------------------------------------------------------------------------------
+const TestFlagInGuardPosition =
+      choice(SimpleCheckFlag,
+             SimpleNotFlag,
+             CheckFlagWithSetConsequent,
+             NotFlagWithSetConsequent,
+             CheckFlagWithOrAlternatives);
+const TopLevelTestFlag =
+      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+             unexpected_TestFlag_at_top_level(SimpleNotFlag)
+             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+const TestFlagInAlternativeContent =
+      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+             innapropriately_placed_TestFlag(SimpleNotFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
+             // Maybe these next two shouldn't be here?
+             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
+// =================================================================================================
+// AnonWildcard-related rules:
+// =================================================================================================
+const make_ASTAnonWildcardAlternative = arr => {
+  // lm.log(() => `ARR: ${inspect_fun(arr)}`);
+  const weight = arr[1];
+
+  if (weight == 0)
+    return DISCARD;
+  
+  const flags = ([ ...arr[0], ...arr[2] ]);
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
+  const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
+  const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
+        check_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flags[0], ...f.consequently_set_flag_tail ]));
+  const ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails =
+        not_flags
+        .filter(f => f.consequently_set_flag_tail)
+        .map(f => new ASTSetFlag([ ...f.flag, ...f.consequently_set_flag_tail ]));
+  const ASTSetFlags_for_ASTNotFlags_with_set_immediately =
+        not_flags
+        .filter(f => f.set_immediately)
+        .map(f => new ASTSetFlag(f.flag));
+
+  return new ASTAnonWildcardAlternative(
+    weight,
+    check_flags,
+    not_flags,
+    [
+      ...ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_consequently_set_flag_tails,
+      ...ASTSetFlags_for_ASTNotFlags_with_set_immediately,
+      ...set_or_unset_flags,
+      ...arr[3]
+    ]);
+}
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcardAlternative_rule = content_rule => 
+      xform(make_ASTAnonWildcardAlternative,
+            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlag, UnsetFlag)),
+                lws(optional(swb_uint, 1)),                                 
+                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
+                                SetFlag, UnsetFlag)),
+                lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
+            seq(
+              optional('unsafe_guards'),
+              lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
+              can_have_trailer
+                ? optional_punctuation_trailer
+                : unexpected_punctuation_trailer));
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
+      .abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+      .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
+      .abbreviate_str_repr('AnonWildcardNoTrailer');
+// =================================================================================================
+// non-terminals for the special functions/variables:
+// =================================================================================================
+const SpecialFunctionTail =
+      choice(seq(discarded_comments, lws(semicolon)),
+             structural_word_break)
+      .abbreviate_str_repr('SpecialFunctionTail');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUIPrompt =
+      xform(seq('ui-prompt', SpecialFunctionTail),
+            () => new ASTUIPrompt())
+      .abbreviate_str_repr('SpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionUIPrompt =
+      unexpected(SpecialFunctionUIPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUINegPrompt =
+      xform(seq('ui-neg-prompt', SpecialFunctionTail),
+            () => new ASTUINegPrompt())
+      .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionInclude =
+      xform(arr => new ASTInclude(arr[1]),
+            head(c_funcall('%include',                   // [0][0]
+                           head(discarded_comments,      // -
+                                lws(rjsonc_string),      // [0][1]
+                                discarded_comments,      // -
+                               )),  
+                 optional(SpecialFunctionTail)))
+      .abbreviate_str_repr('SpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionInclude =
+      unexpected(SpecialFunctionInclude,
+                 (rule, input, index) =>
+                 new FatalParseError("%include is only supported when " +
+                                     `using wildcards-plus-tool.js, ` +
+                                     `NOT when ` +
+                                     "running the wildcards-plus.js script " +
+                                     "inside Draw Things",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickSingle =
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
+                            optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickMultiple =
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
+      .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickSingle =
+      xform(seq('revert-single-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickSingle())
+      .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickMultiple =
+      xform(seq('revert-multi-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickMultiple())
+      .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => {
+        // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
+      },
+            cutting_seq(seq(c_ident,                                                // [0][0]
+                            discarded_comments,                                     // -
+                            lws(any_assignment_operator),                           // [0][1]
+                            discarded_comments),                                    // -
+                        lws(choice(ExposedRjsonc,                                    // [1]
+                                   head(() => LimitedContent,
+                                        optional(SpecialFunctionTail))))))           // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationUnary =
+      xform(arr => {
+        // lm.log(() => `UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
+      },
+            seq(/conf(?:ig)?/,                                                        // [0]
+                discarded_comments,                                                   // -
+                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
+                            discarded_comments,                                       // -
+                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
+                                            optional(SpecialFunctionTail)),
+                                       head(() => LimitedContentNoAWCTrailers,
+                                            optional(SpecialFunctionTail))))))) // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionNotInclude =
+      cutting_cadr(percent,
+                   choice(
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
+      .abbreviate_str_repr('SpecialFunctionNotInclude');
+// =================================================================================================
+// other non-terminals:
+// =================================================================================================
+const NamedWildcardReference  =
+      xform(seq(at,                                        // [0]
+                optional(caret),                           // [1]
+                optional(xform(parseInt, uint), 1),        // [2]
+                optional(xform(parseInt,                   // [3]
+                               cadr(dash, uint))),
+                optional(/[,\.&|;]/),                      // [4]
+                ident,                                     // [5]
+                optional_punctuation_trailer,  // [6]
+               ), 
+            arr => {
+              const ident   = arr[5];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const joiner  = arr[4]; // ??''
+              const caret   = arr[1];
+              const trailer = arr[6];
+
+              if (min_ct == 0 && max_ct == 0) {
+                lm.log(() => `WARNING: retrieving 0 items from a named ` +
+                       `wildcard is a strange thing to do. We'll allow ` +
+                       `it, but you may have made a mistake in your ` +
+                       `template.`,
+                       false)
+                
+                return DISCARD;
+              }
+              
+              return new ASTNamedWildcardReference(ident,
+                                                   joiner,
+                                                   caret,
+                                                   min_ct,
+                                                   max_ct,
+                                                   trailer);
+            })
+      .abbreviate_str_repr('NamedWildcardReference');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDesignator = cadr(at, ident)
+      .abbreviate_str_repr('NamedWildcardDesignator');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDefinition =
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
+            cutting_seq(head(NamedWildcardDesignator,
+                             discarded_comments,
+                             lws(equals)),
+                        discarded_comments,
+                        head(lws(AnonWildcard),
+                             optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('NamedWildcardDefinition');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardUsage      =
+      xform(seq(at, optional(bang), optional(hash), ident),
+            arr => {
+              const [ bang, hash, ident, objs ] =
+                    [ arr[1], arr[2], arr[3], []];
+              
+              if (!bang && !hash)
+                return new ASTNamedWildcardReference(ident);
+
+              // goes before hash so that "@!#" works correctly:
+              if (bang) 
+                objs.push(new ASTUnlatchNamedWildcard(ident));
+
+              if (hash)
+                objs.push(new ASTLatchNamedWildcard(ident));
+
+              return objs;
+            })
+      .abbreviate_str_repr('NamedWildcardUsage');
+// -------------------------------------------------------------------------------------------------
+const ScalarReference         =
+      xform(seq(dollar,
+                optional(caret),
+                ident,
+                optional_punctuation_trailer),
+            arr => new ASTScalarReference(arr[2],
+                                          arr[1],
+                                          arr[3]))
+      .abbreviate_str_repr('ScalarReference');
+// -------------------------------------------------------------------------------------------------
+const ScalarDesignator        =
+      xform(seq(dollar, ident),
+            arr => new ASTScalarReference(arr[1]))
+      .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
+const ScalarAssignment        =
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContent,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('ScalarAssignment');
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
+const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
+      choice(
+        NamedWildcardReference,
+        anon_wildcard_rule,
+        ...(plain_text_rule ? [ plain_text_rule ] : []),
+        ScalarReference,
+      );
+// -------------------------------------------------------------------------------------------------
+const LimitedContent =
+      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      .abbreviate_str_repr('LimitedContent');
+
+const LimitedContentNoAWCTrailers =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+
+// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+//       .abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+// lm.log(() => `THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(() => `THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+
+
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
+      choice(
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        discarded_comment,
+        NamedWildcardReference,
+        NamedWildcardUsage,
+        SpecialFunctionNotInclude,
+        UnsetFlag, // before SetFlag!
+        SetFlag,
+        ScalarAssignment,
+        ScalarReference,
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+      );
+
+// -------------------------------------------------------------------------------------------------
+// const ContentNoLoras          = make_Content_rule({
+//   after_plain_text_rules: [
+//     AnonWildcardNoLoras,
+//   ],
+// });
+const Content                 = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    AnonWildcard,
+  ],
+  after_plain_text_rules:  [
+  ],
+});
+const TopLevelContent         = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    TopLevelTestFlag,
+    AnonWildcard,
+  ],
+  after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
+// const ContentNoLorasStar      = wst_star(ContentNoLoras);
+const ContentStar             = wst_star(Content);
+const TopLevelContentStar     = wst_star(TopLevelContent);
+const Prompt                  = tws(TopLevelContentStar);
+// =================================================================================================
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// DEV NOTE: Copy into wildcards-plus.js through this line!
+// =================================================================================================
+
+
+// =================================================================================================
+// MAIN SECTION:
+// =================================================================================================
+// fake UI prompt, just for use debugging when dt_hosted has been set to true:
+const ui_prompt = "@shape = { cube | sphere } there is a @shape here";
+// -------------------------------------------------------------------------------------------------
+async function main() {
+  // -----------------------------------------------------------------------------------------------
+  // process the command-line arguments:
+  // -----------------------------------------------------------------------------------------------
+  const args       = process.argv.slice(2);
+  let   count      = 1;
+  let   post       = false;
+  let   confirm    = false;
+  let   from_stdin = false;
+
+  if (args.length == 0) 
+    throw new Error(`Usage: ./wildcards-plus-tool.js [--post|--confirm] ` +
+                    `(--stdin | <input-file>) [<count>]`);
+
+  if (["-p", "--post"].includes(args[0])) {
+    post = true;
+    args.shift();
+  }
+  else if (["-c", "--confirm"].includes(args[0])) {
+    post    = true;
+    confirm = true;
+    args.shift();
+  }
+
+  if (args.length === 0)
+    throw new Error("ERROR: Must provide --stdin or an input file.");
+
+  if (args[0] === '--stdin') {
+    if (confirm)
+      throw new Error(`the --confirm and --stdin options are incompatible.`);
+    
+    from_stdin = true;
+  }
+
+  if (args.length > 1) 
+    count = parseInt(args[1]);
+
+  // -----------------------------------------------------------------------------------------------
+  // read prompt input:
+  // -----------------------------------------------------------------------------------------------
+  let result = null;
+
+  if (from_stdin) {
+    // Read all stdin into a string
+    let prompt_input = await new Promise((resolve, reject) => {
+      let data = '';
+      input.setEncoding('utf8');
+      input.on('data', chunk => data += chunk);
+      input.on('end', () => resolve(data));
+      input.on('error', err => reject(err));
     });
-  // =================================================================================================
-  // END OF MAIN SECTION.
-  // =================================================================================================
+
+    try {
+      result = Prompt.match(prompt_input);
+    }
+    catch (err) {
+      if (err instanceof FatalParseError) {
+        lm.log(() => `got fatal parse error, halting: ${inspect_fun(err)}`);
+        process.exit(0);
+      }
+      else {
+        throw err;
+      }
+    }
+    
+    process.exit(0);
+  } else if (args.length  === 0) {
+    throw new Error("ERROR: No input file provided.");
+  }
+  else {
+    result = parse_file(args[0]);
+  }
+
+  if (! result?.is_finished)
+    throw new Error(`error parsing ${inspect_fun(args[0])}! result = ${inspect_fun(result)}`);
+  
+  // -----------------------------------------------------------------------------------------------
+  // just for debugging:
+  // -----------------------------------------------------------------------------------------------
+  // if (print_ast_enabled)
+  //   lm.log(() => `result: ${inspect_fun(result.value)}`);
+
+  // if (print_ast_json_enabled)
+  //   lm.log(() => `result (JSON): ${JSON.stringify(result.value)}`);
+
+  let   AST          = result.value;
+  const base_context = load_prelude(new Context({files: from_stdin ? [] : [args[0]]}));
+  
+  if (print_ast_before_includes_enabled) {
+    LOG_LINE();
+    lm.log(() => `before process_includes:`);
+    LOG_LINE();
+    lm.log(() => `${inspect_fun(AST)}`);
+    // LOG_LINE();
+    // lm.log(() => `before process_includes (as JSON):`);
+    // LOG_LINE();
+    // lm.log(() => `${JSON.stringify(AST)}`);
+  }
+
+  if (print_ast_then_die)
+    process.exit(0);
+
+  AST = process_includes(AST, base_context);
+  
+  if (print_ast_after_includes_enabled) { 
+    LOG_LINE();
+    lm.log(() => `after process_includes:`);
+    LOG_LINE();
+    lm.log(() => `${inspect_fun(AST)}`);
+    // LOG_LINE();
+    // lm.log(() => `after process_includes (as JSON):`);
+    // LOG_LINE();
+    // lm.log(() => `${JSON.stringify(AST)}`);
+  }
+
+  // audit flags:
+  lm.log(() => `auditing...`);
+  const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  lm.log(() => `audit took ${elapsed.toFixed(2)} ms`);
+
+  // log_match_enabled          = true;
+  // log_level__expand_and_walk = 1;
+  // log_flags_enabled          = true;
+
+  let posted_count        = 0;
+  let prior_prompt        = null;
+  let prior_configuration = null;
+
+  const stash_priors = (prompt, configuration) => {
+    prior_prompt        = prompt;
+    prior_configuration = structured_clone(configuration);
+  };
+
+  const restore_priors = (prompt, configuration) => {
+    const ret = [ prior_prompt, prior_configuration ];
+    [ prior_prompt, prior_configuration ] = [ prompt, configuration ];
+    return ret;
+  };
+
+  const do_post = (prompt, configuration) => {
+    post_prompt({ prompt: prompt,  configuration: configuration });
+    posted_count += 1; 
+  };
+
+  while (posted_count < count) {
+    LOG_LINE('=');
+    lm.log(() => `Expansion #${posted_count + 1} of ${count}:`);
+    LOG_LINE('=');
+    
+    const context = base_context.clone();
+    context.reset_temporaries();
+    const prompt  = expand_wildcards(AST, context);
+
+    if (! is_empty_object(context.configuration)) {
+      LOG_LINE();
+      lm.log(() => `Final config is :`);
+      LOG_LINE();
+      lm.log(() => inspect_fun(context.configuration));
+    }
+
+    if (context.flags.length > 0) {
+      LOG_LINE();
+      lm.log(() => `Flags after:`);
+      LOG_LINE();
+      lm.log(() => `${inspect_fun(context.flags)}`);
+    }
+    
+    if (context.scalar_variables.size > 0) {
+      LOG_LINE();
+      lm.log(() => `Scalars after:`);
+      LOG_LINE();
+      for (const [key, val] of context.scalar_variables)
+        lm.log(() => `$${key} = ${inspect_fun(val)}`);
+    }
+
+    LOG_LINE();
+    lm.log(() => `Expanded prompt #${posted_count + 1} of ${count} is:`);
+    LOG_LINE();
+    lm.log(() => `${prompt}`);
+    
+    if (context.configuration.negative_prompt || context.configuration.negative_prompt === '') {
+      LOG_LINE();
+      lm.log(() => `Expanded negative prompt:`);
+      LOG_LINE();
+      lm.log(() => context.configuration.negative_prompt);
+    }
+
+    if (!post) {
+      posted_count += 1; // a lie to make the counter correct.
+    }
+    else {
+      if (!confirm) {
+        LOG_LINE();
+        do_post(prompt, context.configuration);
+        posted_count += 1;
+      }
+      else  {
+        lm.log(() => '');
+
+        const question_str = `POST this prompt as #${posted_count+1} out of ${count} ` +
+              `(enter /y.*/ for yes, positive integer for multiple images, or /p.*/ to ` +
+              `POST the prior prompt)? `;
+        const answer = await ask(question_str);
+
+        if (! (answer.match(/^[yp].*/i) || answer.match(/^\d+/i))) {
+          stash_priors(prompt, context.configuration);
+          continue;
+        }
+
+        if (answer.match(/^p.*/i)) {
+          if (prior_prompt) { 
+            LOG_LINE();
+            [ prompt, context.configuration ] = restore_priors(prompt, context.configuration);
+            
+            lm.log(() => `POSTing prior prompt '${prompt}'`);
+            
+            do_post(prompt, context.configuration);
+            
+            continue;
+          }
+          else {
+            lm.log(() => `can't rewind, no prior prompt`);
+          }
+        }
+        else { // /^y.*/
+          LOG_LINE();
+          const parsed    = parseInt(answer);
+          const gen_count = isNaN(parsed) ? 1 : parsed;  
+          
+          for (let iix = 0; iix < gen_count; iix++)
+            do_post(prompt, context.configuration);
+        }
+      }
+    }
+    
+    stash_priors(prompt, context.configuration);
+  }
+
+  LOG_LINE('=');
+}
+// -------------------------------------------------------------------------------------------------
+let main_disabled = false;
+
+if (! main_disabled)
+  main().catch(err => {
+    lm.error(() => `Unhandled error:\n${err.stack}`);
+    // process.exit(1);
+  });
+// =================================================================================================
+// END OF MAIN SECTION.
+// =================================================================================================
