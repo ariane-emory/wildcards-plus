@@ -9263,8 +9263,9 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
   let ret;
 
   lm.indent(() => {
-    ret = unescape(smart_join(walk(thing,
-                                   { correct_articles: correct_articles }),
+    const walked = walk(thing,
+                        { correct_articles: correct_articles })
+    ret = unescape(smart_join(walked,
                               { correct_articles: correct_articles })).replace(/^</, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
     //   unescape probably should too.
