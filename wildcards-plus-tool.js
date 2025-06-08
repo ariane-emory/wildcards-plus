@@ -8918,8 +8918,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context.named_wildcards.set(thing.name, got.original_value);
 
         if (context.noisy)
-          lm.indent(() =>
-            lm.log(() => `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
+          lm.indent(() => lm.log(() => `unlatched ${thing.name} back to ` +
+                                 `${thing_str_repr(got.original_value)}`));
 
         throw new ThrownReturn(''); // produce no text.
       } 
