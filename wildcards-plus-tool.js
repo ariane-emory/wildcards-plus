@@ -1096,11 +1096,6 @@ class Element extends Rule {
     if (! rule_match_result)
       return null;
 
-    // if (log_match_enabled) {
-    //   log(indent, `taking elem ${this.index} from ` +
-    //       `${inspect_fun(rule_match_result)}'s value.`);
-    // }
-
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD // <- I forget why I did this? Could be a bad idea?
           : rule_match_result.value[this.index];
@@ -9084,10 +9079,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 throw new Error(`can't add string ${inspect_fun(value)} `+
                                 `to non-string ${inspect_fun(tmp_str)}`);
 
-              log(log_level__expand_and_walk >= 2,
+              if (log_level__expand_and_walk >= 2)
+                lm.log(() => 
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by string ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+                    `increment by string ${inspect_fun(value)}, ` +
+                    `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
 
               context.configuration[our_name] =
                 lm.indent(() => smart_join([tmp_str, value],
@@ -9096,10 +9092,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
 
-              log(log_level__expand_and_walk >= 2,
+              if (log_level__expand_and_walk >= 2)
+                lm.log(() => 
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by unknown ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+                    `increment by unknown ${inspect_fun(value)}, ` +
+                    `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
               context.configuration[our_name] = (context.configuration[our_name]??null) + value;
             }
