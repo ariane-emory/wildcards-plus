@@ -8891,10 +8891,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                   walk(got, { correct_articles: correct_articles }), got);
 
           if (log_level__expand_and_walk)
-            lm.log(() => 
-              `latched @${thing.target.name} to value: ` +
-                `${typeof latched.latched_value} ` +
-                `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+            lm.log(() => `latched @${thing.target.name} to value: ` +
+                   `${typeof latched.latched_value} ` +
+                   `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
           context.named_wildcards.set(thing.target.name, latched);
         });
