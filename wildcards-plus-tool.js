@@ -8731,23 +8731,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        let ret = thing.pick(1, 1,
+        let str = thing.pick(1, 1,
                              picker_allow, picker_forbid, picker_each, 
                                   context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
-          lm.indent_and_log(picked
-                            ? `picked item = ${thing_str_repr(picked)}`
-                            : `picked item = empty`);          
-
-        ret = picked;
-
-        if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer],
+          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);s
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
                            { correct_articles: false });
         // ^ don't need to correct articles for trailers since punctuation couldn't trigger correction
 
-        throw new ThrownReturn(ret);
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       // NamedWildcardReferences;
@@ -8791,7 +8787,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let str;
 
         const joiner = thing.joiner === '&'
               ? ','
@@ -8801,7 +8796,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               ? { final_separator: 'and' }
               : {};
 
-        // v maybe unnecessary indentation?
+        let str;
+
         lm.indent(() => {
           str = smart_join(intercalate(joiner, res, intercalate_options),
                            { correct_articles: false });
