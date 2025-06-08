@@ -8600,8 +8600,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { is_inner = true,
-                                                            correct_articles = undefined } = {}) {
+function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
   if (thing == undefined ||
       context === undefined ||
       correct_articles === undefined)
