@@ -8990,7 +8990,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                        { correct_articles: false })); 
 
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? RjefsoncObject
+                                                ? RjsoncObject
                                                 : Rjsonc).match(expanded_value);
 
           if (thing instanceof ASTUpdateConfigurationBinary) {
