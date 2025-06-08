@@ -2190,7 +2190,6 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     if (noisy)
       throw new Error('noisy bomb');
     
-    // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
 
     let stringified_rule = null;
@@ -2209,26 +2208,31 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     }
 
     if (!rule) {
-      lm.log(() => `return original null rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      lm.log(() => `return klassed function ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      lm.log(() => `return original klassed rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      lm.log(() => `return original rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(() => `return original rule ${stringified_rule}`);
       return rule;
     }
 
-    lm.log(() => `return klassed ${stringified_rule}`);
+    if (noisy)
+      lm.log(() => `return klassed ${stringified_rule}`);
     
     return new klass(rule);
   }
