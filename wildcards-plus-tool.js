@@ -8691,7 +8691,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
             log(log_level__expand_and_walk,
                 `Walking array element #${ix + 1} `+
                 `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} `
+                `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
                );
 
             const elem_ret =
@@ -9278,7 +9278,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
       `expanded wildcards in ` +
       `${thing_str_repr(thing)} in ` + 
       `returned ` +
-      `${thing_str_repr(ret)}`);
+      `${thing_str_repr(ret, { always_include_type_str: true })}`);
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
