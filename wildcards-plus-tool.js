@@ -8600,7 +8600,7 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
+function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
   if (thing            === undefined ||
       context          === undefined ||
       correct_articles === undefined)
@@ -8870,12 +8870,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           else 
             throw new ThrownReturn(''); // produce nothing
         }
-        
 
         lm.indent(() => {
           const latched =
                 new ASTLatchedNamedWildcard(
-                  walk(got, { correct_articles: false }), got);
+                  walk(got, { correct_articles: correct_articles }), got);
 
           log(log_level__expand_and_walk,
               `latched @${thing.target.name} to value: ` +
@@ -8945,7 +8944,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (! thing.assign) {
           const old_val = context.scalar_variables.get(thing.destination.name)??'';
           new_val = smart_join([old_val, new_val],
-                               { correct_articles: true }); // always correct articles here?
+                               { correct_articles: correct_articles }); 
         }
         
         context.scalar_variables.set(thing.destination.name, new_val);
@@ -9181,7 +9180,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
-                                                         { correct_articles: correct_articles })); // not walk!
+                                                         { correct_articles: false })); // not walk!
 
           log(log_level__expand_and_walk,
               `expanded LoRa file `+
@@ -9196,7 +9195,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
-                                                           { correct_articles: correct_articles })); // not walk!
+                                                           { correct_articles: false })); // not walk!
 
           log(log_level__expand_and_walk,
               `expanded LoRA weight ` +
@@ -10763,7 +10762,7 @@ async function main() {
     
     const context = base_context.clone();
     context.reset_temporaries();
-    const prompt  = expand_wildcards(AST, context, { correct_articles: true });
+    const prompt  = expand_wildcards(AST, context);
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
