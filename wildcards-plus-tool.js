@@ -3494,6 +3494,8 @@ function rjson_stringify(obj) {
 }
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
+let smart_join_trap_target;
+// smart_join_trap_target = 1;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
@@ -3514,10 +3516,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   smart_join_trap_counter += 1;
 
-  // if (smart_join_trap_counter === 3)
-  //   throw stop();
+  if (smart_join_trap_counter === smart_join_trap_target) {
+    lm.log(`SMART_JOIN TRAPPED`, false);
+    
+    throw stop(); 
+  }
   
-  if (log_level__smart_join >= 1)
+  if (log_level__smart_join >= 0)
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
@@ -8634,8 +8639,8 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     const ret = lm.indent(() =>
-      expand_wildcards(pick?.body ?? '', context,
-                       { correct_articles: correct_articles }));
+      walk(pick?.body ?? '', 
+           { correct_articles: correct_articles }));
 
     if (log_level__expand_and_walk >= 2)
       lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
