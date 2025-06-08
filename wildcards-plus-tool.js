@@ -351,10 +351,6 @@ class Logger {
     for (const line of str.split('\n'))
       destination(line);
   }
-  // // -----------------------------------------------------------------------------------------------
-  // indent_thing(thing) {
-  //   return this.indent_lines(thing);
-  // }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
     if (typeof str !== 'string')
