@@ -3836,7 +3836,7 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3851,7 +3851,8 @@ function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
 
   if (thing instanceof ASTNode) {
     thing_str = thing.toString();
-    type_str  = '';
+    if (! always_include_type_str)
+      type_str  = '';
   }
   else if (Array.isArray(thing)) {
     thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
@@ -8676,7 +8677,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
     }
 
     log(log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing)}`);
+        `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -9258,7 +9259,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
 
   log(log_level__expand_and_walk,
       `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} `);
+      `${thing_str_repr(thing, { always_include_type_str: true })} `);
 
   let ret;
 
@@ -9676,7 +9677,7 @@ class ASTScalarAssignment extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
+    return `$${this.destination} ${this.assign? '=' : '+='} ${this.source.toString()}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10726,7 +10727,7 @@ async function main() {
   lm.log(`audit took ${elapsed.toFixed(2)} ms`);
 
   // log_match_enabled           = true;
-  // log_level__expand_and_walk = true;
+  log_level__expand_and_walk = 1;
   // log_flags_enabled           = true;
 
   let posted_count        = 0;
