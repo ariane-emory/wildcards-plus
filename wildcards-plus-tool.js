@@ -8875,7 +8875,7 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
                 new ASTLatchedNamedWildcard(
                   walk(got, { correct_articles: false }), got);
 
-          log(context.noisy,
+          log(log_level__expand_and_walk,
               `latched @${thing.target.name} to value: ` +
               `${typeof latched.latched_value} ` +
               `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
