@@ -8660,7 +8660,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     if (log_level__expand_and_walk >= 2)
       lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
              `<${thing_str_repr(pick)}> => ` + 
-             `${thing_str_repr(ret)}`, false)
+             `${thing_str_repr(ret)}`, true)
 
     return ret;
   }
