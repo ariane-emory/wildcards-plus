@@ -1092,11 +1092,6 @@ class Element extends Rule {
     if (! rule_match_result)
       return null;
 
-    // if (log_match_enabled) {
-    //   log(indent, `taking elem ${this.index} from ` +
-    //       `${inspect_fun(rule_match_result)}'s value.`);
-    // }
-
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD // <- I forget why I did this? Could be a bad idea?
           : rule_match_result.value[this.index];
