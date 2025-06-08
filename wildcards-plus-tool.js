@@ -8946,14 +8946,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        // log(log_level__expand_and_walk >= 2, '');
         if (log_level__expand_and_walk >= 2)
           lm.log(() => `assigning ${inspect_fun(thing.source)} ` +
                  `to '${thing.destination.name}'`);
         
-        let   new_val = lm.indent(() => smart_join(walk(thing.source,
-                                                        { correct_articles: correct_articles }),
-                                                   { correct_articles: correct_articles }));
+        let new_val = lm.indent(() => smart_join(walk(thing.source,
+                                                      { correct_articles: correct_articles }),
+                                                 { correct_articles: correct_articles }));
 
         if (! thing.assign) {
           const old_val = context.scalar_variables.get(thing.destination.name)??'';
