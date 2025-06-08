@@ -8890,10 +8890,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 new ASTLatchedNamedWildcard(
                   walk(got, { correct_articles: correct_articles }), got);
 
-          log(log_level__expand_and_walk,
+          if (log_level__expand_and_walk)
+            lm.log(() => 
               `latched @${thing.target.name} to value: ` +
-              `${typeof latched.latched_value} ` +
-              `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+                `${typeof latched.latched_value} ` +
+                `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
           context.named_wildcards.set(thing.target.name, latched);
         });
@@ -8916,19 +8917,20 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
         
         context.named_wildcards.set(thing.name, got.original_value);
-        
-        lm.indent(() =>
-          log(context.noisy,
-              `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
+
+        if (context.noisy)
+          lm.indent(() =>
+            lm.log(() => `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
 
         throw new ThrownReturn(''); // produce no text.
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_level__expand_and_walk);
+          if (true)
+            lm.log(() => `WARNING: redefining named wildcard @${thing.name}, ` +
+                   `you may not have intended to do this, check your template!`,
+                   log_level__expand_and_walk);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -9011,10 +9013,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             ? new_obj
             : { ...context.configuration, ...new_obj };
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`,
-                              log_level__expand_and_walk));
+          if (log_configuration_enabled)
+            lm.indent(() => lm.log(() => 
+              `%config ${thing.assign ? '=' : '+='} ` +
+                `${inspect_fun(new_obj, true)}`,
+              log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_name(thing.key); 
@@ -9031,10 +9034,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                 `to non-array ${inspect_fun(tmp_arr)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
-              log(log_expand_and_walk_enabled >= 2,
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => 
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by array ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_arr)}`);
+                    `increment by array ${inspect_fun(value)}, ` +
+                    `total ${inspect_fun(new_arr)}`);
               
               context.configuration[our_name] = new_arr;
             }
@@ -9046,10 +9050,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                 `to non-object ${inspect_fun(tmp_obj)}`);
 
               const new_obj = { ...tmp_obj, ...value };
-              log(log_expand_and_walk_enabled >= 2,
+
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => 
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by object ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_obj)}`);
+                    `increment by object ${inspect_fun(value)}, ` +
+                    `total ${inspect_fun(new_obj)}`);
 
               context.configuration[our_name] = new_obj;
             }
@@ -9060,10 +9066,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 throw new Error(`can't add number ${inspect_fun(value)} `+
                                 `to non-number ${inspect_fun(tmp_num)}`);
 
-              log(log_expand_and_walk_enabled >= 2,
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => 
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by number ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+                    `increment by number ${inspect_fun(value)}, ` +
+                    `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
               
               context.configuration[our_name] = tmp_num + value;
             }
@@ -9127,9 +9134,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        log(log_configuration_enabled,
+        if (log_configuration_enabled)
+          lm.log(() => 
             `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+              `${inspect_fun(walked)}.`);
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9352,8 +9360,8 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0) {
-        log(() => `children: ${children.map(thing_str_repr)}`);
+      if (log_level__expand_and_walk && children?.length > 0) {
+        lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
           walk(children, mode);
@@ -9394,16 +9402,16 @@ function audit_semantics(root_ast_node,
       return;
 
     if (visited.has(thing)) {
-      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      lm.log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
       
       return;
     }
     
     visited.add(thing);
 
-    log(() => `audit semantics in ${thing.constructor.name} ` +
-        `'${abbreviate(compress(thing.toString()), 200)}', ` +
-        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+    lm.log(() => `audit semantics in ${thing.constructor.name} ` +
+           `'${abbreviate(compress(thing.toString()), 200)}', ` +
+           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
       // -------------------------------------------------------------------------------------------
