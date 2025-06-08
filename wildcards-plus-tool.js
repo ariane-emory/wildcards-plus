@@ -62,7 +62,6 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -85,7 +84,7 @@ function parse_file(filename) {
     }
   }
 
-  log_match_enabled  = old_log_match_enabled;
+  log_match_enabled = old_log_match_enabled;
   
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
@@ -292,7 +291,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_level__expand_and_walk        = 0;
+let log_level__expand_and_walk        = 1;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
@@ -8580,9 +8579,6 @@ function load_prelude(into_context = new Context()) {
   
   if (log_loading_prelude)
     lm.log(() => `loading prelude...`);
-
-  if (log_level__expand_and_walk)
-    throw new Error(`bomb: ${log_level__expand_and_walk}`);
   
   const elapsed = measure_time(() => {
     const old_log_flags_enabled = log_flags_enabled;
@@ -8988,7 +8984,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
 
-        const fatal_errors = false;
+        const fatal_errors = false
         const error_fun = fatal_errors
               ? msg => { throw new Error(msg); }
               : msg => { throw new ThrownReturn(warning_str(msg)); };
