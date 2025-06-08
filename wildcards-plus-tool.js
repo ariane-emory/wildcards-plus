@@ -8750,14 +8750,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name);
-
+        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcardValue 
+        
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
         let res = [];
+
+        let anon_wildcard;
         
         if (got instanceof ASTLatchedNamedWildcardValue) {
+          anon_wildcard = anon_wildcard.original_value;
+          
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
                                                               { correct_articles: correct_articles})); //  not walk!
@@ -8773,22 +8777,22 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             got = got.original_value; 
           }
         }
-        else {
+        else { // ASTAnonWildcard
+          anon_wildcard = got;
+          
           const picker_priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res = got.pick(thing.min_count, thing.max_count,
-                         picker_allow, picker_forbid, picker_each, 
-                         picker_priority);
+          res = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                   picker_allow, picker_forbid, picker_each, 
+                                   picker_priority).filter(s => s !== '');
           
           if (log_level__expand_and_walk)
             lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
 
         }
         
-        res = res.filter(s => s !== '');
-
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
