@@ -336,7 +336,7 @@ class Logger {
   // -----------------------------------------------------------------------------------------------
   __write(destination, str_or_fun, with_indent = true) {    
     if ((typeof destination !== 'function') ||
-        (typeof str_or_fun !== 'function'))
+        (typeof str_or_fun  !== 'function'))
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
     let str = str_or_fun();
