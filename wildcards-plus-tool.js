@@ -330,10 +330,23 @@ class Logger {
     console.error(this.indent_thing(thing, with_indent));
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indent = true) {
-    const full_output = this.indent_thing(thing, with_indent);
-    for (const line of full_output.split('\n'))
+  log(str = '', with_indent = true) {
+    if (typeof str !== 'string')
+      throw new Error(`bad log arg str: ${inspect_fun(str)}`);
+
+    if (with_indent)
+      str = this.indent_thing(str);
+    
+    // const full_output = with_indent
+    //       ? this.indent_thing(str)
+    //       : str;
+
+    for (const line of str.split('\n'))
       console.log(line);
+  }
+  // -----------------------------------------------------------------------------------------------
+  indent_thing(thing) {
+    return this.indent_lines(thing);
   }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
@@ -347,12 +360,6 @@ class Logger {
           .join("\n");
 
     return indented_str;
-  }
-  // -----------------------------------------------------------------------------------------------
-  indent_thing(thing, with_indent = true) {
-    return with_indent
-      ? `${this.indent_lines(thing.toString())}`
-      : thing.toString();
   }
   // -----------------------------------------------------------------------------------------------
   nest(indent_addend = 1) {
