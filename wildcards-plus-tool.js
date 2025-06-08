@@ -334,13 +334,15 @@ class Logger {
     this.__write(console.log, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  __write(destination, str = '', with_indent = true) {    
+  __write(destination, str_fun, with_indent = true) {    
     if ((typeof destination !== 'function') ||
-        (typeof str !== 'string') // ||
+        (typeof str_fun !== 'function') // ||
         //(typeof with_indent !== 'boolean')
        )
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
+    let str = str_fun();
+    
     if (with_indent)
       str = this.indent_thing(str);
     
