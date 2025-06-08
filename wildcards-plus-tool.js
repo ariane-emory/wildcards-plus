@@ -354,7 +354,7 @@ class Logger {
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
     if (typeof str !== 'string')
-      throw new Error(`not a string: ${inspect.fun(str)}`);
+      throw new Error(`not a string: ${inspect_fun(str)}`);
     
     const indent_string = this.indent_str.repeat(this.indent);
     const indented_str  = str
