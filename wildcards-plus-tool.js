@@ -352,10 +352,6 @@ class Logger {
       destination(line);
   }
   // -----------------------------------------------------------------------------------------------
-  // indent_thing(thing) {
-  //   return this.indent_lines(thing);
-  // }
-  // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
     if (typeof str !== 'string')
       throw new Error(`not a string: ${inspect.fun(str)}`);
