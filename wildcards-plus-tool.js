@@ -9418,16 +9418,16 @@ function audit_semantics(root_ast_node,
       return;
 
     if (visited.has(thing)) {
-      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      lm.log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
       
       return;
     }
     
     visited.add(thing);
 
-    log(() => `audit semantics in ${thing.constructor.name} ` +
-        `'${abbreviate(compress(thing.toString()), 200)}', ` +
-        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+    lmlog(() => `audit semantics in ${thing.constructor.name} ` +
+          `'${abbreviate(compress(thing.toString()), 200)}', ` +
+          `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
       // -------------------------------------------------------------------------------------------
