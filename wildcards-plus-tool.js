@@ -4376,21 +4376,25 @@ class Context {
       if (got)
         munged_configuration.sampler = got;
       else
-        lm.log(() => `WARNING: did not find samples '${munged_configuration.sampler}', ` +
+        lm.log(() => `WARNING: did not find sampler ` +
+               `'${munged_configuration.sampler}', ` +
                `we're probably going to crash in a moment`);
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
       if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        lm.log(() => `correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-               `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+        lm.log(() => `correcting munged_configuration.sampler = ` +
+               `${inspect_fun(munged_configuration.sampler)} to ` +
+               `munged_configuration.sampler = ` +
+               ` ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
                log_level__expand_and_walk);
         const index = dt_samplers.indexOf(munged_configuration.sampler);
 
         if (index === -1) {
-          lm.log(() => `WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
-                 `Are you sure you used the ` +
-                 `correct name? deleting sampler from configuration.`);
+          lm.log(() => `WARNING: could not find index of sampler ` +
+                 `'${munged_configuration.sampler}'. `+
+                 `Are you sure you used the correct name? ` +
+                 `deleting sampler from configuration`);
 
           delete munged_configuration.sampler;
         }
@@ -4399,7 +4403,8 @@ class Context {
         }
       }
     }
-    // when running in Node.js, sampler needs to be a string::
+    
+    // when running in Node.js, sampler needs to be a string:
     else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
       lm.log(() => `correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
@@ -8976,7 +8981,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
-        
+
+        const fatal_errors = true;
+        const error_fun = fatal_errors
+              ? msg => throw new Error(msg)
+              : msg => null;
+              
+              
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
