@@ -92,13 +92,13 @@ function parse_file(filename) {
   let total = 0;
 
   for (const [rule, ruleCache] of sortedEntries) {
-    lm.log(`${rule.toString()}: ` +
+    lm.log(() => `${rule.toString()}: ` +
            `${format_pretty_number(ruleCache.size)}`);
     total += ruleCache.size;
   }
 
   if (sortedEntries.length > 0)
-    lm.log(`Total: ${format_pretty_number(total)}`);
+    lm.log(() => `Total: ${format_pretty_number(total)}`);
   
   // check that the parsed result is complete;
   if (! result.is_finished)
@@ -213,7 +213,7 @@ function process_includes(thing, context = new Context()) {
         filename = path.join(path.dirname(current_file), filename);
         
         if (context.files.includes(filename)) {
-          lm.log(`WARNING: skipping duplicate include of '${filename}'.`);
+          lm.log(() => `WARNING: skipping duplicate include of '${filename}'.`);
           continue;
         }
 
@@ -589,7 +589,7 @@ class Rule {
 
     if (! this.abbreviated)
       for (const direct_child of this.direct_children()) {
-        // lm.log(`direct_child = ${inspect_fun(direct_child)}`);
+        // lm.log(() => `direct_child = ${inspect_fun(direct_child)}`);
         this.__vivify(direct_child).collect_ref_counts(ref_counts);
       }
 
@@ -611,7 +611,7 @@ class Rule {
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
-        lm.log(`skipping ${this}.`);
+        lm.log(() => `skipping ${this}.`);
 
       return;
     }
@@ -619,7 +619,7 @@ class Rule {
     visited.add(this);
 
     if (log_finalize_enabled)
-      lm.log(`finalizing ${this}...`);
+      lm.log(() => `finalizing ${this}...`);
 
     this.__impl_finalize(visited);
   }
@@ -640,10 +640,10 @@ class Rule {
     
     if (log_match_enabled) {
       if (index_is_at_end_of_input(index, input))
-        lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
+        lm.indent(() => lm.log(() => `Matching ${this.constructor.name} ${this.toString()}, ` +
                                `but at end of input!`));
       else 
-        lm.log(`Matching ` +
+        lm.log(() => `Matching ` +
                // `${this.constructor.name} `+
                `${abbreviate(this.toString())} at ` +
                `char #${index}: ` +
@@ -659,12 +659,12 @@ class Rule {
         const got = rule_cache.get(index);
 
         if (got !== undefined) {
-          // lm.log(`use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
+          // lm.log(() => `use cached result for ${this} at ${index} => ${inspect_fun(got)}`) ;        
           return got;
         }
       }
       else {
-        // lm.log(`init cache for rule ${this}`);
+        // lm.log(() => `init cache for rule ${this}`);
         rule_cache = new Map();
         cache.set(this, rule_cache);
       }
@@ -686,7 +686,7 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+      lm.log(() => `<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
              `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
@@ -709,11 +709,11 @@ class Rule {
     const next_id    = { value: 0 };
 
     // if (ref_counts.size > 0) {
-    //   lm.log(`REF_COUNTS:`);
+    //   lm.log(() => `REF_COUNTS:`);
     //   lm.log(() => '{');
     
     //   for (const [key, value] of ref_counts)
-    //     lm.log(`  ${inspect_fun(key, true)} ` +
+    //     lm.log(() => `  ${inspect_fun(key, true)} ` +
     //                 `=> ${value},`);
     
     //   lm.log(() => '}');
@@ -9114,7 +9114,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // probly won't work most of the time, but let's try anyhow, I guess.
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +
                        `incrementing by unknown type value ${inspect_fun(value)}, ` +
                        `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
