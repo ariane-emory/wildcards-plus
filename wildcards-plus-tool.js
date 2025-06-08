@@ -9003,7 +9003,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               ? jsconc_parsed_expanded_value.value
               : expanded_value;
           }
-          else { // ASTUpdateConfigurationUnary
+          else { // ASTUpdateConfiguratio'tnUnary
             error_fun(`${thing.constructor.name}.value must expand to produce a valid ` +
                       `rJSONC object, Rjsonc.match(...) result was ` +
                       inspect_fun(jsconc_parsed_expanded_value));
@@ -9040,13 +9040,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (! Array.isArray(tmp_arr))
                 throw error_fun(`can't add array ${inspect_fun(value)} ` +
-                                `to non-array ${inspect_fun(tmp_arr)}`);
+                                `to non-array ${inspect_fun(tmp_arr)} ` +
+                                `in key ${inspect_fun(our_name)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by array ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_arr)}`);
+
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by array ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun(new_arr)}`);
               
               context.configuration[our_name] = new_arr;
             }
@@ -9055,14 +9058,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (typeof tmp_obj !== 'object')
                 throw error_fun(`can't add object ${inspect_fun(value)} `+
-                                `to non-object ${inspect_fun(tmp_obj)}`);
+                                `to non-object ${inspect_fun(tmp_obj)} ` +
+                                `in key ${inspect_fun(our_name)}`);
 
               const new_obj = { ...tmp_obj, ...value };
 
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by object ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_obj)}`);
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by object ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun(new_obj)}`);
 
               context.configuration[our_name] = new_obj;
             }
@@ -9071,12 +9076,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               
               if (typeof tmp_num !== 'number')
                 error_fun(`can't add number ${inspect_fun(value)} `+
-                          `to non-number ${inspect_fun(tmp_num)}`);
+                          `to non-number ${inspect_fun(tmp_num)} ` +
+                          `in key ${inspect_fun(our_name)}`);
 
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by number ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by number ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
               
               context.configuration[our_name] = tmp_num + value;
             }
@@ -9085,12 +9092,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (typeof tmp_str !== 'string')
                 error_fun(`can't add string ${inspect_fun(value)} `+
-                          `to non-string ${inspect_fun(tmp_str)}`);
+                          `to non-string ${inspect_fun(tmp_str)} ` +
+                          `in key ${inspect_fun(our_name)}`);
 
-              log(log_level__expand_and_walk >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by string ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+              if (log_expand_and_walk_enabled >= 2)
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by string ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
 
               // context.configuration[our_name] =
               //   lm.indent(() => smart_join([tmp_str, value],
@@ -9103,7 +9112,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // probly won't work most of the time, but let's try anyhow, I guess.
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(`current value ${inspect_fun(context.configuration[our_name])}, ` +
+                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
                        `incrementing by unknown type value ${inspect_fun(value)}, ` +
                        `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
