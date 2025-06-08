@@ -62,7 +62,7 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 1;
+  log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8685,10 +8685,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     if (correct_articles === undefined)
       throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    const log = (guard_bool, msg, with_indentation = true) => {
-      if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) lm.log(() => msg, with_indentation);
-    };
+    // const log = (guard_bool, msg, with_indentation = true) => {
+    //   if (! msg && msg !== '') throw new Error("bomb 1");
+    //   if (guard_bool) lm.log(() => msg, with_indentation);
+    // };
 
     class ThrownReturn {
       constructor(value, quiet = false) {
@@ -9237,16 +9237,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let walked_weight = null;
         
         lm.indent(() => {
-          log(log_level__expand_and_walk,
-              `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
+          if (log_level__expand_and_walk)
+            lm.log(() => `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
-              `expanded LoRA weight ` +
-              `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
-              `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
+          if (log_level__expand_and_walk)
+            lm.log(() => `expanded LoRA weight ` +
+                   `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+                   `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9295,14 +9295,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       if (! (obj instanceof ThrownReturn))
         throw obj;
 
-      if (! obj.quiet)
-        log(log_level__expand_and_walk,
-            `walking ` +
-            `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
-            //`in ${context} ` +
-            `returned ` +
-            `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
-
+      if (! obj.quiet && log_level__expand_and_walk)
+        lm.log(() => `walking ` +
+               `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
+               //`in ${context} ` +
+               `returned ` +
+               `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
+      
       return obj.value;
     }
   }
@@ -9380,8 +9379,8 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0) {
-        log(() => `children: ${children.map(thing_str_repr)}`);
+      if (log_level__expand_and_walk && children?.length > 0) {
+        lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
           walk(children, mode);
