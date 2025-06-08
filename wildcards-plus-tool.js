@@ -62,7 +62,7 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 1;
+  log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8638,6 +8638,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
+    lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
     const ret = lm.indent(() =>
       walk(pick?.body ?? '', 
            { correct_articles: correct_articles }));
@@ -8654,10 +8655,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     return `[WARNING: ${str}!]`;
   }
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg, with_indentation = true) => { 
-    if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) lm.log(msg, with_indentation);
-  };
+  // const log = (guard_bool, msg, with_indentation = true) => { 
+  //   if (! msg && msg !== '') throw new Error("bomb 1");
+  //   if (guard_bool) lm.log(msg, with_indentation);
+  // };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, { correct_articles = undefined } = {}) {
     if (correct_articles === undefined)
@@ -9261,9 +9262,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
     }
   }
 
-  log(log_level__expand_and_walk,
-      `Expanding wildcards in ` +
-      `${thing_str_repr(thing, { always_include_type_str: true })} `);
+  if (log_level__expand_and_walk)
+    lm.log(`Expanding wildcards in ` +
+           `${thing_str_repr(thing, { always_include_type_str: true })} `);
 
   let ret;
 
@@ -9278,15 +9279,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     context.munge_configuration();
   });
-  
-  log(log_level__expand_and_walk,
-      `expanding wildcards in ` +
-      `${thing_str_repr(thing)} ` + 
-      `returned ` +
-      `${thing_str_repr(ret, { always_include_type_str: true })}`);
+
+  if (log_level__expand_and_walk)
+    lm.log(`expanding wildcards in ` +
+           `${thing_str_repr(thing)} ` + 
+           `returned ` +
+           `${thing_str_repr(ret, { always_include_type_str: true })}`);
 
   if (ret === '""' || ret === "''")
-    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
+        throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
   return ret;
 }
