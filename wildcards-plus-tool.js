@@ -8771,14 +8771,15 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
         if (got instanceof ASTLatchedNamedWildcard) {          
           anon_wildcard = got.original_value;
           
-          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            const expanded = lm.indent(() => walk(got.latched_value, 
-                                                  { correct_articles: correct_articles})); 
-            // ^ not quite sure whether to use walk or expand_wildcards here.
-            
-            if (expanded)
-              res.push(expanded);
-          }
+          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+          //   const expanded = lm.indent(() => walk(got.latched_value, 
+          //                                         { correct_articles: correct_articles})); 
+          //   // ^ not quite sure whether to use walk or expand_wildcards here.
+          
+          //   if (expanded)
+          //     res.push(expanded);
+          ///}
+          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
