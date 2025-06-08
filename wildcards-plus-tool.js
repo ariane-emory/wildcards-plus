@@ -9425,8 +9425,8 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    lmlog(() => `audit semantics in ${thing.constructor.name} ` +
-          `'${abbreviate(compress(thing.toString()), 200)}', ` +
+    lm.log(() => `audit semantics in ${thing.constructor.name} ` +
+           `'${abbreviate(compress(thing.toString()), 200)}', ` +
           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
