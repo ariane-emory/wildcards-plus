@@ -9194,18 +9194,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
         lm.indent(() => {
           if (log_level__expand_and_walk)
-            lm.log(() => 
-              `Expanding LoRA file ` +
-                `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
+            lm.log(() => `Expanding LoRA file ` +
+                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
-            lm.log(() => 
-              `expanded LoRa file `+
-                `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
-                `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
+            lm.log(() => `expanded LoRa file `+
+                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+                   `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
         });
         
         let walked_weight = null;
@@ -9219,10 +9217,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                                            { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
-            lm.log(() => 
-              `expanded LoRA weight ` +
-                `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
-                `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
+            lm.log(() => `expanded LoRA weight ` +
+                   `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+                   `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
