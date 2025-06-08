@@ -285,15 +285,16 @@ let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
 let log_loading_prelude               = true;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_level__expand_and_walk        = 0;
-let log_level__smart_join             = 0;
+
+let log_finalize_enabled              = true;
+let log_flags_enabled                 = true;
+let log_match_enabled                 = true;
+let log_name_lookups_enabled          = true;
+let log_picker_enabled                = true;
+let log_level__expand_and_walk        = 3;
+let log_level__smart_join             = l;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
@@ -416,9 +417,9 @@ const lm = { // logger manager
     }
   },
   // -----------------------------------------------------------------------------------------------
-  indent_and_log(...args) {
-    this.indent(() => this.log(...args));
-  }
+  // indent_and_log(...args) {
+  //   this.indent(() => this.log(...args));
+  // }
 }
 // -------------------------------------------------------------------------------------------------
 if (false) {
@@ -614,7 +615,7 @@ class Rule {
     
     if (visited.has(this)) {
       if (log_finalize_enabled)
-        lm.log(`skipping ${this}.`);
+        lm.log(() => `skipping ${this}.`);
 
       return;
     }
@@ -622,7 +623,7 @@ class Rule {
     visited.add(this);
 
     if (log_finalize_enabled)
-      lm.log(`finalizing ${this}...`);
+      lm.log(() => `finalizing ${this}...`);
 
     this.__impl_finalize(visited);
   }
@@ -646,8 +647,7 @@ class Rule {
         lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
                                `but at end of input!`));
       else 
-        lm.log(`Matching ` +
-               // `${this.constructor.name} `+
+        lm.log(() => `Matching ` +               // `${this.constructor.name} `+
                `${abbreviate(this.toString())} at ` +
                `char #${index}: ` +
                `'${abbreviate(input.substring(index))}'`);
@@ -689,7 +689,7 @@ class Rule {
     
     if (log_match_enabled) {
       // if (ret)
-      lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
+      lm.log(() => `<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
              `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
       // else
       //   log(indent,
@@ -1442,11 +1442,11 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ` +
-                        `${abbreviate(compress(this.elements[0].toString()))} ` +
-                        `at char #${index} ` +
-                        `at '${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `matching first sequence element #1 out of ` +
+                             `${this.elements.length}: ` +
+                             `${abbreviate(compress(this.elements[0].toString()))} ` +
+                             `at char #${index} ` +
+                             `at '${abbreviate(input.substring(index))}'`));
     
     const start_rule_match_result =
           lm.indent2(() => this.elements[0].match(input, index, cache));
@@ -1467,18 +1467,18 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`matched first sequence element #1: ` +
-                        `${compress(inspect_fun(last_match_result))}, ` +
-                        `now at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `matched first sequence element #1: ` +
+                             `${compress(inspect_fun(last_match_result))}, ` +
+                             `now at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        lm.indent_and_log(`seq pushing first item ` +
-                          `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+        lm.indent(() => lm.log(() => `seq pushing first item ` +
+                               `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
       values.push(last_match_result.value);
 
@@ -1490,11 +1490,11 @@ class Sequence extends Rule {
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
-                          `${this.elements.length}: ` +
-                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
-                          `at char #${index}: ` +
-                          `'${abbreviate(input.substring(index))}'`);
+        lm.indent(() => lm.log(() => `matching sequence element #${ix + 1} out of ` +
+                               `${this.elements.length}: ` +
+                               `${abbreviate(compress(this.elements[ix].toString()))} ` +
+                               `at char #${index}: ` +
+                               `'${abbreviate(input.substring(index))}'`));
       
       const element = this.elements[ix];
 
@@ -1502,7 +1502,7 @@ class Sequence extends Rule {
 
       if (! last_match_result) {
         if (log_match_enabled)
-          lm.indent_and_log(`did not match sequence item #${ix}.`);
+          lm.indent(() => lm.log(() => `did not match sequence item #${ix}.`));
         
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
@@ -1510,15 +1510,15 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        lm.indent_and_log(`matched sequence element #${ix+1}: ` +
-                          `${compress(inspect_fun(last_match_result))}, ` +
-                          `now at char #${last_match_result.index}: ` +
-                          `'${abbreviate(input.substring(last_match_result.index))}'`);
+        lm.indent(() => lm.log(() => `matched sequence element #${ix+1}: ` +
+                               `${compress(inspect_fun(last_match_result))}, ` +
+                               `now at char #${last_match_result.index}: ` +
+                               `'${abbreviate(input.substring(last_match_result.index))}'`));
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          lm.indent_and_log(`seq pushing ` +
-                            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+          lm.indent(() => lm.log(() => `seq pushing ` +
+                                 `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
         values.push(last_match_result.value);
 
@@ -1929,14 +1929,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(() => `testing /${this.regexp.source}/ at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        lm.indent_and_log(`regex did not match`);
+        lm.indent(() => lm.log(() => `regex did not match`));
       return null;
     }
 
@@ -8764,7 +8764,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                              context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
-          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
+          lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -8812,7 +8812,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                    picker_priority).filter(s => s !== '');
           
           if (log_level__expand_and_walk)
-            lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
+            lm.indent(() => lm.log(() => `picked items ${thing_str_repr(res)}`));
         }
         
         if (thing.capitalize && res.length > 0) 
