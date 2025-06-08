@@ -346,19 +346,19 @@ class Logger {
     //     : str_or_fun;
     
     if (with_indent)
-      str = this.indent_thing(str);
+      str = this.indent_lines(str);
     
     for (const line of str.split('\n'))
       destination(line);
   }
-  // -----------------------------------------------------------------------------------------------
-  indent_thing(thing) {
-    return this.indent_lines(thing);
-  }
+  // // -----------------------------------------------------------------------------------------------
+  // indent_thing(thing) {
+  //   return this.indent_lines(thing);
+  // }
   // -----------------------------------------------------------------------------------------------
   indent_lines(str) {
     if (typeof str !== 'string')
-      throw new Error(`not a string: ${inspect.fun(str)}`);
+      throw new Error(`not a string: ${inspect_fun(str)}`);
     
     const indent_string = this.indent_str.repeat(this.indent);
     const indented_str  = str
@@ -8704,8 +8704,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       return thing;
     }
 
-    log(log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
+    if (log_level__expand_and_walk)
+      lm.log(() => `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8716,11 +8716,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
         lm.indent(() => {
           for (let ix = 0; ix < thing.length; ix++) {
-            log(log_level__expand_and_walk,
-                `Walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
-               );
+            if (log_level__expand_and_walk)
+              lm.log(() => `Walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
+                    );
 
             const elem_ret =
                   lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
@@ -8728,12 +8728,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             if (elem_ret)
               ret.push(elem_ret);
 
-            log(log_level__expand_and_walk,
-                `walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
-               );
+            if (log_level__expand_and_walk)
+              lm.log(() => `walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix])} ` +
+                     `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
+                    );
           }
         });
 
@@ -8743,8 +8743,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // flags:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        log(log_flags_enabled >= 2,
-            `setting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(() => `setting flag '${thing.flag}'.`);
 
         context.set_flag(thing.flag);
 
@@ -8752,8 +8752,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled >= 2,
-            `unsetting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(() => `unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8862,7 +8862,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
 
-        log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
+        if (false)
+          lm.log(() => `scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
         if (thing.capitalize)
           got = capitalize(got);
@@ -8955,9 +8956,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         // log(log_level__expand_and_walk >= 2, '');
-        log(log_level__expand_and_walk >= 2,
-            `assigning ${inspect_fun(thing.source)} ` +
-            `to '${thing.destination.name}'`);
+        if (log_level__expand_and_walk >= 2)
+          lm.log(() => `assigning ${inspect_fun(thing.source)} ` +
+                 `to '${thing.destination.name}'`);
         
         let   new_val = lm.indent(() => smart_join(walk(thing.source,
                                                         { correct_articles: correct_articles }),
@@ -8971,8 +8972,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         context.scalar_variables.set(thing.destination.name, new_val);
 
-        log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-            log_level__expand_and_walk);
+        if (true)
+          lm.log(() => `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+                 log_level__expand_and_walk);
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9103,11 +9105,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             }
           }
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%${our_name} ` +
-                              `${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(value, true)}`,
-                              log_level__expand_and_walk));
+          if (log_configuration_enabled)
+            lm.indent(() => 
+              lm.log(() => `%${our_name} ` +
+                     `${thing.assign ? '=' : '+='} ` +
+                     `${inspect_fun(value, true)}`,
+                     log_level__expand_and_walk));
         }
         
         throw new ThrownReturn(''); // produce nothing
@@ -9197,32 +9200,36 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let walked_file = null;
 
         lm.indent(() => {
-          log(log_level__expand_and_walk,
+          if (log_level__expand_and_walk)
+            lm.log(() => 
               `Expanding LoRA file ` +
-              `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
+                `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
+          if (log_level__expand_and_walk)
+            lm.log(() => 
               `expanded LoRa file `+
-              `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
-              `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
+                `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
+                `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
         });
         
         let walked_weight = null;
         
         lm.indent(() => {
-          log(log_level__expand_and_walk,
-              `Expanding LoRA weight weight ${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
+          if (log_level__expand_and_walk)
+            lm.log(() => `Expanding LoRA weight weight ` +
+                   `${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
+          if (log_level__expand_and_walk)
+            lm.log(() => 
               `expanded LoRA weight ` +
-              `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
-              `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
+                `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
+                `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9272,12 +9279,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         throw obj;
 
       if (! obj.quiet)
-        log(log_level__expand_and_walk,
-            `walking ` +
-            `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
-            //`in ${context} ` +
-            `returned ` +
-            `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
+        if (log_level__expand_and_walk)
+          lm.log(() => `walking ` +
+                 `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
+                 //`in ${context} ` +
+                 `returned ` +
+                 `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
 
       return obj.value;
     }
