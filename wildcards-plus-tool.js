@@ -9677,7 +9677,7 @@ class ASTScalarAssignment extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `$${this.destination} ${this.assign? '=' : '+='} ${this.source.toString()}`;
+    return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
