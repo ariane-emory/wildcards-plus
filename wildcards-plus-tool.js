@@ -291,7 +291,7 @@ let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_post_enabled                  = true;
-let log_level__expand_and_walk        = 1;
+let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
@@ -9378,7 +9378,10 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (log_level__expand_and_walk && children?.length > 0) {
+      if (log_level__expand_and_walk)
+        throw new Error("stop");
+      
+      if (false) { // log_level__expand_and_walk && children?.length > 0) {
         lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
