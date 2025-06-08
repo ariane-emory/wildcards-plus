@@ -8735,9 +8735,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                   picker_allow, picker_forbid, picker_each, 
                                   context.pick_one_priority)[0];
         
-        log(log_level__expand_and_walk,
-            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
-        
         if (log_level__expand_and_walk)
           lm.indent_and_log(picked
                             ? `picked item = ${thing_str_repr(picked)}`
@@ -8748,7 +8745,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.trailer && ret.length > 0)
           ret = smart_join([ret, thing.trailer],
                            { correct_articles: false });
-        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
+        // ^ don't need to correct articles for trailers since punctuation couldn't trigger correction
 
         throw new ThrownReturn(ret);
       }
@@ -8766,8 +8763,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (got instanceof ASTLatchedNamedWildcardValue) {
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles})); // not walk!
-            // ^ wait, why not walk? I forget.
+                                                              { correct_articles: correct_articles})); //  not walk!
+            // ^ I forget why I chose to use expand_wildcards instead of walk here... review this
+            //   later on 
             
             if (expanded)
               res.push(expanded); 
@@ -8786,10 +8784,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
 
           res.push(...picks);
-
-          res = res.filter(s => s !== '');
         }
         
+        res = res.filter(s => s !== '');
+
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
@@ -8811,7 +8809,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           if (thing.trailer && str.length > 0)
             str = smart_join([str, thing.trailer],
                              { correct_articles: false });
-          // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
+          // ^ don't need to correct articles for trailers since punctuation couldn't trigger correction
         });
         
         throw new ThrownReturn(str);
