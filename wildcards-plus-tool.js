@@ -8741,7 +8741,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
                            { correct_articles: false });
-        // ^ don't need to correct articles for trailers since punctuation couldn't trigger correction
+        // ^ don't need to correct articles for trailers since punctuation can't trigger an
+        //   article correction anyhow.
 
         throw new ThrownReturn(str);
       }
@@ -8760,8 +8761,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
                                                               { correct_articles: correct_articles})); //  not walk!
-            // ^ I forget why I chose to use expand_wildcards instead of walk here... review this
-            //   later on 
+            // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
+            //   note on the prior line - it seems like using walk instead would be fine but I
+            //   must have had some reason, review this later.
             
             if (expanded)
               res.push(expanded); 
@@ -8800,11 +8802,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         lm.indent(() => {
           str = smart_join(intercalate(joiner, res, intercalate_options),
                            { correct_articles: false });
+          // ^ don't need to correct articles here since punctuation and the word 'and' both can't
+          //   trigger an article correction anyhow.
           
           if (thing.trailer && str.length > 0)
             str = smart_join([str, thing.trailer],
                              { correct_articles: false });
-          // ^ don't need to correct articles for trailers since punctuation couldn't trigger correction
+          // ^ don't need to correct articles for trailers since punctuation can't trigger an
+          //   article correction anyhow.
         });
         
         throw new ThrownReturn(str);
