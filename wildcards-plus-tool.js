@@ -8768,10 +8768,8 @@ function expand_wildcards(thing, context = new Context(), { is_inner = true,
           
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             const expanded = lm.indent(() => walk(got.latched_value, 
-                                                  { correct_articles: correct_articles})); //  not walk!dg
-            // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
-            //   note on the prior line - it seems like using walk instead would be fine but I
-            //   must have had some reason, review this later.
+                                                  { correct_articles: correct_articles})); 
+            // ^ not quite sure whether to use walk or expand_wildcards here.
             
             if (expanded)
               res.push(expanded);
