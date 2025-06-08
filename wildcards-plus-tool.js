@@ -3501,6 +3501,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
+  smart_join_trap_counter += 1;
+
+  if (log_level__smart_join >= 0)
+    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
+
+
   if (! arr || typeof arr === 'string')
     return arr;
 
@@ -3514,18 +3521,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  smart_join_trap_counter += 1;
-
   if (smart_join_trap_counter === smart_join_trap_target) {
     lm.log(`SMART_JOIN TRAPPED`, false);
     
     throw stop(); 
   }
   
-  if (log_level__smart_join >= 0)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
-
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => "_-".includes(ch);
@@ -3845,7 +3846,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_i
   let type_str =
       typeof thing === 'object'
       ? (thing === null
-         ? 'null'
+         ? 'null '
          : `${thing.constructor.name} ` ?? 'Object ')
       : `${typeof thing} `;
 
