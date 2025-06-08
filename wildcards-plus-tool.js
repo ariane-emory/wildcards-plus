@@ -4385,8 +4385,10 @@ class Sequence extends Rule {
       
       if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
         if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-          lm.log(() => `correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-                 `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+          lm.log(() => `correcting munged_configuration.sampler = ` +
+                 `${inspect_fun(munged_configuration.sampler)} to ` +
+                 `munged_configuration.sampler = ` +
+                 `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
                  log_level__expand_and_walk);
           const index = dt_samplers.indexOf(munged_configuration.sampler);
 
