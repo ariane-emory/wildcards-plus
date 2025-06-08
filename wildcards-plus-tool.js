@@ -8982,12 +8982,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
 
-        const fatal_errors = true;
+        const fatal_errors = false;
         const error_fun = fatal_errors
-              ? msg => throw new Error(msg)
-              : msg => null;
-              
-              
+              ? msg => { throw new Error(msg); }
+              : msg => { throw new ThrownReturn(warning_str(msg)); };
+        
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
@@ -9005,13 +9004,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               : expanded_value;
           }
           else { // ASTUpdateConfigurationUnary
-            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                            `rJSONC object, Rjsonc.match(...) result was ` +
-                            inspect_fun(jsconc_parsed_expanded_value));
+            error_fun(`${thing.constructor.name}.value must expand to produce a valid ` +
+                      `rJSONC object, Rjsonc.match(...) result was ` +
+                      inspect_fun(jsconc_parsed_expanded_value));
           }
         }
         else {
-          value = structured_clone(value); // do we need to do this? I forget.
+          value = structured_clone(value); // do we need to clone this? I forget.
         }
 
         if (thing instanceof ASTUpdateConfigurationUnary) { 
@@ -9024,10 +9023,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             ? new_obj
             : { ...context.configuration, ...new_obj };
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`,
-                              log_level__expand_and_walk));
+          if (log_configuration_enabled)
+            lm.indent(() => lm.log(() => `%config ${thing.assign ? '=' : '+='} ` +
+                                   `${inspect_fun(new_obj, true)}`,
+                                   log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_name(thing.key); 
@@ -9040,7 +9039,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_arr = context.configuration[our_name]??[];
 
               if (! Array.isArray(tmp_arr))
-                throw new Error(`can't add array ${inspect_fun(value)} ` +
+                throw error_fun(`can't add array ${inspect_fun(value)} ` +
                                 `to non-array ${inspect_fun(tmp_arr)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
@@ -9055,7 +9054,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_obj = context.configuration[our_name]??{};
 
               if (typeof tmp_obj !== 'object')
-                throw new Error(`can't add object ${inspect_fun(value)} `+
+                throw error_fun(`can't add object ${inspect_fun(value)} `+
                                 `to non-object ${inspect_fun(tmp_obj)}`);
 
               const new_obj = { ...tmp_obj, ...value };
@@ -9071,8 +9070,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_num = context.configuration[our_name]??0;
               
               if (typeof tmp_num !== 'number')
-                throw new Error(`can't add number ${inspect_fun(value)} `+
-                                `to non-number ${inspect_fun(tmp_num)}`);
+                error_fun(`can't add number ${inspect_fun(value)} `+
+                          `to non-number ${inspect_fun(tmp_num)}`);
 
               log(log_expand_and_walk_enabled >= 2,
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
@@ -9085,8 +9084,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_str = context.configuration[our_name]??'';
 
               if (typeof tmp_str !== 'string')
-                throw new Error(`can't add string ${inspect_fun(value)} `+
-                                `to non-string ${inspect_fun(tmp_str)}`);
+                error_fun(`can't add string ${inspect_fun(value)} `+
+                          `to non-string ${inspect_fun(tmp_str)}`);
 
               log(log_level__expand_and_walk >= 2,
                   `current value ${inspect_fun(context.configuration[our_name])}, ` +
@@ -9103,10 +9102,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             else {
               // probly won't work most of the time, but let's try anyhow, I guess.
 
-              log(log_level__expand_and_walk >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by unknown ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+              if (log_level__expand_and_walk >= 2)
+                lm.log(`current value ${inspect_fun(context.configuration[our_name])}, ` +
+                       `incrementing by unknown type value ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
               context.configuration[our_name] = (context.configuration[our_name]??null) + value;
             }
