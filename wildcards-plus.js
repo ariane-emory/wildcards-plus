@@ -3371,10 +3371,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    while  (",.!?".includes(prev_char) && right_word.startsWith('...'))
+    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
-    while (",.!?".includes(prev_char) && next_char && ",.!?".includes(next_char))
+    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
       move_chars_left(1);
 
     // Normalize article if needed:
@@ -4041,7 +4041,7 @@ class Context {
     this.scalar_variables = new Map();
 
     for (const [name, nwc] of this.named_wildcards) {
-      if (nwc instanceof ASTLatchedNamedWildcardValue) {
+      if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
@@ -4164,7 +4164,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-const prelude_text = prelude_disabled ? '' : `
+const prelude_text = `
 @__set_gender_if_unset  = unsafe_guards
                           { {?female #gender.female // just to make forcing an option a little terser.
                             |?male   #gender.male
@@ -8286,6 +8286,9 @@ const prelude_text = prelude_disabled ? '' : `
 let prelude_parse_result = null;
 // -------------------------------------------------------------------------------------------------
 function load_prelude(into_context = new Context()) {
+  if (prelude_disabled)
+    return into_context;
+  
   if (log_loading_prelude)
     lm.log(`loading prelude...`);
 
@@ -8428,7 +8431,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 `${thing_str_repr(thing[ix])} `
                );
 
-            const elem_ret = walk(thing[ix], { correct_articles: correct_articles });
+            const elem_ret =
+                  lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
 
             if (elem_ret)
               ret.push(elem_ret);
@@ -8465,69 +8469,105 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
-      // references:
+      // AnonWildcards:
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTAnonWildcard) {
+        let str = thing.pick(1, 1,
+                             picker_allow, picker_forbid, picker_each, 
+                             context.pick_one_priority)[0];
+        
+        if (log_level__expand_and_walk)
+          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        // ^ don't need to correct articles for trailers since punctuation can't trigger an
+        //   article correction anyhow.
+
+        throw new ThrownReturn(str);
+      }
+      // -------------------------------------------------------------------------------------------
+      // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name);
-
+        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
+        
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
         let res = [];
+
+        let anon_wildcard;
         
-        if (got instanceof ASTLatchedNamedWildcardValue) {
+        if (got instanceof ASTLatchedNamedWildcard) {
+          anon_wildcard = anon_wildcard.original_value;
+          
           for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
             const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles})); // not walk!
-            // ^ wait, why not walk? I forget.
+                                                              { correct_articles: correct_articles})); //  not walk!
+            // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
+            //   note on the prior line - it seems like using walk instead would be fine but I
+            //   must have had some reason, review this later.
             
             if (expanded)
-              res.push(expanded); 
+              res.push(expanded);
           }
         }
-        else {
-          const priority = thing.min_count === 1 && thing.max_count === 1
+        else { // ASTAnonWildcard
+          anon_wildcard = got;
+          
+          const picker_priority = thing.min_count === 1 && thing.max_count === 1
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const picks = got.pick(thing.min_count, thing.max_count,
-                                 picker_allow, picker_forbid, picker_each, 
-                                 priority);
-
+          res = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                   picker_allow, picker_forbid, picker_each, 
+                                   picker_priority).filter(s => s !== '');
+          
           if (log_level__expand_and_walk)
-            lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
-
-          res.push(...picks);
-
-          res = res.filter(s => s !== '');
+            lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
         }
         
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let str;
-
-        const joiner = thing.joiner === '&'
-              ? ','
-              : thing.joiner;
-
-        const intercalate_options = thing.joiner === '&'
-              ? { final_separator: 'and' }
-              : {};
-
-        // v maybe unnecessary indentation?
-        lm.indent(() => {
-          str = smart_join(intercalate(joiner, res, intercalate_options),
-                           { correct_articles: false });
-          
-          if (thing.trailer && str.length > 0)
-            str = smart_join([str, thing.trailer],
-                             { correct_articles: false });
-          // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
-        });
+        let effective_joiner;
+        let intercalate_options = {}
         
-        throw new ThrownReturn(str);
+        let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
+
+        // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+        // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+
+        if (thing.joiner === '&') {
+          effective_joiner = ',';
+          intercalate_options.final_separator = 'and';
+        }
+        else if (thing.joiner)
+          effective_joiner = thing.joiner;
+        else if (',.'.includes(anon_wildcard.trailer))
+          effective_joiner = ',';
+        else
+          effective_joiner = thing.joiner;
+        
+        lm.indent(() => {
+          let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
+                               { correct_articles: false });
+          // ^ don't need to correct articles here since punctuation and the word 'and' both can't
+          //   trigger an article correction anyhow.
+          
+          if (effective_trailer && str.length > 0)
+            str = smart_join([str, effective_trailer],
+                             { correct_articles: false });
+          // ^ don't need to correct articles for trailers since punctuation can't trigger an
+          //   article correction anyhow.
+
+          throw new ThrownReturn(str);
+        });
       }
+      // -------------------------------------------------------------------------------------------
+      // scalar references:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
@@ -8555,7 +8595,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           throw new ThrownReturn(
             warning_str(`Named wildcard @${thing.target.name} not found`));
 
-        if (got instanceof ASTLatchedNamedWildcardValue) {
+        if (got instanceof ASTLatchedNamedWildcard) {
           if (double_latching_is_an_error)
             throw new ThrownReturn(
               warning_str(`tried to latch already-latched named wildcard ` +
@@ -8567,7 +8607,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         lm.indent(() => {
           const latched =
-                new ASTLatchedNamedWildcardValue(
+                new ASTLatchedNamedWildcard(
                   walk(got, { correct_articles: false }), got);
 
           log(context.noisy,
@@ -8587,7 +8627,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (!got)
           throw new ThrownReturn(warning_str(`Named wildcard '${thing.name}' not found`));
 
-        if (! (got instanceof ASTLatchedNamedWildcardValue)) {
+        if (! (got instanceof ASTLatchedNamedWildcard)) {
           if (double_unlatching_is_an_error)
             throw new ThrownReturn(warning_str(`tried to unlatch already-unlatched NamedWildcard ` +
                                                `'${thing.name}', check your template`));
@@ -8617,8 +8657,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // -------------------------------------------------------------------------------------------
       // internal objects:
       // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTLatchedNamedWildcardValue) {
-        throw new Error(`something has gone awry, ASTLatchedNamedWildcardValues shouldn't be ` +
+      else if (thing instanceof ASTLatchedNamedWildcard) {
+        throw new Error(`something has gone awry, ASTLatchedNamedWildcards shouldn't be ` +
                         `reached by walk, stop`);
         
       }
@@ -8646,31 +8686,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             log_level__expand_and_walk);
         
         throw new ThrownReturn(''); // produce nothing
-      }
-      // -------------------------------------------------------------------------------------------
-      // AnonWildcards:
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTAnonWildcard) {
-        const picked = thing.pick(1, 1,
-                                  picker_allow, picker_forbid, picker_each, 
-                                  context.pick_one_priority)[0];
-        
-        log(log_level__expand_and_walk,
-            `picked: ${abbreviate(compress(inspect_fun(picked)))}`);
-        
-        if (log_level__expand_and_walk)
-          lm.indent_and_log(picked
-                            ? `picked item = ${thing_str_repr(picked)}`
-                            : `picked item = empty`);          
-
-        let ret = picked;
-
-        if (thing.trailer && ret.length > 0)
-          ret = smart_join([ret, thing.trailer],
-                           { correct_articles: false });
-        // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
-
-        throw new ThrownReturn(ret);
       }
       // -------------------------------------------------------------------------------------------
       // UpdateConfigurations:
@@ -9451,9 +9466,9 @@ class ASTUnlatchNamedWildcard extends ASTLeafNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// ASTLatchedNamedWildcardValue:
+// ASTLatchedNamedWildcard:
 // -------------------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcardValue extends ASTNode {
+class ASTLatchedNamedWildcard extends ASTNode {
   constructor(latched_value, original_value) {
     super();
     this.latched_value  = latched_value;
@@ -10127,7 +10142,7 @@ const NamedWildcardReference  =
                 optional(xform(parseInt, uint), 1),        // [2]
                 optional(xform(parseInt,                   // [3]
                                cadr(dash, uint))),
-                optional(/[,&|]/),                         // [4]
+                optional(/[,\.&|;]/),                      // [4]
                 ident,                                     // [5]
                 optional_punctuation_trailer,  // [6]
                ), 
