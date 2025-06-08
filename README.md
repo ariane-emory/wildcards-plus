@@ -14,6 +14,7 @@ A feature-rich 'wildcards' script (and command-line tool) for Draw Things, provi
 - Putting it all together and some final thoughts
 - A quick note on 'types' and names
 - Some useful built in named wildwards
+- Several very usesul features that I haven't documented yet, unfortunately... sorry, hopefully soon!
 
 **Weighted alternatives in wildcards**
  
