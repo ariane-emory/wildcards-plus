@@ -330,19 +330,22 @@ class Logger {
     console.error(this.indent_thing(thing, with_indent));
   }
   // -----------------------------------------------------------------------------------------------
-  log(str = '', with_indent = true) {
-    if (typeof str !== 'string')
-      throw new Error(`bad log arg str: ${inspect_fun(str)}`);
+  log(...args) {
+    this.__write(console, ...args);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __write(destination, str = '', with_indent = true) {    
+    if ((!destination) ||
+        (typeof str !== 'string') // ||
+        //(typeof with_indent !== 'boolean')
+       )
+      throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
     if (with_indent)
       str = this.indent_thing(str);
     
-    // const full_output = with_indent
-    //       ? this.indent_thing(str)
-    //       : str;
-
     for (const line of str.split('\n'))
-      console.log(line);
+      destination.log(line);
   }
   // -----------------------------------------------------------------------------------------------
   indent_thing(thing) {
@@ -3516,25 +3519,25 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
 
   if (! arr || typeof arr === 'string')
-  return arr;
+    return arr;
 
-arr = [...arr.flat(Infinity).filter(x=> x)];
+  arr = [...arr.flat(Infinity).filter(x=> x)];
 
-// if (arr.includes("''") || arr.includes('""'))
-//   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+  // if (arr.includes("''") || arr.includes('""'))
+  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
-if (arr.length === 0) 
-  return '';
-else if (arr.length === 1)
-  return arr[0];
+  if (arr.length === 0) 
+    return '';
+  else if (arr.length === 1)
+    return arr[0];
 
-if (smart_join_trap_counter === smart_join_trap_target) {
-  lm.log(`SMART_JOIN TRAPPED`, false);
-  
-  throw stop(); 
-}
+  if (smart_join_trap_counter === smart_join_trap_target) {
+    lm.log(`SMART_JOIN TRAPPED`, false);
+    
+    throw stop(); 
+  }
 
-// const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
+  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
   const linkingp     = (ch)  => "_-".includes(ch);
   // const whitep       = (ch)  => " \n".includes(ch);
@@ -9293,7 +9296,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
            `${thing_str_repr(ret, { always_include_type_str: true })}`);
 
   if (ret === '""' || ret === "''")
-        throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
+    throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
   return ret;
 }
