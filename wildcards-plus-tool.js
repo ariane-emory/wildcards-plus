@@ -8778,14 +8778,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          const picks = got.pick(thing.min_count, thing.max_count,
-                                 picker_allow, picker_forbid, picker_each, 
-                                 picker_priority);
-
+          res = got.pick(thing.min_count, thing.max_count,
+                         picker_allow, picker_forbid, picker_each, 
+                         picker_priority);
+          
           if (log_level__expand_and_walk)
-            lm.indent_and_log(`picked items ${thing_str_repr(picks)}`);
+            lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
 
-          res.push(...picks);
         }
         
         res = res.filter(s => s !== '');
