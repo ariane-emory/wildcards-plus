@@ -646,7 +646,8 @@ class Rule {
         lm.indent(() => lm.log(() => `Matching ${this.constructor.name} ${this.toString()}, ` +
                                `but at end of input!`));
       else 
-        lm.log(() => `Matching ` +               // `${this.constructor.name} `+
+        lm.log(() => `Matching ` +
+               // `${this.constructor.name} `+
                `${abbreviate(this.toString())} at ` +
                `char #${index}: ` +
                `'${abbreviate(input.substring(index))}'`);
