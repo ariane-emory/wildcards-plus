@@ -8731,8 +8731,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        const picked = thing.pick(1, 1,
-                                  picker_allow, picker_forbid, picker_each, 
+        let ret = thing.pick(1, 1,
+                             picker_allow, picker_forbid, picker_each, 
                                   context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
@@ -8740,7 +8740,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                             ? `picked item = ${thing_str_repr(picked)}`
                             : `picked item = empty`);          
 
-        let ret = picked;
+        ret = picked;
 
         if (thing.trailer && ret.length > 0)
           ret = smart_join([ret, thing.trailer],
