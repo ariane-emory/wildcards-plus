@@ -287,10 +287,9 @@ let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
 let log_loading_prelude               = true;
 let log_post_enabled                  = true;
-
-let log_finalize_enabled              = true
-let log_flags_enabled                 = true;
-let log_match_enabled                 = false
+let log_finalize_enabled              = false;
+let log_flags_enabled                 = false;
+let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
 let log_level__expand_and_walk        = 3;
