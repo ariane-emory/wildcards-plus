@@ -62,7 +62,7 @@ function parse_file(filename) {
   const old_log_match_enabled = log_match_enabled;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  log_level__expand_and_walk = 1;
+  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -8581,6 +8581,9 @@ function load_prelude(into_context = new Context()) {
   if (log_loading_prelude)
     lm.log(() => `loading prelude...`);
 
+  if (log_level__expand_and_walk)
+    throw new Error(`bomb: ${log_level__expand_and_walk}`);
+  
   const elapsed = measure_time(() => {
     const old_log_flags_enabled = log_flags_enabled;
     log_flags_enabled = false;
@@ -8605,9 +8608,9 @@ function load_prelude(into_context = new Context()) {
 
     // lm.log(() => `NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
-  
+
   if (log_loading_prelude)
-    lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
+        lm.log(() => `loading prelude took ${elapsed.toFixed(3)} ms`);
 
   return into_context;
 }
