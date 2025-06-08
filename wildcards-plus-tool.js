@@ -8733,7 +8733,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       else if (thing instanceof ASTAnonWildcard) {
         let str = thing.pick(1, 1,
                              picker_allow, picker_forbid, picker_each, 
-                                  context.pick_one_priority)[0];
+                             context.pick_one_priority)[0];
         
         if (log_level__expand_and_walk)
           lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
@@ -8791,10 +8791,21 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        const joiner = thing.joiner === '&'
-              ? ','
-              : thing.joiner;
+        lm.log(`JOINER: ${inspect_fun(thing.joiner)}`);
+        
+        let effective_joiner;
 
+        if (thing.joiner === '&')
+          effective_joiner = ',';
+        else
+          effective_joiner= thing.joiner;
+        
+        // effective_joiner = thing.joiner === '&'
+        //   ? ','
+        //   : thing.joiner;
+        
+        lm.log(`EFFECTIVE_JOINER: ${inspect_fun(effective_joiner)}`);
+        
         const intercalate_options = thing.joiner === '&'
               ? { final_separator: 'and' }
               : {};
@@ -8802,7 +8813,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let str;
 
         lm.indent(() => {
-          str = smart_join(intercalate(joiner, res, intercalate_options),
+          str = smart_join(intercalate(effective_joiner, res, intercalate_options),
                            { correct_articles: false });
           // ^ don't need to correct articles here since punctuation and the word 'and' both can't
           //   trigger an article correction anyhow.
