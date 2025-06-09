@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
@@ -10795,8 +10795,6 @@ async function main() {
     // LOG_LINE();
     // lm.log(`${JSON.stringify(AST)}`);
   }
-  
-  // throw new Error(`stop: ${print_ast_before_includes_enabled}`);
   
   if (print_ast_then_die)
     process.exit(0);
