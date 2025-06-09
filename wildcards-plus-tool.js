@@ -9368,14 +9368,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  throw_error:                'throw_error',
-  collect_errors:       'collect_errors', 
+  throw_error:          'error',
+  collect_warnings:     'warning', 
   allow_unsafe_guards:  'allow_unsafe_guards',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null, noisy = false,
-                           audit_semantics_mode = audit_semantics_modes.collect_errors } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -9423,7 +9423,7 @@ function audit_semantics(root_ast_node,
       if (local_audit_semantics_mode == audit_semantics_mode.throw_error) {
         throw new Error(msg);
       }
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_errors &&
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings &&
                ! already_warned_msgs.has(msg)) {
         // lm.log(msg, false); // false arg for no indentation and not local log function
         errors_arr.push(msg);
