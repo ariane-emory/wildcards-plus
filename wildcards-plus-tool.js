@@ -4459,7 +4459,7 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe_guards // just to make forcing an option a little terser:
+@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
                             {?female #gender.female 
                             |?male   #gender.male
                             |?neuter #gender.neuter }
@@ -9368,9 +9368,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  throw_error:          'error',
-  collect_warnings:     'warning', 
-  allow_unsafe_guards:  'allow_unsafe_guards',
+  throw_error:       'error',
+  collect_warnings:  'warning', 
+  unsafe:            'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9433,7 +9433,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
+          local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9540,8 +9540,8 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe_guards
-              ? audit_semantics_modes.allow_unsafe_guards
+        const mode = thing.unsafe
+              ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode; // propagate local_audit_semantics_mode
         
         walk_children(thing, mode, errors_arr);
@@ -9849,13 +9849,13 @@ class ASTLatchedNamedWildcard extends ASTNode {
 // ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
+  constructor(options, { trailer = null, unsafe = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe_guards  = unsafe_guards;
+    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9869,8 +9869,8 @@ class ASTAnonWildcard extends ASTNode {
   toString() {
     let str = '';
 
-    if (this.unsafe_guards)
-      str += "unsafe_guards ";
+    if (this.unsafe)
+      str += "unsafe ";
     
     str += '{';
 
@@ -10068,7 +10068,12 @@ class ASTUIPrompt extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-prompt`;
+    let str = `%ui-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10081,7 +10086,12 @@ class ASTUINegPrompt extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-neg-prompt`;
+    let str = `%ui-neg-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;;
   }
 }
 // =================================================================================================
@@ -10350,8 +10360,8 @@ const make_AnonWildcardAlternative_rule = content_rule =>
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
       xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                 unsafe_guards: arr[0] == 'unsafe_guards' }),
-            seq(optional('unsafe_guards'),
+                                                 unsafe: arr[0] == 'unsafe' }),
+            seq(optional('unsafe'),
                 discarded_comments,
                 lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
                 (can_have_trailer
