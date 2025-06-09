@@ -8758,11 +8758,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        let str = smart_join(thing.pick(1, 1,
-                                        picker_allow, picker_forbid, picker_each, 
-                                        context.pick_one_priority)[0],
-                             { correct_articles: correct_articles })
+        // let str = smart_join(thing.pick(1, 1,
+        //                                 picker_allow, picker_forbid, picker_each, 
+        //                                 context.pick_one_priority)[0],
+        //                      { correct_articles: correct_articles })
         
+        let str = thing.pick(1, 1,
+                             picker_allow, picker_forbid, picker_each, 
+                             context.pick_one_priority)[0];
+
         if (log_level__expand_and_walk)
           lm.log(() => `picked item = ${thing_str_repr(str)}`);
         
