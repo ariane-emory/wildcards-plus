@@ -294,7 +294,7 @@ let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_level__audit                  = 1;
+let log_level__audit                  = 2;
 let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = l;
 let prelude_disabled                  = false;
@@ -6756,7 +6756,7 @@ const prelude_text = `
 | ?wizards_artist.gilbert_garcin Gilbert Garcin
 | ?wizards_artist.michael_and_inessa_garmash Michael and Inessa Garmash
 | ?wizards_artist.antoni_gaudi Antoni Gaudi
-| 3 ?wizards_artist.jack_gaughan Jack Gaughan
+| ?wizards_artist.jack_gaughan Jack Gaughan
 | ?wizards_artist.paul_gauguin Paul Gauguin
 | ?wizards_artist.giovanni_battista_gaulli Giovanni Battista Gaulli
 | ?wizards_artist.anne_geddes Anne Geddes
@@ -9382,7 +9382,7 @@ function audit_semantics(root_ast_node,
 
       if (children?.length > 0) {
         if (log_level__audit >= 2)
-          lm.log(() => `children: ${children.map(thing_str_repr)}`);
+          lm.log(() => `children: ${abbreviate(children.map(thing_str_repr).toString())}`);
 
         lm.indent(() => {
           walk(children, mode);
