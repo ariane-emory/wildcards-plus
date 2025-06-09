@@ -9368,14 +9368,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error:                'error',
-  warning:              'warning', 
+  throw_error:                'throw_error',
+  collect_errors:       'collect_errors', 
   allow_unsafe_guards:  'allow_unsafe_guards',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null, noisy = false,
-                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.collect_errors } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -9414,23 +9414,24 @@ function audit_semantics(root_ast_node,
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg) {
+    function warn_or_throw(msg, errors_arr) {
       if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.throw_error) {
         throw new Error(msg);
       }
-      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_errors &&
                ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation and not local log function
+        // lm.log(msg, false); // false arg for no indentation and not local log function
+        errors_arr.push(msg);
         // already_warned_msgs.add(msg);
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr) {
       if (dummy_context.flag_is_set(flag) ||
           local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
         return;
@@ -9440,7 +9441,8 @@ function audit_semantics(root_ast_node,
       const suggestion = suggest_closest(flag_str, known_flags);
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
                     `this suggests that you may have a typo or other error in your template. ` +
-                    `${suggestion}`);
+                    `${suggestion}`,
+                    errors_arr);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
@@ -9472,7 +9474,8 @@ function audit_semantics(root_ast_node,
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                        `you may not have intended to do this, check your template!`);
+                        `you may not have intended to do this, check your template!`,
+                        errors_arr);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
@@ -9484,7 +9487,8 @@ function audit_semantics(root_ast_node,
           const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
+                        `${suggestion}`,
+                        errors_arr);
         }
         
         // lm.indent(() =>
@@ -9497,7 +9501,8 @@ function audit_semantics(root_ast_node,
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
+                        `${suggestion}`,
+                        errors_arr);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
@@ -9515,7 +9520,7 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9526,13 +9531,13 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe_guards
@@ -9559,6 +9564,8 @@ function audit_semantics(root_ast_node,
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
+
+  return errors;
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
@@ -10815,12 +10822,19 @@ async function main() {
   }
 
   // audit flags:
-  let elapsed;
+  let audit_elapsed, audit_warnings;
+
   lm.log(`auditing...`);
   lm.indent(() => {
-    elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+    audit_elapsed = measure_time(() =>
+      audit_warnings = audit_semantics(AST, { base_context: base_context }));
   });
-  lm.log(`audit took ${elapsed.toFixed(2)} ms`);
+
+  lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
+
+  for (const err of audit_warnings)
+    lm.log(err, false);
+
 
   let posted_count        = 0;
   let prior_prompt        = null;
