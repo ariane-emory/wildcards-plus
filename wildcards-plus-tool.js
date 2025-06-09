@@ -351,8 +351,9 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   #indent_lines(str) {
-    if (typeof str !== 'string')
-      throw new Error(`not a string: ${inspect_fun(str)}`);
+    // type testing here is likely overkill:
+    // if (typeof str !== 'string')
+    //   throw new Error(`not a string: ${inspect_fun(str)}`);
     
     const indent_string = this.indent_str.repeat(this.indent);
     const indented_str  = str
@@ -396,7 +397,8 @@ const lm = { // logger manager object
   },
   // -----------------------------------------------------------------------------------------------
   __indent(fn, indent_addend) {
-    if (typeof indent_addend !== 'number')
+    if (typeof fn            !== 'function' ||
+        typeof indent_addend !== 'number')
       throw new Error(`not a number: ${inspect_fun(indent_addend)}`);
     
     this.logger_stack.push(this.logger.nest(indent_addend));

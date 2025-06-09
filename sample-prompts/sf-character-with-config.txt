@@ -45,8 +45,6 @@
   | %model = "smoothmixillustrious_illustriousv3_f16.ckpt"
   | %model = "stellaratormix_v20_f16.ckpt"
   | %model = "zavychromaxl_v100_f16.ckpt"
-  | %model = "2dn_ponyv2_f16.ckpt"
-  | %model = "sdxlYamersRealistic5_v5Rundiffusion.safetensors"
   }
 }
 
