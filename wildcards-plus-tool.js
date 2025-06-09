@@ -9466,15 +9466,15 @@ function audit_semantics(root_ast_node,
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
       else if (thing instanceof ASTNamedWildcardReference) {
-        if (!dummy_context.named_wildcards.has(thing.name)) {
+        const got = dummy_context.named_wildcards.get(thing.name);
+        
+        if (!got) {
           const known_names = Array.from(dummy_context.named_wildcards.keys());
-          const suggestion = suggest_closest(thing.name, known_names);
+          const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
                         `${suggestion}`);
         }
-        
-        const got = dummy_context.named_wildcards.get(thing.name);
         
         // lm.indent(() =>
         walk(got, audit_semantics_mode)
@@ -10634,7 +10634,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
       );
 
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternativeContent                 = make_Content_rule({
+const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TestFlagInAlternativeContent,
@@ -10643,7 +10643,7 @@ const AnonWildcardAlternativeContent                 = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent         = make_Content_rule({
+const TopLevelContent               = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10655,7 +10655,6 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-// const ContentStar             = flat1(wst_star(Content));
 const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
 const Prompt                  = tws(TopLevelContentStar);
 // =================================================================================================
