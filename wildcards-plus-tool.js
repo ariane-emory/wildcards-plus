@@ -9171,8 +9171,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => smart_join(walk(res.value, 
-                                                               { correct_articles: false }))));
+        throw new ThrownReturn(lm.indent(() => smart_join(walk(res.value, { correct_articles: false }))));
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
