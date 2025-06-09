@@ -9111,11 +9111,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           }
 
           if (log_configuration_enabled)
-            lm.indent(() => 
-              lm.log(() => `%${our_name} ` +
-                     `${thing.assign ? '=' : '+='} ` +
-                     `${inspect_fun(value, true)}`,
-                     log_level__expand_and_walk));
+            lm.indent(() => lm.log(() => `%${our_name} ` +
+                                   `${thing.assign ? '=' : '+='} ` +
+                                   `${inspect_fun(value, true)}`,
+                                   log_level__expand_and_walk));
         }
         
         throw new ThrownReturn(''); // produce nothing
