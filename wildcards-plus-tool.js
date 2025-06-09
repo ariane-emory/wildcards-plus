@@ -9707,6 +9707,9 @@ class ASTNamedWildcardReference extends ASTLeafNode {
     }
 
     str += this.name;
+
+    if (this.trailer)
+      str += this.trailer;
     
     return str;
   };
@@ -9729,6 +9732,9 @@ class ASTScalarReference extends ASTLeafNode {
       str += this.capitalize;
 
     str += this.name;
+    
+    if (this.trailer)
+      str += this.trailer;
     
     return str;
   }
@@ -9870,6 +9876,9 @@ class ASTAnonWildcard extends ASTNode {
     }
     
     str += '}';
+    
+    if (this.trailer)
+      str += this.trailer;
     
     return str;
   }
