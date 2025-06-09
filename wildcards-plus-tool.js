@@ -9088,7 +9088,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                           `in key ${inspect_fun(our_name)}`);
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
                        `increment by string ${inspect_fun(value)}, ` +
                        `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
 
@@ -9100,7 +9101,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // probly won't work most of the time, but let's try anyhow, I guess.
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
                        `increment by unknown ${inspect_fun(value)}, ` +
                        `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
