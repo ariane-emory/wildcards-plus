@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = l;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -9901,10 +9901,12 @@ class ASTAnonWildcardAlternative extends ASTNode {
     
     for (const not of this.not_flags)
       strs.push(not.toString());
-    
-    for (const thing of this.body) {
-      strs.push(thing.toString());
-    }
+
+    if (this.body.length >= 1)
+      for (const thing of this.body)
+        strs.push(thing.toString());
+    else
+      strs.push(`ε`);
 
     str += strs.join(' ');
     
