@@ -9033,7 +9033,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (! Array.isArray(tmp_arr))
                 error_fun(`can't add array ${inspect_fun(value)} ` +
-                          `to non-array ${inspect_fun(tmp_arr)}`);
+                          `to non-array ${inspect_fun(tmp_arr)}` +
+                          `in key ${inspect_fun(our_name)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
               if (log_expand_and_walk_enabled >= 2)
@@ -9049,7 +9050,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (typeof tmp_obj !== 'object')
                 error_fun(`can't add object ${inspect_fun(value)} `+
-                          `to non-object ${inspect_fun(tmp_obj)}`);
+                          `to non-object ${inspect_fun(tmp_obj)}` +
+                          `in key ${inspect_fun(our_name)}`);
 
               const new_obj = { ...tmp_obj, ...value };
 
@@ -9066,7 +9068,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               
               if (typeof tmp_num !== 'number')
                 error_fun(`can't add number ${inspect_fun(value)} `+
-                          `to non-number ${inspect_fun(tmp_num)}`);
+                          `to non-number ${inspect_fun(tmp_num)}` +
+                          `in key ${inspect_fun(our_name)}`);
 
               if (log_expand_and_walk_enabled >= 2)
                 lm.log(() => 
@@ -9081,7 +9084,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (typeof tmp_str !== 'string')
                 error_fun(`can't add string ${inspect_fun(value)} `+
-                          `to non-string ${inspect_fun(tmp_str)}`);
+                          `to non-string ${inspect_fun(tmp_str)}` +
+                          `in key ${inspect_fun(our_name)}`);
 
               if (log_level__expand_and_walk >= 2)
                 lm.log(() => 
