@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
@@ -8836,9 +8836,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let effective_joiner;
         let intercalate_options = {}
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
-        
-        // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-        // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+
+        lm.indent(() => {
+          lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+          lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+        });
 
         if (thing.joiner === '&') {
           effective_joiner = ',';
