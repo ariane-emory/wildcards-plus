@@ -8979,7 +8979,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
         const fatal_errors = true;
         const error_fun = msg => { throw new Error(msg); };
-              
+        
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
@@ -8999,7 +8999,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           else { // ASTUpdateConfigurationUnary
             error_fun(`${thing.constructor.name}.value must expand to produce a valid ` +
                       `rJSONC object, Rjsonc.match(...) result was ` +
-                            inspect_fun(jsconc_parsed_expanded_value));
+                      inspect_fun(jsconc_parsed_expanded_value));
           }
         }
         else {
@@ -9072,7 +9072,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                           `in key ${inspect_fun(our_name)}`);
 
               if (log_expand_and_walk_enabled >= 2)
-                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +
                        `increment by number ${inspect_fun(value)}, ` +
                        `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
               
