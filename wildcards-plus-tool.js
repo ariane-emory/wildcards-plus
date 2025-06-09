@@ -9103,7 +9103,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               if (log_level__expand_and_walk >= 2)
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +
-                       `increment by unknown type value  ${inspect_fun(value)}, ` +
+                       `incrementing by unknown type value ${inspect_fun(value)}, ` +
                        `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
               context.configuration[our_name] = (context.configuration[our_name]??null) + value;
