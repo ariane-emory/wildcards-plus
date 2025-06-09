@@ -67,7 +67,7 @@ function parse_file(filename) {
   let  result        = null;
 
   if (dt_hosted) {
-    result = Prompt.match(prompt_input, 0, 0, cache);
+    result = Prompt.match(prompt_input, 0, cache);
   }
   else {
     try {
@@ -262,7 +262,7 @@ let inspect_fun           = (thing, no_break = false) =>
                    depth: inspect_depth,
                  });
 let dt_hosted             = false;
-// dt_hosted                 = true; // lie for testing purposes.
+dt_hosted                 = true; // lie for testing purposes.
 let test_structured_clone = false;;
 // =================================================================================================
 
@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
+let print_ast_before_includes_enabled = true;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
@@ -625,7 +625,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
     if (! (cache instanceof Map))
-      throw new Error("bad args");
+      throw new Error(`bad match args: ${inspect_fun(arguments)}`);
     
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
@@ -9187,7 +9187,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let res = null;
 
         try {
-          res = Prompt.match(sub_prompt.text);
+          res = Prompt.match(sub_prompt.text, 0, new Map());
         }
         catch(err) {
           if (err instanceof FatalParseError)
@@ -9199,7 +9199,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => smart_join(walk(res.value, { correct_articles: false }))));
+        let str = lm.indent(() => smart_join(walk(res.value, { correct_articles: correct_articles }),
+                                             { correct_articles: correct_articles }));
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
@@ -10046,8 +10053,9 @@ class ASTRevertPickSingle extends ASTLeafNode {
 // ASTUIPrompt:
 // -------------------------------------------------------------------------------------------------
 class ASTUIPrompt extends ASTLeafNode {
-  constructor() {
+  constructor(trailer) {
     super();
+    this.trailer = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -10058,8 +10066,9 @@ class ASTUIPrompt extends ASTLeafNode {
 // ASTUINegPrompt:
 // -------------------------------------------------------------------------------------------------
 class ASTUINegPrompt extends ASTLeafNode {
-  constructor() {
+  constructor(trailer) {
     super();
+    this.trailer = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -10355,8 +10364,8 @@ const SpecialFunctionTail =
       .abbreviate_str_repr('SpecialFunctionTail');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(seq('ui-prompt', SpecialFunctionTail),
-            () => new ASTUIPrompt())
+      xform(seq('ui-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUIPrompt(arr[1]))
       .abbreviate_str_repr('SpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
@@ -10370,8 +10379,8 @@ const UnexpectedSpecialFunctionUIPrompt =
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUINegPrompt =
-      xform(seq('ui-neg-prompt', SpecialFunctionTail),
-            () => new ASTUINegPrompt())
+      xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUINegPrompt(arr[1]))
       .abbreviate_str_repr('SpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUINegPrompt =
@@ -10786,7 +10795,9 @@ async function main() {
     // LOG_LINE();
     // lm.log(`${JSON.stringify(AST)}`);
   }
-
+  
+  // throw new Error(`stop: ${print_ast_before_includes_enabled}`);
+  
   if (print_ast_then_die)
     process.exit(0);
 
@@ -10937,7 +10948,7 @@ let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
-    lm.error(() => `Unhandled error:\n${err.stack}`);
+    lm.error(`Unhandled error:\n${err.stack}`);
     // process.exit(1);
   });
 // =================================================================================================
