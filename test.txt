@@ -8,4 +8,7 @@
 //                   |2 !gender.#male   #male
 //                   |1 !gender.#neuter #neuter}}
 
-{ foo bar baz }
+@words = { foo bar baz }
+@words
+@words
+

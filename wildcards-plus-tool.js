@@ -3507,7 +3507,7 @@ function rjson_stringify(obj) {
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
-smart_join_trap_target = 5;
+// smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
@@ -9321,8 +9321,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     const walked = walk(thing,
                         { correct_articles: correct_articles })
 
-    ret = unescape(smart_join(walked,
-                              { correct_articles: correct_articles })).replace(/^</, '');
+    // ret = unescape(smart_join(walked,
+    //                           { correct_articles: correct_articles })).replace(/^</, '');
+
+    ret = unescape((walked)).replace(/^</, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
     //   unescape probably should too.
 
@@ -9429,7 +9431,7 @@ function audit_semantics(root_ast_node,
 
     if (visited.has(thing)) {
       if (log_level__audit >= 2)
-        lm.log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+        lm.log(() => `already audited ${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
@@ -10786,8 +10788,9 @@ async function main() {
   }
 
   // audit flags:
+  let elapsed;
   lm.log(() => `auditing...`);
-  const elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
   lm.log(() => `audit took ${elapsed.toFixed(2)} ms`);
 
   // log_match_enabled          = true;
