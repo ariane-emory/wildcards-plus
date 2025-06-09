@@ -60,9 +60,10 @@ function parse_file(filename) {
   const prompt_input = fs.readFileSync(filename, 'utf8');
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
+  const old_log_level__expand_and_walk = log_level__expand_and_walk;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 1;
+  log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -85,7 +86,8 @@ function parse_file(filename) {
     }
   }
 
-  log_match_enabled  = old_log_match_enabled;
+  log_match_enabled = old_log_match_enabled;
+  log_level__expand_and_walk = old_log_level__expand_and_walk;
   
   const sortedEntries = Array.from(cache.entries())
         .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
@@ -284,7 +286,6 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
-let log_audit_details_enabled         = false;
 let log_configuration_enabled         = true;
 let log_loading_prelude               = true;
 let log_post_enabled                  = true;
@@ -293,7 +294,8 @@ let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_level__expand_and_walk        = 3;
+let log_level__audit                  = 1;
+let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = l;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
@@ -9103,7 +9105,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                            { correct_articles: false })); // never correct here?
             }
             else {
-              // probly won't work most of the time, but let's try anyhow, I guess.
+              // probly won't work most of the time, but let's try anyhow, I guess:
 
               if (log_level__expand_and_walk >= 2)
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
@@ -9345,7 +9347,8 @@ function audit_semantics(root_ast_node,
                          { base_context = null, noisy = false,
                            audit_semantics_mode = audit_semantics_modes.warning } = {}) {
   if (root_ast_node === undefined)
-    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+    throw new Error(`bad audit_semantics args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
   const visited = new Set();
@@ -9371,7 +9374,7 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (log_audit_details_enabled && children?.length > 0) {
+      if (log_level__audit >= 1 && children?.length > 0) {
         lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
@@ -9420,7 +9423,7 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    if (log_audit_details_enabled)
+    if (log_level__audit >= 1)
       lm.log(() => `audit semantics in ${thing.constructor.name} ` +
              `'${abbreviate(compress(thing.toString()), 200)}', ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
@@ -9517,6 +9520,7 @@ function audit_semantics(root_ast_node,
   }
 
   walk(root_ast_node, audit_semantics_mode);
+  lm.log(() => `all flags: ${inspect_fun(dummy_context.flags)}`);
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
@@ -10799,7 +10803,10 @@ async function main() {
     LOG_LINE('=');
     
     const context = base_context.clone();
-    context.reset_temporaries();
+    context.reset_temporaries(); // probably unnecessary?
+
+    log_level__expand_and_walk = 1;
+    
     const prompt  = expand_wildcards(AST, context);
 
     if (! is_empty_object(context.configuration)) {
