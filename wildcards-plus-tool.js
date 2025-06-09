@@ -9052,9 +9052,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_obj = context.configuration[our_name]??{};
 
               if (typeof tmp_obj !== 'object')
-                throw error_fun(`can't add object ${inspect_fun(value)} `+
-                                `to non-object ${inspect_fun(tmp_obj)} ` +
-                                `in key ${inspect_fun(our_name)}`);
+                error_fun(`can't add object ${inspect_fun(value)} `+
+                          `to non-object ${inspect_fun(tmp_obj)} ` +
+                          `in key ${inspect_fun(our_name)}`);
 
               const new_obj = { ...tmp_obj, ...value };
 
