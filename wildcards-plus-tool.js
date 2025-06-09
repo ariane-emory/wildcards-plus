@@ -10302,6 +10302,12 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
+const flat1 = rule => xform(arr => {
+  const flat = arr.flat(1);
+  if (arr.toString() !== flat.toString())
+    lm.log(() => `flatten ${arr} => ${flat}`);
+  return flat;
+}, rule);
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
@@ -10309,7 +10315,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(optional(swb_uint, 1)),                                 
                 wst_star(choice(TestFlagInGuardPosition, discarded_comment,
                                 SetFlag, UnsetFlag)),
-                lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
+                lws(flat1(wst_star(choice(TestFlagInAlternativeContent, content_rule))))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
       xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
@@ -10653,8 +10659,8 @@ const TopLevelContent         = make_Content_rule({
   ],
 });
 // const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = wst_star(Content);
-const TopLevelContentStar     = wst_star(TopLevelContent);
+const ContentStar             = xform(arr => arr.flat(Infinity), wst_star(Content));
+const TopLevelContentStar     = xform(arr => arr.flat(Infinity), wst_star(TopLevelContent));
 const Prompt                  = tws(TopLevelContentStar);
 // =================================================================================================
 Prompt.finalize();
