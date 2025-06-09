@@ -9013,9 +9013,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             : { ...context.configuration, ...new_obj };
 
           if (log_configuration_enabled)
-            lm.indent(() => lm.log(() => 
-              `%config ${thing.assign ? '=' : '+='} ` +
-                `${inspect_fun(new_obj, true)}`,
+            lm.indent(() => lm.log(() = `%config ${thing.assign ? '=' : '+='} ` +
+                                   `${inspect_fun(new_obj, true)}`,
               log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
