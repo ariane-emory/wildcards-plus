@@ -328,32 +328,28 @@ class Logger {
   }
   // -----------------------------------------------------------------------------------------------
   error(...args) {
-    this.__write(console.error, ...args);
+    this.#write(console.error, ...args);
   }
   // -----------------------------------------------------------------------------------------------
   log(...args) {
-    this.__write(console.log, ...args);
+    this.#write(console.log, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  __write(destination, str_or_fun, with_indent = true) {    
+  #write(destination, str_fun, with_indent = true) {    
     if ((typeof destination !== 'function') ||
-        (typeof str_or_fun  !== 'function'))
+        (typeof str_fun     !== 'function'))
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
-    let str = str_or_fun();
-    
-    // let str = typeof str_or_fun === 'function'
-    //     ? str_or_fun()
-    //     : str_or_fun;
+    let str = str_fun();
     
     if (with_indent)
-      str = this.indent_lines(str);
+      str = this.#indent_lines(str);
     
     for (const line of str.split('\n'))
       destination(line);
   }
   // -----------------------------------------------------------------------------------------------
-  indent_lines(str) {
+  #indent_lines(str) {
     if (typeof str !== 'string')
       throw new Error(`not a string: ${inspect_fun(str)}`);
     
@@ -372,15 +368,15 @@ class Logger {
 }
 // -------------------------------------------------------------------------------------------------
 const lm = { // logger manager
-  stack: [],
+  logger_stack: [],
   // -----------------------------------------------------------------------------------------------
   get logger() {
-    if (this.stack.length == 0) {
+    if (this.logger_stack.length == 0) {
       const new_logger = new Logger(0);
-      this.stack.push(new_logger);
+      this.logger_stack.push(new_logger);
       return new_logger;
     }
-    return this.stack[this.stack.length - 1];
+    return this.logger_stack[this.logger_stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
   error(...args) {
@@ -403,19 +399,15 @@ const lm = { // logger manager
     if (typeof indent_addend !== 'number')
       throw new Error(`not a number: ${inspect_fun(indent_addend)}`);
     
-    this.stack.push(this.logger.nest(indent_addend));
+    this.logger_stack.push(this.logger.nest(indent_addend));
 
     try {
       return fn();
     }
     finally {
-      this.stack.pop();
+      this.logger_stack.pop();
     }
   },
-  // -----------------------------------------------------------------------------------------------
-  // indent_and_log(...args) {
-  //   this.indent(() => this.log(...args));
-  // }
 }
 // -------------------------------------------------------------------------------------------------
 if (false) {
@@ -10939,4 +10931,4 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-lm.log(() => thing_str_repr([ 'foo', 'bar', 'baz' ]));
+// lm.log(() => thing_str_repr([ 'foo', 'bar', 'baz' ]));

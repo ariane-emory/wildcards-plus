@@ -10455,7 +10455,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
   ];
 });
 
-// lm.log(`USER SELECTION:`);
+// lm.log(() => `USER SELECTION:`);
 // lm.log(JSON.stringify(user_selection));
 
 prompt_string     = user_selection[0][0]
@@ -10463,15 +10463,15 @@ const batch_count = user_selection[1][0];
 const clear_first = user_selection[2];
 const user_selected_pick_one_priority =
       picker_priority_descriptions[user_selection[3][0]];
-// lm.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(() => `GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 const user_selected_pick_multiple_priority =
       picker_priority_descriptions[user_selection[4][0]];
-// lm.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(() => `GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
-lm.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
-lm.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
+lm.log(() => `Single pick priority:   ${user_selected_pick_one_priority}`);
+lm.log(() => `Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
@@ -10500,19 +10500,19 @@ try {
   // delete base_context.configuration["targetImageWidth"];
 
   LOG_LINE();
-  lm.log(`pipeline.configuration is:`);
+  lm.log(() => `pipeline.configuration is:`);
   LOG_LINE();
-  lm.log(`${inspect_fun(pipeline.configuration)}`);
+  lm.log(() => `${inspect_fun(pipeline.configuration)}`);
 
   LOG_LINE();
-  lm.log(`base_context.configuration is:`);
+  lm.log(() => `base_context.configuration is:`);
   LOG_LINE();
-  lm.log(`${inspect_fun(base_context.configuration)}`);
+  lm.log(() => `${inspect_fun(base_context.configuration)}`);
 
   LOG_LINE();
-  lm.log(`The wildcards-plus prompt is:`);
+  lm.log(() => `The wildcards-plus prompt is:`);
   LOG_LINE();
-  lm.log(`${prompt_string}`);
+  lm.log(() => `${prompt_string}`);
 
   // -----------------------------------------------------------------------------------------------
   // main loop:
@@ -10521,52 +10521,52 @@ try {
     const start_date = new Date();
 
     LOG_LINE();
-    lm.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
+    lm.log(() => `Beginning expansion #${ix+1} out of ${batch_count} at ` +
            `${format_simple_time(start_date)}:`);
     LOG_LINE();
 
     // expand the wildcards using a cloned context and generate a new configuration:
     
-    // lm.log(`BEFORE CLONING CONTEXT...`);
+    // lm.log(() => `BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
-    // lm.log(`AFTER CLONING CONTEXT`);
+    // lm.log(() => `AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context, { correct_articles: true });
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
-      lm.log(`GENERATED CONFIGURATION:`);
+      lm.log(() => `GENERATED CONFIGURATION:`);
       LOG_LINE();
-      lm.log(`${inspect_fun(context.configuration)}`);
+      lm.log(() => `${inspect_fun(context.configuration)}`);
     }
 
     if (context.flags.length > 0) {
       LOG_LINE();
-      lm.log(`Flags after:`);
+      lm.log(() => `Flags after:`);
       LOG_LINE();
-      lm.log(`${inspect_fun(context.flags)}`);
+      lm.log(() => `${inspect_fun(context.flags)}`);
     }
     
     if (context.scalar_variables.size > 0) {
       LOG_LINE();
-      lm.log(`Scalars after:`);
+      lm.log(() => `Scalars after:`);
       LOG_LINE();
       for (const [key, val] of context.scalar_variables)
-        lm.log(`$${key} = ${inspect_fun(val)}`);
+        lm.log(() => `$${key} = ${inspect_fun(val)}`);
     }
 
     LOG_LINE();
-    lm.log(`The expanded prompt is:`);
+    lm.log(() => `The expanded prompt is:`);
     LOG_LINE();
-    lm.log(`${prompt}`);
+    lm.log(() => `${prompt}`);
     
     if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
       LOG_LINE();
-      lm.log(`Expanded negative prompt:`);
+      lm.log(() => `Expanded negative prompt:`);
       LOG_LINE();
-      lm.log(context.configuration.negativePrompt);
+      lm.log(() => context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      lm.log(`No negative prompt, using negative prompt from UI: ` +
+      lm.log(() => `No negative prompt, using negative prompt from UI: ` +
              `${inspect_fun(ui_neg_prompt)}.`);
       
       context.configuration.negativePrompt = ui_neg_prompt;
@@ -10575,13 +10575,13 @@ try {
     LOG_LINE();
 
     if (clear_first) {
-      lm.log(`Clearing canvas...`);
+      lm.log(() => `Clearing canvas...`);
       canvas.clear();
     } else {
-      lm.log(`Not clearing canvas`);
+      lm.log(() => `Not clearing canvas`);
     }
 
-    lm.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
+    lm.log(() => `Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
 
     // ---------------------------------------------------------------------------------------------
     // run the pipeline:
@@ -10599,22 +10599,22 @@ try {
     const end_time     = new Date().getTime();
     const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-    lm.log(`... image generated in ${elapsed_time} seconds.`);
+    lm.log(() => `... image generated in ${elapsed_time} seconds.`);
   }
 
   LOG_LINE();
-  lm.log('Job complete. Open the console to see the job report.');
+  lm.log(() => `Job complete. Open the console to see the job report.`);
 }
 catch(ex) {
   if (ex instanceof Error) {
     if (ex.message === 'cancelled')
-      lm.log(`Cancelled.`);
+      lm.log(() => `Cancelled.`);
     else
-      lm.log(`wildcards-plus caught a fatal exception, ` +
+      lm.log(() => `wildcards-plus caught a fatal exception, ` +
              `click here to open the console for more details\n\n` + 
              `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    lm.log(`wildcards-plus caught a fatal exception, ` +
+    lm.log(() => `wildcards-plus caught a fatal exception, ` +
            `click here to open the console for more details\n` +
            `exception:\n${inspect_fun(ex)}`);
   }
