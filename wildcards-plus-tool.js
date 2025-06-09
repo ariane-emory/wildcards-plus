@@ -9529,7 +9529,8 @@ function audit_semantics(root_ast_node,
 
   walk(root_ast_node, audit_semantics_mode);
 
-  lm.log(() => `all_flags: ${dummy_context.flags}`);
+  if (log_level__audit >= 1)
+    lm.log(() => `all flags: ${inspect_fun(dummy_context.flags)}`);
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
