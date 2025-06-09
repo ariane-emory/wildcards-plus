@@ -8653,16 +8653,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(() => `pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
-    const ret = lm.indent(() =>
-      walk(pick?.body ?? '', 
-           { correct_articles: correct_articles }));
+    return lm.indent(() => {
+      const ret = walk(pick?.body ?? '', { correct_articles: correct_articles });
 
-    if (log_level__expand_and_walk >= 2)
-      lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
-             `<${thing_str_repr(pick)}> => ` + 
-             `${thing_str_repr(ret)}`, true)
+      // if (log_level__expand_and_walk >= 2)
+      //   lm.log(() => `picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
+      //          `<${thing_str_repr(pick)}> => ` + 
+      //          `${thing_str_repr(ret)}`, true)
 
-    return ret;
+      return ret;
+    });
   }
   // -----------------------------------------------------------------------------------------------
   function warning_str(str) {
@@ -8949,9 +8949,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         lm.indent(() =>  {
-          if (log_level__expand_and_walk >= 2)
-            lm.log(() => `assigning ${thing_str_repr(thing.source)} ` +
-                   `to '${thing.destination.name}'`);
+          // if (log_level__expand_and_walk >= 2)
+          //   lm.log(() => `assigning ${thing_str_repr(thing.source)} ` +
+          //          `to '${thing.destination.name}'`);
           
           let new_val = smart_join(walk(thing.source,
                                         { correct_articles: correct_articles }),
