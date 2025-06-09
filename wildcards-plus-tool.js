@@ -149,7 +149,7 @@ function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', 
         socket.destroy(); // don't wait for the response.
       }
       else {
-        lm.log(`POSTing..`);
+        lm.log(`POSTing...`);
         socket.on('data', chunk => {
           if (! printed)
             lm.log(`Response: ${abbreviate(chunk.toString(), 1000)}`);
