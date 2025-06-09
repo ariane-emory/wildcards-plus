@@ -3891,7 +3891,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_i
   else if (typeof thing === 'string') {
     return thing.length === 0
       ? `ε`
-      : inspect_fun(thing);
+      : inspect_fun(thing, true);
   }
   else if (typeof thing === 'object') {
     try {
@@ -8716,7 +8716,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     }
 
     if (log_level__expand_and_walk)
-      lm.log(() => `Walking ${thing_str_repr(thing, { always_include_type_str: true })}`);
+      lm.log(() => `Walking ${thing_str_repr(thing, { always_include_type_str: true, length: 200 })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8730,7 +8730,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             if (log_level__expand_and_walk)
               lm.log(() => `Walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
-                     `${thing_str_repr(thing[ix], { always_include_type_str: true })} `
+                     `${thing_str_repr(thing[ix], { always_include_type_str: true, length: 200 })} `
                     );
 
             const elem_ret =
@@ -8743,7 +8743,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               lm.log(() => `walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
                      `${thing_str_repr(thing[ix])} ` +
-                     `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
+                     `=> ${thing_str_repr(elem_ret, { always_include_type_str: true, length: 200 })}`
                     );
           }
 
@@ -9132,7 +9132,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
               if (log_level__expand_and_walk >= 2)
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` +
+                       `${inspect_fun(context.configuration[our_name])}, ` 
                        `incrementing by unknown type value ${inspect_fun(value)}, ` +
                        `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
@@ -9238,15 +9238,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(() => `Expanding LoRA file ` +
-                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`);
+                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(() => `expanded LoRa file `+
-                   `${thing_str_repr(thing.file, { always_include_type_str: true })}`+
-                   `is ${thing_str_repr(walked_file, { always_include_type_str: true })} `);
+                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`+
+                   `is ${thing_str_repr(walked_file, { always_include_type_str: true, length: 200 })} `);
         });
         
         let walked_weight = null;
@@ -9254,15 +9254,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(() => `Expanding LoRA weight  ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true })}`);
+                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(() => `expanded LoRA weight ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true })} is ` +
-                   `${thing_str_repr(walked_weight, { always_include_type_str: true })}`);
+                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })} is ` +
+                   `${thing_str_repr(walked_weight, { always_include_type_str: true, length: 200 })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9314,10 +9314,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       if (! obj.quiet)
         if (log_level__expand_and_walk)
           lm.log(() => `walking ` +
-                 `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
+                 `${thing_str_repr(thing, { always_include_type_str: true, length: 200})} ` + 
                  //`in ${context} ` +
-                 `returned ` +
-                 `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
+                 `=> ` +
+                 `${thing_str_repr(obj.value, { always_include_type_str: true, length: 200 })}`);
 
       return obj.value;
     }
@@ -9325,7 +9325,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   if (log_level__expand_and_walk)
     lm.log(() => `Expanding wildcards in ` +
-           `${thing_str_repr(thing, { always_include_type_str: true })} `);
+           `${thing_str_repr(thing, { always_include_type_str: true, length: 200 })} `);
 
   let ret;
 
@@ -9346,8 +9346,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   if (log_level__expand_and_walk)
     lm.log(() => `expanding wildcards in ` +
            `${thing_str_repr(thing)} ` + 
-           `returned ` +
-           `${thing_str_repr(ret, { always_include_type_str: true })}`);
+           `=> ` +
+           `${thing_str_repr(ret, { always_include_type_str: true, length: 200 })}`);
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
@@ -9490,7 +9490,7 @@ function audit_semantics(root_ast_node,
         if (!dummy_context.scalar_variables.has(thing.name)) {
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
+          warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
                         `${suggestion}`);
         }
