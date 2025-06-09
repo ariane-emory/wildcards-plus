@@ -10799,10 +10799,6 @@ async function main() {
   });
   lm.log(() => `audit took ${elapsed.toFixed(2)} ms`);
 
-  // log_match_enabled          = true;
-  // log_level__expand_and_walk = 1;
-  // log_flags_enabled          = true;
-
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
@@ -10832,7 +10828,9 @@ async function main() {
     context.reset_temporaries(); // probably unnecessary?
 
     // log_level__expand_and_walk = 1;
-    
+    // log_match_enabled          = true;
+    // log_flags_enabled          = true;
+
     const prompt  = expand_wildcards(AST, context);
 
     if (! is_empty_object(context.configuration)) {
