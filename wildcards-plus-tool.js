@@ -63,7 +63,7 @@ function parse_file(filename) {
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  log_level__expand_and_walk = 1;
+  // log_level__expand_and_walk = 1;
   let  result        = null;
 
   if (dt_hosted) {
@@ -166,7 +166,7 @@ function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', 
 }
 // -------------------------------------------------------------------------------------------------
 function save_post_request(options, data) {
-  if (! save_post_requests_enable)
+  if (! save_post_requests_enabled)
     return true;
 
   const json      = JSON.stringify(data, null, 2);
@@ -294,20 +294,18 @@ let log_flags_enabled                 = false;
 let log_match_enabled                 = false;
 let log_name_lookups_enabled          = false;
 let log_picker_enabled                = false;
-let log_level__audit                  = 2;
+let log_level__audit                  = 0;
 let log_level__expand_and_walk        = 0;
-let log_level__smart_join             = l;
+let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
 let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
-let save_post_requests_enable         = true;
+let save_post_requests_enabled        = true;
 let unnecessary_choice_is_an_error    = false;
 let double_latching_is_an_error       = false;
 let double_unlatching_is_an_error     = false;
-// -------------------------------------------------------------------------------------------------
-const stop = () => new Error(`STOP`);
 // =================================================================================================
 
 
@@ -3727,6 +3725,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   // lm.log(() => `${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function stop() {
+  new Error(`STOP`);
 }
 // -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
@@ -10835,7 +10837,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    log_level__expand_and_walk = 1;
+    // log_level__expand_and_walk = 1;
     
     const prompt  = expand_wildcards(AST, context);
 
