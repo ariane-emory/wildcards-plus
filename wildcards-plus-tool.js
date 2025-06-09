@@ -10790,7 +10790,9 @@ async function main() {
   // audit flags:
   let elapsed;
   lm.log(() => `auditing...`);
-  elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  lm.indent(() => {
+    elapsed = measure_time(() => audit_semantics(AST, { base_context: base_context }));
+  });
   lm.log(() => `audit took ${elapsed.toFixed(2)} ms`);
 
   // log_match_enabled          = true;
