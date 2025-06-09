@@ -10826,7 +10826,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    // log_level__expand_and_walk = 1;
+    log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
