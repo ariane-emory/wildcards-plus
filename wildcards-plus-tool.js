@@ -10595,7 +10595,7 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       choice(
         NamedWildcardReference,
         anon_wildcard_rule,
-        ...(plain_text_rule ? [ plain_text_rule ] : []),
+        plain_text_rule,
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
