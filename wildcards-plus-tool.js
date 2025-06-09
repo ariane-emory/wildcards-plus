@@ -8975,7 +8975,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         let value = thing.value;
-        
+
+        const fatal_errors = true;
+        const error_fun = msg => { throw new Error(msg); };
+              
         if (value instanceof ASTNode) {
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
@@ -9015,7 +9018,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           if (log_configuration_enabled)
             lm.indent(() => lm.log(() => `%config ${thing.assign ? '=' : '+='} ` +
                                    `${inspect_fun(new_obj, true)}`,
-              log_level__expand_and_walk));
+                                   log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_name(thing.key); 
