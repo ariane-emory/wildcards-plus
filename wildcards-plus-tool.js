@@ -9341,7 +9341,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     // ret = unescape(smart_join(walked,
     //                           { correct_articles: correct_articles })).replace(/^</, '');
 
-    ret = unescape((walked)).replace(/^</, '');
+    ret = unescape(walked).replace(/^[<]+/, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
     //   unescape probably should too.
 
