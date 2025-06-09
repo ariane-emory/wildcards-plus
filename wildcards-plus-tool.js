@@ -4461,9 +4461,8 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = 
-                          { unsafe_guards
-                            {?female #gender.female // just to make forcing an option a little terser.
+@__set_gender_if_unset  = { unsafe_guards // just to make forcing an option a little terser:
+                            {?female #gender.female 
                             |?male   #gender.male
                             |?neuter #gender.neuter }
                             {3 !gender.#female #female
@@ -10321,13 +10320,14 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(flat1(wst_star(choice(TestFlagInAlternativeContent, content_rule))))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
-            seq(
-              optional('unsafe_guards'),
-              lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
-              can_have_trailer
-                ? optional_punctuation_trailer
-                : unexpected_punctuation_trailer));
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[3],
+                                                 unsafe_guards: arr[0] == 'unsafe_guards' }),
+            seq(optional('unsafe_guards'),
+                discarded_comments,
+                lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
       .abbreviate_str_repr('AnonWildcardAlternative');
