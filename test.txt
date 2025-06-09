@@ -18,4 +18,4 @@
 @size = {2 large|3 huge|1 tiny|1 giant}
 @tits = { !#tits @size breasts },
 
-foo, {0|@tits} bar,
+foo, @tits bar,
