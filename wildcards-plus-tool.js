@@ -9388,10 +9388,10 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode) {    
-    if (typeof local_audit_semantics_mode !== 'string')
-      throw new Error(`bad walk local_audit_semantics_mode: ` +
-                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+  function walk(thing, local_audit_semantics_mode, errors_arr) {    
+    if (typeof local_audit_semantics_mode !== 'string' ||
+        !Array.isArray(errors_arr))
+      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
     const log = (msg_thunk, indent = true) => {
       if (noisy)
