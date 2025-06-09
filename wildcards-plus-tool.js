@@ -3889,7 +3889,9 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_i
     thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
   }
   else if (typeof thing === 'string') {
-    thing_str = inspect_fun(thing);
+    return thing.length === 0
+      ? `ε`
+      : inspect_fun(thing);
   }
   else if (typeof thing === 'object') {
     try {
@@ -3901,8 +3903,9 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_i
   else {
     thing_str = String(thing);
   }
-
-  return `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; // thing_str_repr.abbrev_length);
+  
+  const str = `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; 
+  return str;
 }
 thing_str_repr.abbrev_length = 100;
 // -------------------------------------------------------------------------------------------------
