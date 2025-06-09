@@ -9034,9 +9034,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_arr = context.configuration[our_name]??[];
 
               if (! Array.isArray(tmp_arr))
-                throw error_fun(`can't add array ${inspect_fun(value)} ` +
-                                `to non-array ${inspect_fun(tmp_arr)} ` +
-                                `in key ${inspect_fun(our_name)}`);
+                error_fun(`can't add array ${inspect_fun(value)} ` +
+                          `to non-array ${inspect_fun(tmp_arr)} ` +
+                          `in key ${inspect_fun(our_name)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
 
