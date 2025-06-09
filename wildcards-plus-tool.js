@@ -303,7 +303,7 @@ let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
-let unnecessary_choice_is_an_error    = false;
+let unnecessary_choice_is_an_error    = true;
 let double_latching_is_an_error       = false;
 let double_unlatching_is_an_error     = false;
 // =================================================================================================
@@ -10315,7 +10315,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(optional(swb_uint, 1)),                                 
                 wst_star(choice(TestFlagInGuardPosition, discarded_comment,
                                 SetFlag, UnsetFlag)),
-                lws(flat1(wst_star(choice(TestFlagInAlternativeContent, content_rule))))));
+                flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
       xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[3],
@@ -10327,7 +10327,7 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
                  ? optional_punctuation_trailer
                  : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
+const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -10634,9 +10634,10 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
       );
 
 // -------------------------------------------------------------------------------------------------
-const Content                 = make_Content_rule({
+const AnonWildcardAlternativeContent                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
+    TestFlagInAlternativeContent,
     AnonWildcard,
   ],
   after_plain_text_rules:  [
