@@ -8996,8 +8996,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               : expanded_value;
           }
           else { // ASTUpdateConfigurationUnary
-            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                            `rJSONC object, Rjsonc.match(...) result was ` +
+            error_fun(`${thing.constructor.name}.value must expand to produce a valid ` +
+                      `rJSONC object, Rjsonc.match(...) result was ` +
                             inspect_fun(jsconc_parsed_expanded_value));
           }
         }
@@ -9031,8 +9031,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_arr = context.configuration[our_name]??[];
 
               if (! Array.isArray(tmp_arr))
-                throw new Error(`can't add array ${inspect_fun(value)} ` +
-                                `to non-array ${inspect_fun(tmp_arr)}`);
+                error_fun(`can't add array ${inspect_fun(value)} ` +
+                          `to non-array ${inspect_fun(tmp_arr)}`);
               
               const new_arr = [ ...tmp_arr, ...value ];
               if (log_expand_and_walk_enabled >= 2)
@@ -9047,8 +9047,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_obj = context.configuration[our_name]??{};
 
               if (typeof tmp_obj !== 'object')
-                throw new Error(`can't add object ${inspect_fun(value)} `+
-                                `to non-object ${inspect_fun(tmp_obj)}`);
+                error_fun(`can't add object ${inspect_fun(value)} `+
+                          `to non-object ${inspect_fun(tmp_obj)}`);
 
               const new_obj = { ...tmp_obj, ...value };
 
@@ -9064,8 +9064,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_num = context.configuration[our_name]??0;
               
               if (typeof tmp_num !== 'number')
-                throw new Error(`can't add number ${inspect_fun(value)} `+
-                                `to non-number ${inspect_fun(tmp_num)}`);
+                error_fun(`can't add number ${inspect_fun(value)} `+
+                          `to non-number ${inspect_fun(tmp_num)}`);
 
               if (log_expand_and_walk_enabled >= 2)
                 lm.log(() => 
@@ -9079,8 +9079,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const tmp_str = context.configuration[our_name]??'';
 
               if (typeof tmp_str !== 'string')
-                throw new Error(`can't add string ${inspect_fun(value)} `+
-                                `to non-string ${inspect_fun(tmp_str)}`);
+                error_fun(`can't add string ${inspect_fun(value)} `+
+                          `to non-string ${inspect_fun(tmp_str)}`);
 
               if (log_level__expand_and_walk >= 2)
                 lm.log(() => 
