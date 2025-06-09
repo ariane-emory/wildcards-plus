@@ -10091,7 +10091,7 @@ class ASTUINegPrompt extends ASTLeafNode {
     if (this.trailer)
       str += this.trailer;
     
-    return str;;
+    return str;
   }
 }
 // =================================================================================================
