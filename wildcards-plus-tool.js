@@ -284,6 +284,7 @@ if (false)
 let abbreviate_str_repr_enabled       = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
+let log_audit_details_enabled         = false;
 let log_configuration_enabled         = true;
 let log_loading_prelude               = true;
 let log_post_enabled                  = true;
@@ -9361,7 +9362,7 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (log_level__expand_and_walk && children?.length > 0) {
+      if (log_audit_details_enabled && children?.length > 0) {
         lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
@@ -9410,9 +9411,10 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    lm.log(() => `audit semantics in ${thing.constructor.name} ` +
-           `'${abbreviate(compress(thing.toString()), 200)}', ` +
-           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+    if (log_audit_details_enabled)
+      lm.log(() => `audit semantics in ${thing.constructor.name} ` +
+             `'${abbreviate(compress(thing.toString()), 200)}', ` +
+             `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
       // -------------------------------------------------------------------------------------------
