@@ -9041,7 +9041,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +      
                        `increment by array ${inspect_fun(value)}, ` +             
-                       `total ${inspect_fun(new_arr)}`);
+                       `total ${inspect_fun(new_arr)}`); 
               
               context.configuration[our_name] = new_arr;
             }
@@ -9056,10 +9056,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               const new_obj = { ...tmp_obj, ...value };
 
               if (log_expand_and_walk_enabled >= 2)
-                lm.log(() => 
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by object ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun(new_obj)}`);
+                lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
+                       `${inspect_fun(context.configuration[our_name])}, ` +      
+                       `increment by object ${inspect_fun(value)}, ` +             
+                       `total ${inspect_fun(new_arr)}`); 
 
               context.configuration[our_name] = new_obj;
             }
