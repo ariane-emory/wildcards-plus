@@ -9374,7 +9374,7 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (log_level__audit >= 1 && children?.length > 0) {
+      if (log_level__audit >= 2 && children?.length > 0) {
         lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
@@ -9423,7 +9423,7 @@ function audit_semantics(root_ast_node,
     
     visited.add(thing);
 
-    if (log_level__audit >= 1)
+    if (log_level__audit >= 2)
       lm.log(() => `audit semantics in ${thing.constructor.name} ` +
              `'${abbreviate(compress(thing.toString()), 200)}', ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
