@@ -2683,15 +2683,24 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const head          = (...rules) => first(seq(...rules));
-const cadr          = (...rules) => second(seq(...rules));
-const wst_cadr      = (...rules) => second(wst_seq(...rules));
-const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
-const cutting_head  = (...rules) => first(cutting_seq(...rules));
-const push          = ((value, rule) =>
-  xform(rule, arr => [value, ...arr]));
-const enclosing     = (left, enclosed, right) =>
-      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
+const push             = (value, rule) => xform(rule, arr => [value, ...arr]);
+const enclosing        = (left, enclosed, right) =>
+      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right));
+const head             = (...rules) => first (seq            (...rules));
+const cadr             = (...rules) => second(seq            (...rules));
+const wst_head         = (...rules) => first (wst_seq        (...rules));
+const wst_cadr         = (...rules) => second(wst_seq        (...rules));
+const cutting_head     = (...rules) => first (cutting_seq    (...rules));
+const cutting_cadr     = (...rules) => second(cutting_seq    (...rules));
+const wst_cutting_head = (...rules) => first (wst_cutting_seq(...rules));
+const wst_cutting_cadr = (...rules) => second(wst_cutting_seq(...rules));
+const flat = (rule, depth = Infinity) => xform(arr => {
+  const flattened = arr.flat(depth);
+  // if (arr.toString() !== flattened.toString())
+  //   lm.log(() => `flatten ${arr} => ${flattened}`);
+  return flattened;
+}, rule);
+const flat1 = rule => flat(rule, 1); 
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
@@ -10302,12 +10311,6 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 }
 // -------------------------------------------------------------------------------------------------
-const flat1 = rule => xform(arr => {
-  const flat = arr.flat(1);
-  if (arr.toString() !== flat.toString())
-    lm.log(() => `flatten ${arr} => ${flat}`);
-  return flat;
-}, rule);
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
             seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
@@ -10633,11 +10636,6 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
       );
 
 // -------------------------------------------------------------------------------------------------
-// const ContentNoLoras          = make_Content_rule({
-//   after_plain_text_rules: [
-//     AnonWildcardNoLoras,
-//   ],
-// });
 const Content                 = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -10658,9 +10656,8 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-// const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = xform(arr => arr.flat(Infinity), wst_star(Content));
-const TopLevelContentStar     = xform(arr => arr.flat(Infinity), wst_star(TopLevelContent));
+// const ContentStar             = flat1(wst_star(Content));
+const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
 const Prompt                  = tws(TopLevelContentStar);
 // =================================================================================================
 Prompt.finalize();
