@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
@@ -8840,6 +8840,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
           lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+          lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
         });
 
         if (thing.joiner === '&') {
@@ -10329,7 +10330,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[3],
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
                                                  unsafe_guards: arr[0] == 'unsafe_guards' }),
             seq(optional('unsafe_guards'),
                 discarded_comments,
@@ -10837,7 +10838,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    log_level__expand_and_walk = 1;
+    // log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
