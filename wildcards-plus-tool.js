@@ -340,12 +340,13 @@ class Logger {
         (typeof str_fun     !== 'function'))
       throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
 
-    let str = str_fun();
+    const str = str_fun();
+
+    const lines = with_indent
+          ? this.#indent_lines(str)
+          : [ str ];
     
-    if (with_indent)
-      str = this.#indent_lines(str);
-    
-    for (const line of str.split('\n'))
+    for (const line of lines)
       destination(line);
   }
   // -----------------------------------------------------------------------------------------------
@@ -356,8 +357,7 @@ class Logger {
     const indent_string = this.indent_str.repeat(this.indent);
     const indented_str  = str
           .split("\n")
-          .map(line => `${indent_string}${line}`)
-          .join("\n");
+          .map(line => `${indent_string}${line}`);
 
     return indented_str;
   }
@@ -367,7 +367,7 @@ class Logger {
   }
 }
 // -------------------------------------------------------------------------------------------------
-const lm = { // logger manager
+const lm = { // logger manager object
   logger_stack: [],
   // -----------------------------------------------------------------------------------------------
   get logger() {
