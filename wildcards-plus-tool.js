@@ -8729,9 +8729,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                      `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
                     );
           }
-        });
 
-        throw new ThrownReturn(ret);
+          const str = smart_join(ret, { correct_articles: correct_articles });
+          throw new ThrownReturn(str);
+        });
       }
       // -------------------------------------------------------------------------------------------
       // flags:
@@ -8757,12 +8758,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        let str = thing.pick(1, 1,
-                             picker_allow, picker_forbid, picker_each, 
-                             context.pick_one_priority)[0];
+        let str = smart_join(thing.pick(1, 1,
+                                        picker_allow, picker_forbid, picker_each, 
+                                        context.pick_one_priority)[0],
+                             { correct_articles: correct_articles })
         
         if (log_level__expand_and_walk)
-          lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
+          lm.log(() => `picked item = ${thing_str_repr(str)}`);
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -9374,8 +9376,9 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (log_level__audit >= 1 && children?.length > 0) {
-        lm.log(() => `children: ${children.map(thing_str_repr)}`);
+      if (children?.length > 0) {
+        if (log_level__audit >= 2)
+          lm.log(() => `children: ${children.map(thing_str_repr)}`);
 
         lm.indent(() => {
           walk(children, mode);
@@ -9416,14 +9419,15 @@ function audit_semantics(root_ast_node,
       return;
 
     if (visited.has(thing)) {
-      lm.log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      if (log_level__audit >= 2)
+        lm.log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
       
       return;
     }
     
     visited.add(thing);
 
-    if (log_level__audit >= 1)
+    if (log_level__audit >= 2)
       lm.log(() => `audit semantics in ${thing.constructor.name} ` +
              `'${abbreviate(compress(thing.toString()), 200)}', ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
@@ -9520,6 +9524,8 @@ function audit_semantics(root_ast_node,
   }
 
   walk(root_ast_node, audit_semantics_mode);
+
+  lm.log(() => `all_flags: ${dummy_context.flags}`);
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
