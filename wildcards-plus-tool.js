@@ -299,7 +299,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = l;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enable         = true;
@@ -8782,7 +8782,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                              context.pick_one_priority)[0];
 
         if (log_level__expand_and_walk)
-          lm.log(() => `picked item = ${thing_str_repr(str)}`);
+          lm.indent(() => lm.log(() => `picked item = ${thing_str_repr(str)}`));
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
