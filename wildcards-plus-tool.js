@@ -8948,27 +8948,29 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        if (log_level__expand_and_walk >= 2)
-          lm.log(() => `assigning ${inspect_fun(thing.source)} ` +
-                 `to '${thing.destination.name}'`);
-        
-        let new_val = lm.indent(() => smart_join(walk(thing.source,
-                                                      { correct_articles: correct_articles }),
-                                                 { correct_articles: correct_articles }));
+        lm.indent(() =>  {
+          if (log_level__expand_and_walk >= 2)
+            lm.log(() => `assigning ${thing_str_repr(thing.source)} ` +
+                   `to '${thing.destination.name}'`);
+          
+          let new_val = smart_join(walk(thing.source,
+                                        { correct_articles: correct_articles }),
+                                   { correct_articles: correct_articles });
 
-        if (! thing.assign) {
-          const old_val = context.scalar_variables.get(thing.destination.name)??'';
-          new_val = smart_join([old_val, new_val],
-                               { correct_articles: correct_articles }); 
-        }
-        
-        context.scalar_variables.set(thing.destination.name, new_val);
+          if (! thing.assign) {
+            const old_val = context.scalar_variables.get(thing.destination.name)??'';
+            new_val = smart_join([old_val, new_val],
+                                 { correct_articles: correct_articles }); 
+          }
+          
+          context.scalar_variables.set(thing.destination.name, new_val);
 
-        if (true)
-          lm.log(() => `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-                 log_level__expand_and_walk);
-        
-        throw new ThrownReturn(''); // produce nothing
+          if (true)
+            lm.log(() => `$${thing.destination.name} = ${inspect_fun(new_val)}`,
+                   log_level__expand_and_walk);
+          
+          throw new ThrownReturn(''); // produce nothing
+        });
       }
       // -------------------------------------------------------------------------------------------
       // UpdateConfigurations:
