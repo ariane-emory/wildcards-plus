@@ -15,7 +15,7 @@
 // @words
 // @words
 
-@size = {2 large|3 huge|1 tiny|1 giant}
-@tits = { !#tits @size breasts },
+// @size = {2 large|3 huge|1 tiny|1 giant}
+@tits = { !#tits breasts },
 
 foo, @tits bar,
