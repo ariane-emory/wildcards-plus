@@ -8740,7 +8740,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               lm.log(() => `walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
                      `${thing_str_repr(thing[ix])} ` +
-                     `returned ${thing_str_repr(elem_ret, { always_include_type_str: true })}`
+                     `=> ` +
+                     (elem_ret === '' 
+                      ? 'ε'
+                      : thing_str_repr(elem_ret, { always_include_type_str: true }))
                     );
           }
 
@@ -9313,8 +9316,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           lm.log(() => `walking ` +
                  `${thing_str_repr(thing, { always_include_type_str: true })} ` + 
                  //`in ${context} ` +
-                 `returned ` +
-                 `${thing_str_repr(obj.value, { always_include_type_str: true })}`);
+                 `=> ` +
+                 (obj.value === '' 
+                  ? 'ε'
+                  : thing_str_repr(obj.value), { always_include_type_str: true }));
 
       return obj.value;
     }
@@ -9343,8 +9348,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   if (log_level__expand_and_walk)
     lm.log(() => `expanding wildcards in ` +
            `${thing_str_repr(thing)} ` + 
-           `returned ` +
-           `${thing_str_repr(ret, { always_include_type_str: true })}`);
+           `=> ` +
+           (ret === '' 
+            ? 'ε'
+            : thing_str_repr(ret, { always_include_type_str: true })));
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
