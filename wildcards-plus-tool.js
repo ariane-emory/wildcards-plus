@@ -9130,8 +9130,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               : 'prior_pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
-        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                           context)).toLowerCase()];
+        const walked    = picker_priority[lm.indent(() =>
+          expand_wildcards(thing.limited_content,
+                           context,
+                           { correct_articles: false })).toLowerCase()];
 
         if (! picker_priority_descriptions.includes(walked))
           throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
@@ -9140,9 +9142,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[cur_key]   = walked;
 
         if (log_configuration_enabled)
-          lm.log(() => 
-            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-              `${inspect_fun(walked)}.`);
+          lm.log(() => `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                 `${inspect_fun(walked)}.`);
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9170,7 +9171,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+        throw new ThrownReturn(lm.indent(() => smart_join(walk(res.value, 
+                                                               { correct_articles: false }))));
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
