@@ -8837,11 +8837,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let intercalate_options = {}
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
 
-        lm.indent(() => {
-          lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-          lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
-          lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
-        });
+        if (log_level__expand_and_walk >= 2)
+          lm.indent(() => {
+            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
+          });
 
         if (thing.joiner === '&') {
           effective_joiner = ',';
