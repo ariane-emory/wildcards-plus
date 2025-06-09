@@ -9433,7 +9433,7 @@ function audit_semantics(root_ast_node,
 
     if (log_level__audit >= 2)
       lm.log(() => `audit semantics in ${thing.constructor.name} ` +
-             `'${abbreviate(compress(thing.toString()), 200)}', ` +
+             `'${abbreviate(compress(thing_str_repr(thing)))}', ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
