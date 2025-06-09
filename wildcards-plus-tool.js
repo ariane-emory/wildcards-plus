@@ -8980,7 +8980,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const expanded_value = lm.indent(() =>
             // don't correct articles in config values so that we don't mess up, e.g.,
             // %sampled = { Euler A AYS };
-            expand_wildcards(thing.value, context, // not walk!
+            expand_wildcards(thing.value, context, // not walk because we're going to parse it as JSON
                              { correct_articles: false })); 
 
           const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
