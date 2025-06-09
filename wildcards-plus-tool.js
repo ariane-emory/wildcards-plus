@@ -9059,7 +9059,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 lm.log(() => `current value in key ${inspect_fun(our_name)} = ` + 
                        `${inspect_fun(context.configuration[our_name])}, ` +      
                        `increment by object ${inspect_fun(value)}, ` +             
-                       `total ${inspect_fun(new_arr)}`); 
+                       `total ${inspect_fun(new_obj)}`); 
 
               context.configuration[our_name] = new_obj;
             }
@@ -9072,10 +9072,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                           `in key ${inspect_fun(our_name)}`);
 
               if (log_expand_and_walk_enabled >= 2)
-                lm.log(() => 
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by number ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by number ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
               
               context.configuration[our_name] = tmp_num + value;
             }
@@ -9088,10 +9087,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                           `in key ${inspect_fun(our_name)}`);
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(() => 
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by string ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by string ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
 
               context.configuration[our_name] =
                 lm.indent(() => smart_join([tmp_str, value],
@@ -9101,10 +9099,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // probly won't work most of the time, but let's try anyhow, I guess.
 
               if (log_level__expand_and_walk >= 2)
-                lm.log(() => 
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                    `increment by unknown ${inspect_fun(value)}, ` +
-                    `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+                lm.log(() => `current value ${inspect_fun(context.configuration[our_name])}, ` +
+                       `increment by unknown ${inspect_fun(value)}, ` +
+                       `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
               context.configuration[our_name] = (context.configuration[our_name]??null) + value;
             }
