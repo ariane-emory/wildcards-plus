@@ -3507,19 +3507,29 @@ function rjson_stringify(obj) {
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
-// smart_join_trap_target = 1;
+smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
+  const maybe_trap = ()  => {
+    if (smart_join_trap_counter === smart_join_trap_target) {
+      throw new Error(`SMART_JOIN TRAPPED`);
+      
+      throw stop(); 
+    }
+  }
+
   smart_join_trap_counter += 1;
+
 
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
     lm.log(() => `smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
-
+  maybe_trap();
+  
   if (! arr || typeof arr === 'string')
     return arr;
 
@@ -3532,12 +3542,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return '';
   else if (arr.length === 1)
     return arr[0];
-
-  if (smart_join_trap_counter === smart_join_trap_target) {
-    lm.log(() => `SMART_JOIN TRAPPED`, false);
-    
-    throw stop(); 
-  }
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -5679,6 +5683,7 @@ const prelude_text = `
 | !wizards_artist.#gilbert_garcin
 | !wizards_artist.#michael_and_inessa_garmash
 | !wizards_artist.#antoni_gaudi
+| !wizards_artist.#jack_gaughan
 | !wizards_artist.#paul_gauguin
 | !wizards_artist.#giovanni_battista_gaulli
 | !wizards_artist.#anne_geddes
@@ -9381,12 +9386,12 @@ function audit_semantics(root_ast_node,
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children?.length > 0) {
-        if (log_level__audit >= 2)
-          lm.log(() => `children: ${abbreviate(children.map(thing_str_repr).toString())}`);
+        // if (log_level__audit >= 2)
+        //   lm.log(() => `children: ${abbreviate(children.map(thing_str_repr).toString())}`);
 
-        lm.indent(() => {
-          walk(children, mode);
-        }); // propagate arg
+        // lm.indent(() => {
+        walk(children, mode);
+        // }); // propagate arg
       }
     }
     // ---------------------------------------------------------------------------------------------
@@ -9430,10 +9435,10 @@ function audit_semantics(root_ast_node,
     }
     
     visited.add(thing);
-
     if (log_level__audit >= 2)
-      lm.log(() => `audit semantics in ${thing.constructor.name} ` +
-             `'${abbreviate(compress(thing_str_repr(thing, { length: 200})))}', ` +
+      lm.log(() => `audit semantics in ` +
+             // `${thing.constructor.name} ` +
+             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
@@ -9463,7 +9468,9 @@ function audit_semantics(root_ast_node,
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
+        // lm.indent(() =>
+        walk(got, audit_semantics_mode)
+        // ); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -10917,3 +10924,4 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
+lm.log(() => thing_str_repr([ 'foo', 'bar', 'baz' ]));
