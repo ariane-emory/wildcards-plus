@@ -4198,7 +4198,7 @@ function get_other_name(return_key, find_key, find_value) {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // didn't find it on either sise, just return the argument:
+  // didn't find it on either side, just return the argument:
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
