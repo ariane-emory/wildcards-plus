@@ -4080,7 +4080,8 @@ const configuration_key_names = [
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
     expected_type: 'string',
     shorthands: ['neg', 'negative' ], },
-  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior' }, // expected_type?
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior',
+    expected_type: 'boolean', }, 
   { dt_name: 'numFrames',                         automatic1111_name: 'num_frames',
     expected_type: 'number', },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
@@ -4094,7 +4095,8 @@ const configuration_key_names = [
     expected_type: 'number', },
   { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift',
     expected_type: 'boolean', },
-  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode', }, // expected_type?
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode',
+    expected_type: 'number', }, 
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
     expected_type: 'boolean', 
     shorthands: [ 'separate_clipl', ] },  
