@@ -3965,36 +3965,54 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
-  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
-  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
-  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'controls',                          automatic1111_name: 'controls',
+    expected_type: 'Array' },
+  { dt_name: 'fps',                               automatic1111_name: 'fps',
+    expected_type: 'number' },
+  { dt_name: 'loras',                             automatic1111_name: 'loras',
+    expected_type: 'Array' },
+  { dt_name: 'model',                             automatic1111_name: 'model',
+    expected_type: 'string' },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt',
+    expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
-  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
-  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
-  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
-  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
-
+    shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
+  { dt_name: 'seed',                              automatic1111_name: 'seed',
+    expected_type: 'number' },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness',
+    expected_type: 'number' },
+  { dt_name: 'shift',                             automatic1111_name: 'shift',
+    expected_type: 'number' },
+  { dt_name: 'strength',                          automatic1111_name: 'strength',
+    expected_type: 'number' },
+  { dt_name: 'steps',                             automatic1111_name: 'steps',
+    expected_type: 'number' },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler',
+    expected_type: 'string' },
   { dt_name: 'height',                            automatic1111_name: 'height',
-    shorthands: [ 'h', 'ih', ] },
+    shorthands: [ 'h', 'ih', ],
+    expected_type: 'number', },
   { dt_name: 'width',                             automatic1111_name: 'width',
-    shorthands: [ 'w', 'iw', ] },
+    shorthands: [ 'w', 'iw', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
-    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ] },
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
-    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ] },
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ],
+    expected_type: 'number', },
   { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
-    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+    shorthands: [ 'oih', 'oh', 'originalHeight', ],
+    expected_type: 'number', },
   { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
-    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ],
+    expected_type: 'number', },
   { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
-    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+    shorthands: [ 'tih', 'th', 'targetHeight', ],
+    expected_type: 'number', },
   { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
-    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ],
+    expected_type: 'number', },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
@@ -4925,7 +4943,7 @@ const prelude_text = `
 { %w   = 832;   %h    = 1216;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
-  %nw  = 179,;  %nh   = 1344;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4940,7 +4958,8 @@ const prelude_text = `
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHei// "hiresFix": false
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
 // }
 
 @xl_magic_medium_2_to_3_os6 =
@@ -8682,7 +8701,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
     return lm.indent(() => {
-      const ret = walk(pick?.body ?? '', { correct_articles: correct_articles });
+      const ret = pick?.body
+            ? walk(pick.body, { correct_articles: correct_articles })
+            : '';
 
       // if (log_level__expand_and_walk >= 2)
       //   lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +

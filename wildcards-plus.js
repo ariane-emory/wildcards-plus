@@ -2644,13 +2644,13 @@ RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // =================================================================================================
 const always = () => true;
 const never  = () => false;
+const id     = x  => x;
 const picker_priority = Object.freeze({
   avoid_repetition_short:        'Avoiding repetition (short term only)',
   avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
-const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -3044,9 +3044,12 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function capitalize(string) {
-  // lm.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-  return string.charAt(0).toUpperCase() + string.slice(1);
+function capitalize(str) {
+  // lm.log(`Capitalizing ${typeof str} ${inspect_fun(str)}`);
+  if (str === '')
+    return str;
+  
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 // -------------------------------------------------------------------------------------------------
 function choose_indefinite_article(word) {
@@ -3097,17 +3100,16 @@ function count_occurrences(arr) {
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
-
   const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
+  let   abs_bytes = Math.abs(bytes);
 
   let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
+  while (abs_bytes >= base && i < units.length - 1) {
+    abs_bytes /= base;
     i++;
   }
 
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  const value = abs_bytes.toFixed(2).replace(/\.?0+$/, '');
   return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3273,6 +3275,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
+  if (typeof arr == 'string')
+    throw new Error(`got string`);
+  
   maybe_trap();
   
   if (! arr || typeof arr === 'string')
@@ -4656,7 +4661,7 @@ const prelude_text = `
 { %w   = 832;   %h    = 1216;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
-  %nw  = 179,;  %nh   = 1344;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4671,7 +4676,8 @@ const prelude_text = `
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHei// "hiresFix": false
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
 // }
 
 @xl_magic_medium_2_to_3_os6 =
@@ -4686,8 +4692,8 @@ const prelude_text = `
   #xl_magic_object_scaling.6
 }
 // {
-// "width": 832,
-// "height": 1216,
+// "width": 1024,
+// "height": 1024,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
 // "targetImageWidth": 1536,
@@ -8381,7 +8387,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8413,7 +8419,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
     return lm.indent(() => {
-      const ret = walk(pick?.body ?? '', { correct_articles: correct_articles });
+      const ret = pick?.body
+            ? walk(pick.body, { correct_articles: correct_articles })
+            : '';
 
       // if (log_level__expand_and_walk >= 2)
       //   lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
@@ -8451,7 +8459,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
     if (typeof thing === 'string') {
       if (log_level__expand_and_walk)
-        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+        lm.log(`nothing to walk in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
       return thing;
     }
 
@@ -8623,15 +8631,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
 
-        if (false)
-          lm.log(`scalar ref $${thing.name} = ${inspect_fun(got)}`);
-
         if (thing.capitalize)
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer],
-                           { correct_articles: false });
+          lm.indent(() => got = smart_join([got, thing.trailer],
+                                           { correct_articles: false }));
         // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
@@ -8722,9 +8727,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           //   lm.log(`assigning ${thing_str_repr(thing.source)} ` +
           //          `to '${thing.destination.name}'`);
           
-          let new_val = smart_join(walk(thing.source,
-                                        { correct_articles: correct_articles }),
-                                   { correct_articles: correct_articles });
+          let new_val = walk(thing.source,
+                             { correct_articles: correct_articles });
 
           if (! thing.assign) {
             const old_val = context.scalar_variables.get(thing.destination.name)??'';
@@ -8916,8 +8920,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[cur_key]   = walked;
 
         if (log_configuration_enabled)
-          lm.log(`Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                 `${inspect_fun(walked)}.`);
+          lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                 `${inspect_fun(walked)}.`));
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -8945,8 +8949,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        let str = lm.indent(() => smart_join(walk(res.value, { correct_articles: correct_articles }),
-                                             { correct_articles: correct_articles }));
+        let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -9762,7 +9765,7 @@ class ASTSetPickMultiple extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-multiple = ${this.limited_content}`;
+    return `%multi-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9779,7 +9782,7 @@ class ASTSetPickSingle extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-single = ${this.limited_content}`;
+    return `%single-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9791,7 +9794,7 @@ class ASTRevertPickMultiple extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%revert-pick-multiple`;
+    return `%revert-pick-multi`;
   }
 }
 // -------------------------------------------------------------------------------------------------
