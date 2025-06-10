@@ -9136,6 +9136,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (thing instanceof ASTUpdateConfigurationUnary) { 
           let new_obj = value;
 
+          const warnings = [];
+          
           for (const key_name of Object.keys(value)) {
             const our_entry = get_our_configuration_key_entry(key_name);
             const our_name  = our_entry
@@ -9144,15 +9146,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             
             new_obj[our_name] = value[key_name];
 
+            
             // probably validate types here
           }
+
+          if (warnings.length > 0)
+            throw new ThrownReturn(warnings.join(' '));
           
           context.configuration = thing.assign
             ? new_obj
             : { ...context.configuration, ...new_obj };
 
           if (log_configuration_enabled)
-            lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
+                lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
                                    `${inspect_fun(new_obj, true)}`,
                                    log_level__expand_and_walk));
         }
@@ -9161,7 +9167,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const our_name  = our_entry
                 ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                 : thing.key;
-          // const our_name = get_our_configuration_key_name(thing.key); 
 
           lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
