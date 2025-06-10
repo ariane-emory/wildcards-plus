@@ -4145,66 +4145,66 @@ const configuration_key_names = [
     shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_other_name(return_key, find_key, find_value) {
+function get_other_name(desired_key, needle_key, needle_value) {
   if (log_name_lookups_enabled)
-    lm.log(`\nLOOKING UP ${return_key} FOR ` +
-           `${inspect_fun(find_key)} ` +
-           `${inspect_fun(find_value)}`);
+    lm.log(`\nLOOKING UP ${desired_key} FOR ` +
+           `${inspect_fun(needle_key)} ` +
+           `${inspect_fun(needle_value)}`);
 
-  let find_value_lc = find_value.toLowerCase();
+  let needle_value_lc = needle_value.toLowerCase();
 
   // -----------------------------------------------------------------------------------------------
-  // is find_value a shorthand?
+  // is needle_value a shorthand?
   // -----------------------------------------------------------------------------------------------
-  let got     = configuration_key_names.find(obj => 
-    obj?.shorthands?.includes(find_value_lc))
+  let entry     = configuration_key_names.find(obj => 
+    obj?.shorthands?.includes(needle_value_lc))
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(entry[desired_key])}\n`);
 
-    return got[return_key];
+    return entry[desired_key];
   }
 
   // -----------------------------------------------------------------------------------------------
   // is it just miscapitalized?
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => {
+  entry = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-             `${inspect_fun(find_value_lc)} = ` +
-             `${obj[return_key].toLowerCase() === find_value_lc}`);
-    return obj[return_key].toLowerCase() === find_value_lc;
+      lm.log(`test ${inspect_fun(obj[desired_key].toLowerCase())} === ` +
+             `${inspect_fun(needle_value_lc)} = ` +
+             `${obj[desired_key].toLowerCase() === needle_value_lc}`);
+    return obj[desired_key].toLowerCase() === needle_value_lc;
   });
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${desired_key} ${inspect_fun(entry[desired_key])}\n`);
     
-    return got[return_key];
+    return entry[desired_key];
   } 
 
   // -----------------------------------------------------------------------------------------------
   // look up the alternate key:
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+  entry = configuration_key_names.find(obj => obj[needle_key].toLowerCase() === needle_value_lc);
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`GOT ${return_key} FOR ` +
-             `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+      lm.log(`ENTRY ${desired_key} FOR ` +
+             `${inspect_fun(needle_key)} ${inspect_fun(needle_value)}`);
     
-    return got[return_key];
+    return entry[desired_key];
   }
 
   // -----------------------------------------------------------------------------------------------
   // didn't find it on either sise, just return the argument:
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+    lm.log(`RETURNING ARGUMENT ${inspect_fun(needle_value)}\n`);
 
   // possibly an error? maybe not always.
-  return find_value;
+  return needle_value;
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
