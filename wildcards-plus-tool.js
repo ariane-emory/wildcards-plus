@@ -9450,7 +9450,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     const walked = walk(thing,
                         { correct_articles: correct_articles })
 
-    ret = unescape(walked).replace(/^[<]+/, '');
+    ret = unescape(walked.replace(/^[<]+/, ''));
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
 
     context.munge_configuration();
