@@ -9505,7 +9505,7 @@ const audit_semantics_modes = Object.freeze({
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, noisy = false,
+                         { base_context = null, 
                            audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
@@ -9524,10 +9524,6 @@ function audit_semantics(root_ast_node,
         !Array.isArray(errors_arr))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
-    const log = (msg_thunk, indent = true) => {
-      if (noisy)
-        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
-    };
     function walk_children(thing, mode, errors_arr) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
