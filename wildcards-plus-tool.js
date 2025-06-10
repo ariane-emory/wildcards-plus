@@ -4186,7 +4186,7 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the alternate key:
+  // look up the needle_key:
   // -----------------------------------------------------------------------------------------------
   entry = configuration_key_names.find(obj => obj[needle_key].toLowerCase() === needle_value);
 
@@ -4199,7 +4199,7 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // didn't find it on either sise, just return the argument:
+  // didn't find it on either side, just return the argument:
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
     lm.log(`RETURNING ARGUMENT ${inspect_fun(needle_value)}\n`);
