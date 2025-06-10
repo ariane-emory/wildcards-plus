@@ -5013,7 +5013,7 @@ const prelude_text = `
 { %w   = 832;   %h    = 1216;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
-  %nw  = 179,;  %nh   = 1344;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
