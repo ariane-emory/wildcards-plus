@@ -4516,7 +4516,7 @@ class Context {
       }
     }
     // when running in Node.js, sampler needs to be a string:
-    else if (typeof munged_configuration.sampler === 'number') {
+    else if (!dt_hosted && typeof munged_configuration.sampler === 'number') {
       lm.log(`correcting munged_configuration.sampler = ` +
              `${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ` +
