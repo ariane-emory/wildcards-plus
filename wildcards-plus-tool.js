@@ -4205,34 +4205,34 @@ function get_configuration_key_entry(preferred_needle_key, alternate_needle_key,
   return null;
 }
 // -------------------------------------------------------------------------------------------------
-function get_configuration_key_entry_prefer_dt_name(name) {
-  return get_configuration_key_entry('dt_name', 'automatic1111_name', name);
+function get_configuration_key_entry_prefer_dt_name(key_name) {
+  return get_configuration_key_entry('dt_name', 'automatic1111_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_configuration_key_entry_prefer_automatic1111_name(name) {
-  return get_configuration_key_entry('automatic1111_name', 'dt_name', name);
+function get_configuration_key_entry_prefer_automatic1111_name(key_name) {
+  return get_configuration_key_entry('automatic1111_name', 'dt_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_our_configuration_key_entry(name) {
+function get_our_configuration_key_entry(key_name) {
   return (dt_hosted
-          ? get_configuration_key_entry_prefer_dt_name(name)
-          : get_configuration_key_entry_prefer_automatic1111_name(name));
+          ? get_configuration_key_entry_prefer_dt_name(key_name)
+          : get_configuration_key_entry_prefer_automatic1111_name(key_name));
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(name) {
-  const entry = get_configuration_key_entry_prefer_dt_name(name);
-  return entry ? entry['dt_name'] : name;
+function get_dt_name(key_name) {
+  const entry = get_configuration_key_entry_prefer_dt_name(key_name);
+  return entry ? entry['dt_name'] : key_name;
 }
 // -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
-  const entry = get_configuration_key_entry_prefer_automatic1111_name(name);
-  return entry ? entry['automatic1111_name'] : name;
+function get_automatic1111_name(key_name) {
+  const entry = get_configuration_key_entry_prefer_automatic1111_name(key_name);
+  return entry ? entry['automatic1111_name'] : key_name;
 }
 // -------------------------------------------------------------------------------------------------
-function get_our_name(name) {
+function get_our_name(key_name) {
   return (dt_hosted
           ? get_dt_name
-          : get_automatic1111_name)(name);
+          : get_automatic1111_name)(key_name);
 
   return res;
 }
