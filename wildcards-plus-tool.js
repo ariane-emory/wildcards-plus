@@ -4205,36 +4205,36 @@ function get_configuration_key_entry(preferred_needle_key, alternate_needle_key,
   return null;
 }
 // -------------------------------------------------------------------------------------------------
-function get_configuration_key_entry_prefer_dt_name(key_name) {
+function get_configuration_key_entry_prefer_dt_configuration_key_name(key_name) {
   return get_configuration_key_entry('dt_name', 'automatic1111_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_configuration_key_entry_prefer_automatic1111_name(key_name) {
+function get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name) {
   return get_configuration_key_entry('automatic1111_name', 'dt_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_configuration_key_entry(key_name) {
   return (dt_hosted
-          ? get_configuration_key_entry_prefer_dt_name(key_name)
-          : get_configuration_key_entry_prefer_automatic1111_name(key_name));
+          ? get_configuration_key_entry_prefer_dt_configuration_key_name(key_name)
+          : get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name));
 }
+// // -------------------------------------------------------------------------------------------------
+// function get_dt_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_dt_configuration_key_name(key_name);
+//   return entry ? entry['dt_name'] : key_name;
+// }
+// // -------------------------------------------------------------------------------------------------
+// function get_automatic1111_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name);
+//   return entry ? entry['automatic1111_name'] : key_name;
+// }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(key_name) {
-  const entry = get_configuration_key_entry_prefer_dt_name(key_name);
-  return entry ? entry['dt_name'] : key_name;
-}
-// -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(key_name) {
-  const entry = get_configuration_key_entry_prefer_automatic1111_name(key_name);
-  return entry ? entry['automatic1111_name'] : key_name;
-}
-// -------------------------------------------------------------------------------------------------
-function get_our_name(key_name) {
-  return (dt_hosted
-          ? get_dt_name
-          : get_automatic1111_name)(key_name);
+function get_our_configuration_key_name(key_name) {
+  const entry = get_our_configuration_key_entry(key_name); 
 
-  return res;
+  return (entry
+          ? entry[dt_hosted ? 'dt_name' : 'automatic1111_name']
+          : name)
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
@@ -4523,7 +4523,7 @@ class Context {
     // 'fix' seed if n_iter > 1, doing this seems convenient?
     if (! munged_configuration.seed ||
         (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
-      const n_iter_key = get_our_name('n_iter');
+      const n_iter_key = get_our_configuration_key_name('n_iter');
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
@@ -9137,7 +9137,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           let new_obj = value;
 
           for (const key of Object.keys(value)) 
-            new_obj[get_our_name(key)??key] = value[key]
+            new_obj[get_our_configuration_key_name(key)??key] = value[key]
           
           context.configuration = thing.assign
             ? new_obj
@@ -9149,7 +9149,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                    log_level__expand_and_walk));
         }
         else { // ASTUpdateConfigurationBinary
-          const our_name = get_our_name(thing.key); 
+          const our_name = get_our_configuration_key_name(thing.key); 
           
           if (thing.assign) {
             context.configuration[our_name] = value;
@@ -10096,7 +10096,7 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
+    return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
