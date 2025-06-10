@@ -9134,7 +9134,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
 
         if (thing instanceof ASTUpdateConfigurationUnary) { 
-          let new_obj = value;
+          let new_obj = {};
 
           const warnings = [];
           
@@ -9143,24 +9143,34 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             const our_name  = our_entry
                   ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                   : key_name;
+
+            if (our_entry?.expected_type &&
+                typeof value[key_name] !== our_entry.expected_type) {
+              warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
+                                        `${inspect_fun(value[key_name])} ` + 
+                                        `to configuration key '${our_name}', ` +
+                                        `expected ${our_entry.expected_type}`));
+              // throw new Error('stop');
+              continue;
+            }
+
+            lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
             
             new_obj[our_name] = value[key_name];
-
             
             // probably validate types here
           }
 
-          if (warnings.length > 0)
-            throw new ThrownReturn(warnings.join(' '));
-          
           context.configuration = thing.assign
             ? new_obj
             : { ...context.configuration, ...new_obj };
 
           if (log_configuration_enabled)
                 lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
-                                   `${inspect_fun(new_obj, true)}`,
-                                   log_level__expand_and_walk));
+                                       `${inspect_fun(new_obj, true)}`,
+                                       log_level__expand_and_walk));
+          if (warnings.length > 0)
+            throw new ThrownReturn(warnings.join(' '));          
         }
         else { // ASTUpdateConfigurationBinary
           const our_entry = get_our_configuration_key_entry(thing.key);
@@ -9170,7 +9180,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
           lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
-          if (our_entry.expected_type &&
+          if (our_entry?.expected_type &&
               typeof value !== our_entry.expected_type)
             throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
                                                `${inspect_fun(value)} ` + 
