@@ -9570,8 +9570,9 @@ function audit_semantics(root_ast_node,
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template.` +
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+                    `maybe this is intentional, but it could suggest that you may made have ` +
+                    `a typo or other error in your template.` +
                     (suggestion
                      ? ` ${suggestion}`
                      : ''),
@@ -9633,8 +9634,8 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`,
+                        `this suggests that you may have a made typo or other error in your ` +
+                        `template. ${suggestion}`,
                         errors_arr);
         }
         
