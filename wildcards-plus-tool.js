@@ -4234,7 +4234,7 @@ function get_our_configuration_key_name(key_name) {
 
   return (entry
           ? entry[dt_hosted ? 'dt_name' : 'automatic1111_name']
-          : name)
+          : name);
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
