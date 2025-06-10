@@ -4530,34 +4530,30 @@ class Context {
     }
 
     // 'fix' seed if n_iter > 1, doing this seems convenient?
-    if (! munged_configuration.seed ||
-        (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
-      const n_iter_key = get_our_configuration_key_name('n_iter');
+    const n_iter_key = get_our_configuration_key_name('n_iter');
+    const n_iter_val = munged_configuration[n_iter_key];
 
-      if (munged_configuration[n_iter_key] &&
-          typeof munged_configuration[n_iter_key] === 'number' &&
-          munged_configuration[n_iter_key] > 1) {
-        if (log_configuration_enabled)
-          lm.log(`%seed = -1 due to n_iter > 1`,
-                 log_level__expand_and_walk);
+    if (n_iter_val > 1 && munged_configuration.seed !== -1) {
+      if (log_configuration_enabled)
+        lm.log(`%seed = -1 due to n_iter > 1`,
+               log_level__expand_and_walk);
 
-        munged_configuration.seed = -1;
-      }
-      else if (typeof munged_configuration.seed !== 'number') {
-        const random = Math.floor(Math.random() * (2 ** 32));
-        
-        if (log_configuration_enabled)
-          lm.log(`%seed = ${random} due to no seed`,
-                 log_level__expand_and_walk);
-
-        munged_configuration.seed = random;
-      }
+      munged_configuration.seed = -1;
     }
+    else if (typeof munged_configuration.seed !== 'number') {
+      const random = Math.floor(Math.random() * (2 ** 32));
+      
+      if (log_configuration_enabled)
+        lm.log(`%seed = ${random} due to no seed`,
+               log_level__expand_and_walk);
+
+      munged_configuration.seed = random;
+    }    
 
     // if (log_configuration_enabled)
     //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
-    this.configuration =  munged_configuration;
+    this.configuration = munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
