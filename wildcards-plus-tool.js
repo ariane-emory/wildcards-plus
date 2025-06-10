@@ -4146,9 +4146,9 @@ const configuration_key_names = [
     shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_entry(desired_key, needle_key, needle_value) {
+function get_entry(needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
-    lm.log(`\nLOOKING UP ${desired_key} FOR ` +
+    lm.log(`\nLOOKING UP ${alternate_needle_key} FOR ` +
            `${inspect_fun(needle_key)} ` +
            `${inspect_fun(needle_value)}`);
 
@@ -4172,15 +4172,15 @@ function get_entry(desired_key, needle_key, needle_value) {
   // -----------------------------------------------------------------------------------------------
   entry = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[desired_key].toLowerCase())} === ` +
+      lm.log(`test ${inspect_fun(obj[alternate_needle_key].toLowerCase())} === ` +
              `${inspect_fun(needle_value_lc)} = ` +
-             `${obj[desired_key].toLowerCase() === needle_value_lc}`);
-    return obj[desired_key].toLowerCase() === needle_value_lc;
+             `${obj[alternate_needle_key].toLowerCase() === needle_value_lc}`);
+    return obj[alternate_needle_key].toLowerCase() === needle_value_lc;
   });
 
   if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${desired_key} ${inspect_fun(entry[desired_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${alternate_needle_key} ${inspect_fun(entry[alternate_needle_key])}\n`);
     
     return entry;
   } 
@@ -4192,7 +4192,7 @@ function get_entry(desired_key, needle_key, needle_value) {
 
   if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`ENTRY ${desired_key} FOR ` +
+      lm.log(`ENTRY ${alternate_needle_key} FOR ` +
              `${inspect_fun(needle_key)} ${inspect_fun(needle_value)}`);
     
     return entry;
@@ -4209,14 +4209,14 @@ function get_entry(desired_key, needle_key, needle_value) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  const entry = get_entry('dt_name', 'automatic1111_name', name);
+  const entry = get_entry('automatic1111_name', 'dt_name', name);
   return entry
     ? entry['dt_name']
     : name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  const entry = get_entry('automatic1111_name', 'dt_name', name);
+  const entry = get_entry('dt_name', 'automatic1111_name', name);
   return entry
     ? entry['automatic1111_name']
     : name;
