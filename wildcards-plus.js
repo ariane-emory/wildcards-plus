@@ -2644,13 +2644,13 @@ RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // =================================================================================================
 const always = () => true;
 const never  = () => false;
+const id     = x  => x;
 const picker_priority = Object.freeze({
   avoid_repetition_short:        'Avoiding repetition (short term only)',
   avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
-const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -3044,9 +3044,12 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function capitalize(string) {
-  // lm.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-  return string.charAt(0).toUpperCase() + string.slice(1);
+function capitalize(str) {
+  // lm.log(`Capitalizing ${typeof str} ${inspect_fun(str)}`);
+  if (str === '')
+    return str;
+  
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 // -------------------------------------------------------------------------------------------------
 function choose_indefinite_article(word) {
@@ -3097,17 +3100,16 @@ function count_occurrences(arr) {
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
-
   const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
+  let   abs_bytes = Math.abs(bytes);
 
   let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
+  while (abs_bytes >= base && i < units.length - 1) {
+    abs_bytes /= base;
     i++;
   }
 
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  const value = abs_bytes.toFixed(2).replace(/\.?0+$/, '');
   return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3273,6 +3275,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
+  if (typeof arr == 'string')
+    throw new Error(`got string`);
+  
   maybe_trap();
   
   if (! arr || typeof arr === 'string')
@@ -3696,188 +3701,276 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
-  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
-  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
-  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'controls',                          automatic1111_name: 'controls',
+    expected_type: 'object' },
+  { dt_name: 'fps',                               automatic1111_name: 'fps',
+    expected_type: 'number' },
+  { dt_name: 'loras',                             automatic1111_name: 'loras',
+    expected_type: 'object' },
+  { dt_name: 'model',                             automatic1111_name: 'model',
+    expected_type: 'string' },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt',
+    expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
-  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
-  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
-  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
-  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
-
+    shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
+  { dt_name: 'seed',                              automatic1111_name: 'seed',
+    expected_type: 'number' },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness',
+    expected_type: 'number' },
+  { dt_name: 'shift',                             automatic1111_name: 'shift',
+    expected_type: 'number' },
+  { dt_name: 'strength',                          automatic1111_name: 'strength',
+    expected_type: 'number' },
+  { dt_name: 'steps',                             automatic1111_name: 'steps',
+    expected_type: 'number' },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler',
+    expected_type: 'string' },
   { dt_name: 'height',                            automatic1111_name: 'height',
-    shorthands: [ 'h', 'ih', ] },
+    shorthands: [ 'h', 'ih', ],
+    expected_type: 'number', },
   { dt_name: 'width',                             automatic1111_name: 'width',
-    shorthands: [ 'w', 'iw', ] },
+    shorthands: [ 'w', 'iw', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
-    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ] },
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
-    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ] },
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ],
+    expected_type: 'number', },
   { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
-    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+    shorthands: [ 'oih', 'oh', 'originalHeight', ],
+    expected_type: 'number', },
   { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
-    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ],
+    expected_type: 'number', },
   { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
-    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+    shorthands: [ 'tih', 'th', 'targetHeight', ],
+    expected_type: 'number', },
   { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
-    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ],
+    expected_type: 'number', },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
-  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
-  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
-  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
+  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score',
+    expected_type: 'number', },
+  // { dt_name: 'batchCount',                        automatic1111_name: 'batch_count',
+  //   expected_type: 'number', },
+  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter',
+    expected_type: 'number',
+    shorthands: [ 'batch_count' ], },
+  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size',
+    expected_type: 'number', },
   { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
-    shorthands: [ 'clip_l', 'clipl' ] },
-  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
-  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
-  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
-  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
-  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
-  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
-  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
-  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
-  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
-  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
-  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+    expected_type: 'string',
+    shorthands: [ 'clip_l', 'clipl' ], },
+  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip',
+    expected_type: 'number' },
+  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight',
+    expected_type: 'number', },
+  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left',
+    expected_type: 'number', },
+  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width',
+    expected_type: 'number', },
+  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed', },
   { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
-    shorthands: [ 'guidance',                                                                                    ] },
-  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+    expected_type: 'number',
+    shorthands: [ 'guidance', ], },
+  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug',
+    expected_type: 'number' },
   { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-    shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
-  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height', /*_explanation', */
-    shorthands: [ 'firstphase_height', 'hrfh', ] },
+    expected_type: 'boolean',
+    shorthands: [ 'enable_hr', 'hrf' ], },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height',
+    expected_type: 'number',
+    shorthands: [ 'firstphase_height', 'hrfh', ], },
   { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail',
+    expected_type: 'number',
     shorthands: [ 'hrf_strength', ] },
-  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width', /*_explanation', */
-    shorthands: [ 'firstphase_width', 'hrfw', ] },
-  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width',
+    expected_type: 'number',
+    shorthands: [ 'firstphase_width', 'hrfw', ], },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance',
+    expected_type: 'number', },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps',
+    expected_type: 'number', },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur',
+    expected_type: 'number', },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset',
+    expected_type: 'number', },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale',
+    expected_type: 'number', },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score',
+    expected_type: 'number', },
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-    shorthands: ['neg', 'negative' ] },
-  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+    expected_type: 'string',
+    shorthands: ['neg', 'negative' ], },
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior',
+    expected_type: 'boolean', }, 
+  { dt_name: 'numFrames',                         automatic1111_name: 'num_frames',
+    expected_type: 'number', },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+    expected_type: 'string',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg', ] },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint',
+    expected_type: 'boolean', },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'refiner_model',
+    expected_type: 'string', },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start',
+    expected_type: 'number', },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift',
+    expected_type: 'boolean', },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode',
+    expected_type: 'number', }, 
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-    shorthands: [ 'separate_clipl',                                                                              ] },  
+    expected_type: 'boolean', 
+    shorthands: [ 'separate_clipl', ] },  
   { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+    expected_type: 'boolean',
+    shorthands: [ 'separate_clipg', 'separate_clip_g', ] },
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5',
+    expected_type: 'boolean', },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed',
+    expected_type: 'boolean', },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg',
+    expected_type: 'number', },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift',
+    expected_type: 'number', },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps',
+    expected_type: 'number', },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance',
+    expected_type: 'number', },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling',
+    expected_type: 'number', },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength',
+    expected_type: 'number', },
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-    shorthands: [ 't5' ] },
-  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+    expected_type: 'string',
+    shorthands: [ 't5' ], },
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder',
+    expected_type: 'boolean', },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache',
+    expected_type: 'boolean', },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold',
+    expected_type: 'number', },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding',
+    expected_type: 'boolean', },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion',
+    expected_type: 'boolean', },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor',
+    expected_type: 'number', },
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
+    expected_type: 'boolean',
     shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_other_name(return_key, find_key, find_value) {
+function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
-    lm.log(`\nLOOKING UP ${return_key} FOR ` +
-           `${inspect_fun(find_key)} ` +
-           `${inspect_fun(find_value)}`);
+    lm.log(`\nLOOKING UP ${preferred_needle_key} FOR ` +
+           `${inspect_fun(alternate_needle_key)} ` +
+           `${inspect_fun(needle_value)}`);
 
-  let find_value_lc = find_value.toLowerCase();
+  needle_value = needle_value.toLowerCase(); // normalize
 
   // -----------------------------------------------------------------------------------------------
-  // is find_value a shorthand?
+  // is needle_value a shorthand?
   // -----------------------------------------------------------------------------------------------
-  let got     = configuration_key_names.find(obj => 
-    obj?.shorthands?.includes(find_value_lc))
+  let entry = configuration_key_names.find(obj => 
+    obj.shorthands?.includes(needle_value))
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURN FROM SHORTHAND ` +
+             `${inspect_fun(entry)}\n`);
 
-    return got[return_key];
+    return entry;
   }
 
   // -----------------------------------------------------------------------------------------------
-  // is it just miscapitalized?
+  // is it just a miscapitalized preferred_needle_key?
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => {
-    if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-             `${inspect_fun(find_value_lc)} = ` +
-             `${obj[return_key].toLowerCase() === find_value_lc}`);
-    return obj[return_key].toLowerCase() === find_value_lc;
-  });
+  entry = configuration_key_names.find(obj => obj[preferred_needle_key].toLowerCase() === needle_value);
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${preferred_needle_key} ` +
+             `${inspect_fun(entry[preferred_needle_key])}`);
     
-    return got[return_key];
+    return entry;
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the alternate key:
+  // look up the needle_key:
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+  entry = configuration_key_names.find(obj => obj[alternate_needle_key].toLowerCase() === needle_value);
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`GOT ${return_key} FOR ` +
-             `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+      lm.log(`ENTRY ${preferred_needle_key} FOR ` +
+             `${inspect_fun(alternate_needle_key)} ${inspect_fun(needle_value)}`);
     
-    return got[return_key];
+    return entry;
   }
 
   // -----------------------------------------------------------------------------------------------
-  // didn't find it on either sise, just return the argument:
+  // didn't find it on either side, return null.
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+    lm.log(`RETURNING NULL FROM LOOKUP FOR ` +
+           `${inspect_fun(needle_value)}\n`);
 
   // possibly an error? maybe not always.
-  return find_value;
+  return null;
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(name) {
-  return get_other_name('dt_name',            'automatic1111_name', name);
+function get_configuration_key_entry_prefer_dt_configuration_key_name(key_name) {
+  return get_configuration_key_entry('dt_name', 'automatic1111_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
-  return get_other_name('automatic1111_name', 'dt_name',            name);
+function get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name) {
+  return get_configuration_key_entry('automatic1111_name', 'dt_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_our_name(name) {
-  const res = (dt_hosted
-               ? get_dt_name
-               : get_automatic1111_name)(name);
+function get_our_configuration_key_entry(key_name) {
+  return (dt_hosted
+          ? get_configuration_key_entry_prefer_dt_configuration_key_name(key_name)
+          : get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name));
+}
+// // -------------------------------------------------------------------------------------------------
+// function get_dt_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_dt_configuration_key_name(key_name);
+//   return entry ? entry['dt_name'] : key_name;
+// }
+// // -------------------------------------------------------------------------------------------------
+// function get_automatic1111_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name);
+//   return entry ? entry['automatic1111_name'] : key_name;
+// }
+// -------------------------------------------------------------------------------------------------
+function get_our_configuration_key_name(key_name) {
+  const entry = get_our_configuration_key_entry(key_name); 
 
-  // lm.log(`got our name for ${name}: ${res}`);
-  
-  return res;
+  return (entry
+          ? entry[dt_hosted ? 'dt_name' : 'automatic1111_name']
+          : key_name);
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
@@ -4166,7 +4259,7 @@ class Context {
     // 'fix' seed if n_iter > 1, doing this seems convenient?
     if (! munged_configuration.seed ||
         (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
-      const n_iter_key = get_our_name('n_iter');
+      const n_iter_key = get_our_configuration_key_name('n_iter');
 
       if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
@@ -4656,7 +4749,7 @@ const prelude_text = `
 { %w   = 832;   %h    = 1216;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
-  %nw  = 179,;  %nh   = 1344;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -8381,7 +8474,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8451,7 +8544,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
     if (typeof thing === 'string') {
       if (log_level__expand_and_walk)
-        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+        lm.log(`nothing to walk in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
       return thing;
     }
 
@@ -8623,15 +8716,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
 
-        if (false)
-          lm.log(`scalar ref $${thing.name} = ${inspect_fun(got)}`);
-
         if (thing.capitalize)
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer],
-                           { correct_articles: false });
+          lm.indent(() => got = smart_join([got, thing.trailer],
+                                           { correct_articles: false }));
         // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
@@ -8722,9 +8812,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           //   lm.log(`assigning ${thing_str_repr(thing.source)} ` +
           //          `to '${thing.destination.name}'`);
           
-          let new_val = smart_join(walk(thing.source,
-                                        { correct_articles: correct_articles }),
-                                   { correct_articles: correct_articles });
+          let new_val = walk(thing.source,
+                             { correct_articles: correct_articles });
 
           if (! thing.assign) {
             const old_val = context.scalar_variables.get(thing.destination.name)??'';
@@ -8781,11 +8870,29 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
 
         if (thing instanceof ASTUpdateConfigurationUnary) { 
-          let new_obj = value;
-
-          for (const key of Object.keys(value)) 
-            new_obj[get_our_name(key)??key] = value[key]
+          const new_obj  = {};
+          const warnings = [];
           
+          for (const key_name of Object.keys(value)) {
+            const our_entry = get_our_configuration_key_entry(key_name);
+            const our_name  = our_entry
+                  ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                  : key_name;
+
+            if (our_entry?.expected_type &&
+                typeof value[key_name] !== our_entry.expected_type) {
+              warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
+                                        `${inspect_fun(value[key_name])} ` + 
+                                        `to configuration key '${our_name}', ` +
+                                        `expected ${our_entry.expected_type}`));
+              continue;
+            }
+
+            // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
+            
+            new_obj[our_name] = value[key_name];
+          }
+
           context.configuration = thing.assign
             ? new_obj
             : { ...context.configuration, ...new_obj };
@@ -8794,9 +8901,23 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
                                    `${inspect_fun(new_obj, true)}`,
                                    log_level__expand_and_walk));
+          if (warnings.length > 0)
+            throw new ThrownReturn(warnings.join(' '));          
         }
         else { // ASTUpdateConfigurationBinary
-          const our_name = get_our_name(thing.key); 
+          const our_entry = get_our_configuration_key_entry(thing.key);
+          const our_name  = our_entry
+                ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                : thing.key;
+
+          // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
+
+          if (our_entry?.expected_type &&
+              typeof value !== our_entry.expected_type)
+            throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
+                                               `${inspect_fun(value)} ` + 
+                                               `to configuration key '${our_name}', ` +
+                                               `expected ${our_entry.expected_type}`));
           
           if (thing.assign) {
             context.configuration[our_name] = value;
@@ -8916,8 +9037,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[cur_key]   = walked;
 
         if (log_configuration_enabled)
-          lm.log(`Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                 `${inspect_fun(walked)}.`);
+          lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                 `${inspect_fun(walked)}.`));
         
         throw new ThrownReturn(''); // produce nothing
       }
@@ -8945,8 +9066,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        let str = lm.indent(() => smart_join(walk(res.value, { correct_articles: correct_articles }),
-                                             { correct_articles: correct_articles }));
+        let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -9084,12 +9204,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     const walked = walk(thing,
                         { correct_articles: correct_articles })
 
-    // ret = unescape(smart_join(walked,
-    //                           { correct_articles: correct_articles })).replace(/^</, '');
-
-    ret = unescape(walked).replace(/^[<]+/, '');
-    // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
-    //   unescape probably should too.
+    ret = unescape(walked.replace(/^[<]+/, ''));
 
     context.munge_configuration();
   });
@@ -9744,7 +9859,7 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
+    return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
       `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
   }
 }
@@ -9762,7 +9877,7 @@ class ASTSetPickMultiple extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-multiple = ${this.limited_content}`;
+    return `%multi-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9779,7 +9894,7 @@ class ASTSetPickSingle extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-single = ${this.limited_content}`;
+    return `%single-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9791,7 +9906,7 @@ class ASTRevertPickMultiple extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%revert-pick-multiple`;
+    return `%revert-pick-multi`;
   }
 }
 // -------------------------------------------------------------------------------------------------
