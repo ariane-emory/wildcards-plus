@@ -9156,7 +9156,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const our_name  = our_entry[dt_hosted? 'dt_name' : 'automatic1111_name'];
           // const our_name = get_our_configuration_key_name(thing.key); 
 
-          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`, false);
+          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
           if (our_entry.expected_type &&
               typeof value !== our_entry.expected_type)
