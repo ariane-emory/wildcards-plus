@@ -3976,6 +3976,7 @@ const configuration_key_names = [
   { dt_name: 'prompt',                            automatic1111_name: 'prompt',
     expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+    expected_type: [ 'string', 'number' ],
     shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
   { dt_name: 'seed',                              automatic1111_name: 'seed',
     expected_type: 'number' },
@@ -9111,6 +9112,21 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? msg => { throw new Error(msg); }
                 : msg => { throw new ThrownReturn(warning_str(msg)); };
           
+          const is_type_okay = (our_name, val, type_or_types)  => {
+            const type_is_okay = !type_or_types
+                  ? true
+                  : (Array.isArray(type_or_types)
+                     ? type_or_types.some(x => typeof val === x)
+                     : typeof val === type_or_types);
+            
+            if (!type_is_okay)
+              warnings.push(warning_str(`not assigning ${typeof val} ` +
+                                        `${inspect_fun(val)} ` + 
+                                        `to configuration key '${our_name}', ` +
+                                        `expected ${expected_type}`));
+            return type_is_okay;
+          };
+
           if (value instanceof ASTNode) {
             const expanded_value = lm.indent(() =>
               // don't correct articles in config values so that we don't mess up, e.g.,
@@ -9147,16 +9163,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                     ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                     : key_name;
 
-              if (our_entry?.expected_type &&
-                  typeof value[key_name] !== our_entry.expected_type) {
-                warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
-                                          `${inspect_fun(value[key_name])} ` + 
-                                          `to configuration key '${our_name}', ` +
-                                          `expected ${our_entry.expected_type}`));
+              if (!is_type_okay(our_name, value[key_name], our_entry?.expected_type))
                 continue;
-              }
-
-              // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
               
               new_obj[our_name] = value[key_name];
             }
@@ -9578,7 +9586,8 @@ function audit_semantics(root_ast_node,
 
     if (visited.has(thing)) {
       if (log_level__audit >= 2)
-        lm.log(`already audited ${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+        lm.log(`already audited ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
