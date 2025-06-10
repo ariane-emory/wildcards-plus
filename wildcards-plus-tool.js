@@ -4454,8 +4454,8 @@ class Context {
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-             `what you meant to do, your prompt template may contain an error!`,
+      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This ` +
+             `probably isn't  what you meant to do, your prompt template may contain an error!`,
              log_level__expand_and_walk);
       delete munged_configuration.model;
     }
@@ -4478,7 +4478,8 @@ class Context {
     }
     
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+    if (munged_configuration.sampler &&
+        typeof munged_configuration.sampler === 'string') {
       const lc  = munged_configuration.sampler.toLowerCase();
       const got = dt_samplers_caps_correction.get(lc);
 
@@ -4491,7 +4492,8 @@ class Context {
     }
     
     if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
-      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
+      if (munged_configuration.sampler !== undefined &&
+          typeof munged_configuration.sampler === 'string') {
         lm.log(`correcting munged_configuration.sampler = ` +
                `${inspect_fun(munged_configuration.sampler)} to ` +
                `munged_configuration.sampler = ` +
@@ -4513,9 +4515,12 @@ class Context {
       }
     }
     // when running in Node.js, sampler needs to be a string:
-    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
+    else if (munged_configuration.sampler !== undefined &&
+             typeof munged_configuration.sampler === 'number') {
+      lm.log(`correcting munged_configuration.sampler = ` +
+             `${munged_configuration.sampler} to ` +
+             `munged_configuration.sampler = ` +
+             `${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
              log_level__expand_and_walk);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
@@ -4525,7 +4530,9 @@ class Context {
         (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
       const n_iter_key = get_our_configuration_key_name('n_iter');
 
-      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
+      if (munged_configuration[n_iter_key] &&
+          typeof munged_configuration[n_iter_key] === 'number' &&
+          munged_configuration[n_iter_key] > 1) {
         if (log_configuration_enabled)
           lm.log(`%seed = -1 due to n_iter > 1`,
                  log_level__expand_and_walk);
