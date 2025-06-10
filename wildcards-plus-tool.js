@@ -8897,8 +8897,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer],
-                           { correct_articles: false });
+          lm.indent(() => got = smart_join([got, thing.trailer],
+                                           { correct_articles: false }));
         // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
@@ -9182,8 +9182,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[cur_key]   = walked;
 
         if (log_configuration_enabled)
-          lm.log(`Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                 `${inspect_fun(walked)}.`);
+          lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                 `${inspect_fun(walked)}.`));
         
         throw new ThrownReturn(''); // produce nothing
       }
