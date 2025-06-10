@@ -36,7 +36,7 @@ let log_level__expand_and_walk        = 0;
 let log_level__smart_join             = 0;
 let prelude_disabled                  = false;
 let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = true;
+let print_ast_before_includes_enabled = false;
 let print_ast_after_includes_enabled  = false;
 let print_ast_json_enabled            = false;
 let save_post_requests_enabled        = true;
@@ -362,7 +362,7 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
     if (! (cache instanceof Map))
-      throw new Error("bad args");
+      throw new Error(`bad match args: ${inspect_fun(arguments)}`);
     
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
@@ -3085,6 +3085,15 @@ function choose_indefinite_article(word) {
   return 'a';
 }
 // -------------------------------------------------------------------------------------------------
+function count_occurrences(arr) {
+  const counts = new Map();
+
+  for (const item of arr) 
+    counts.set(item, (counts.get(item) || 0) + 1);
+
+  return counts;
+}
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
@@ -4196,10 +4205,10 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe_guards // just to make forcing an option a little terser:
+@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
                             {?female #gender.female 
                             |?male   #gender.male
-                            |?neuter #gender.neuter }
+                            |?neuter #gender.neuter    }
                             {3 !gender.#female #female
                             |2 !gender.#male   #male
                             |1 !gender.#neuter #neuter } } 
@@ -8924,7 +8933,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let res = null;
 
         try {
-          res = Prompt.match(sub_prompt.text);
+          res = Prompt.match(sub_prompt.text, 0, new Map());
         }
         catch(err) {
           if (err instanceof FatalParseError)
@@ -8936,7 +8945,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => smart_join(walk(res.value, { correct_articles: false }))));
+        let str = lm.indent(() => smart_join(walk(res.value, { correct_articles: correct_articles }),
+                                             { correct_articles: correct_articles }));
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
@@ -9071,7 +9087,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     // ret = unescape(smart_join(walked,
     //                           { correct_articles: correct_articles })).replace(/^</, '');
 
-    ret = unescape((walked)).replace(/^</, '');
+    ret = unescape(walked).replace(/^[<]+/, '');
     // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
     //   unescape probably should too.
 
@@ -9098,14 +9114,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 // FLAG AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error:                'error',
-  warning:              'warning', 
-  allow_unsafe_guards:  'allow_unsafe_guards',
+  throw_error:       'error',
+  collect_warnings:  'warning', 
+  unsafe:            'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null, noisy = false,
-                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -9118,16 +9134,16 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode) {    
-    if (typeof local_audit_semantics_mode !== 'string')
-      throw new Error(`bad walk local_audit_semantics_mode: ` +
-                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+  function walk(thing, local_audit_semantics_mode, errors_arr) {    
+    if (typeof local_audit_semantics_mode !== 'string' ||
+        !Array.isArray(errors_arr))
+      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
     const log = (msg_thunk, indent = true) => {
       if (noisy)
         lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
     };
-    function walk_children(thing, mode) {
+    function walk_children(thing, mode, errors_arr) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
                         `${abbreviate(compress(inspect_fun(mode)))}`);
@@ -9139,38 +9155,42 @@ function audit_semantics(root_ast_node,
         //   lm.log(`children: ${abbreviate(children.map(thing_str_repr).toString())}`);
 
         // lm.indent(() => {
-        walk(children, mode);
+        walk(children, mode, errors_arr);
         // }); // propagate arg
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg) {
+    function warn_or_throw(msg, errors_arr) {
       if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.throw_error) {
         throw new Error(msg);
       }
-      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings &&
                ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation and not local log function
+        // lm.log(msg, false); // false arg for no indentation and not local log function
+        errors_arr.push(msg);
         // already_warned_msgs.add(msg);
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
+          local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template. ` +
-                    `${suggestion}`);
+                    `this suggests that you may have a typo or other error in your template.` +
+                    (suggestion
+                     ? ` ${suggestion}`
+                     : ''),
+                    errors_arr);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
@@ -9197,12 +9217,13 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
+            walk(elem, local_audit_semantics_mode, errors_arr) // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                        `you may not have intended to do this, check your template!`);
+                        `you may not have intended to do this, check your template!`,
+                        errors_arr);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
@@ -9214,11 +9235,12 @@ function audit_semantics(root_ast_node,
           const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
+                        `${suggestion}`,
+                        errors_arr);
         }
         
         // lm.indent(() =>
-        walk(got, audit_semantics_mode)
+        walk(got, audit_semantics_mode, errors_arr)
         // ); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
@@ -9227,16 +9249,17 @@ function audit_semantics(root_ast_node,
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
+                        `${suggestion}`,
+                        errors_arr);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+        walk(got, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9245,7 +9268,7 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9256,26 +9279,26 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe_guards
-              ? audit_semantics_modes.allow_unsafe_guards
+        const mode = thing.unsafe
+              ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode; // propagate local_audit_semantics_mode
         
-        walk_children(thing, mode);
+        walk_children(thing, mode, errors_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9283,10 +9306,14 @@ function audit_semantics(root_ast_node,
     });
   }
 
-  walk(root_ast_node, audit_semantics_mode);
+  const errors =  [];
+  
+  walk(root_ast_node, audit_semantics_mode, errors);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
+
+  return errors;
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
@@ -9570,13 +9597,13 @@ class ASTLatchedNamedWildcard extends ASTNode {
 // ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
+  constructor(options, { trailer = null, unsafe = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe_guards  = unsafe_guards;
+    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9590,8 +9617,8 @@ class ASTAnonWildcard extends ASTNode {
   toString() {
     let str = '';
 
-    if (this.unsafe_guards)
-      str += "unsafe_guards ";
+    if (this.unsafe)
+      str += "unsafe ";
     
     str += '{';
 
@@ -9789,20 +9816,30 @@ class ASTUIPrompt extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-prompt`;
+    let str = `%ui-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
 // ASTUINegPrompt:
 // -------------------------------------------------------------------------------------------------
 class ASTUINegPrompt extends ASTLeafNode {
-  constructor(trailer) { 
+  constructor(trailer) {
     super();
     this.trailer = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-neg-prompt`;
+    let str = `%ui-neg-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;
   }
 }
 // =================================================================================================
@@ -10071,8 +10108,8 @@ const make_AnonWildcardAlternative_rule = content_rule =>
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
       xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                 unsafe_guards: arr[0] == 'unsafe_guards' }),
-            seq(optional('unsafe_guards'),
+                                                 unsafe: arr[0] == 'unsafe' }),
+            seq(optional('unsafe'),
                 discarded_comments,
                 lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
                 (can_have_trailer
@@ -10095,7 +10132,7 @@ const SpecialFunctionTail =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
       xform(seq('ui-prompt', optional(punctuation_trailer), SpecialFunctionTail),
-            add => new ASTUIPrompt(arr[1]))
+            arr => new ASTUIPrompt(arr[1]))
       .abbreviate_str_repr('SpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
@@ -10106,339 +10143,339 @@ const UnexpectedSpecialFunctionUIPrompt =
                                      "NOT when " +
                                      "running the wildcards-plus-tool.js script",
                                      input, index - 1))
-                  .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionUINegPrompt =
-                  xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
-                        arr => new ASTUINegPrompt(arr[1]))
-                  .abbreviate_str_repr('SpecialFunctionUINegPrompt');
-            // -------------------------------------------------------------------------------------------------
-            const UnexpectedSpecialFunctionUINegPrompt =
-                  unexpected(SpecialFunctionUINegPrompt,
-                             (rule, input, index) =>
-                             new FatalParseError("%ui-neg-prompt is only supported when " +
-                                                 "using wildcards-plus.js inside Draw Things, " +
-                                                 "NOT when " +
-                                                 "running the wildcards-plus-tool.js script",
-                                                 input, index - 1))
-                  .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionInclude =
-                  xform(arr => new ASTInclude(arr[1]),
-                        head(c_funcall('%include',                   // [0][0]
-                                       head(discarded_comments,      // -
-                                            lws(rjsonc_string),      // [0][1]
-                                            discarded_comments,      // -
-                                           )),  
-                             optional(SpecialFunctionTail)))
-                  .abbreviate_str_repr('SpecialFunctionInclude');
-            // -------------------------------------------------------------------------------------------------
-            const UnexpectedSpecialFunctionInclude =
-                  unexpected(SpecialFunctionInclude,
-                             (rule, input, index) =>
-                             new FatalParseError("%include is only supported when " +
-                                                 `using wildcards-plus-tool.js, ` +
-                                                 `NOT when ` +
-                                                 "running the wildcards-plus.js script " +
-                                                 "inside Draw Things",
-                                                 input, index - 1))
-                  .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionSetPickSingle =
-                  xform(arr => new ASTSetPickSingle(arr[1][1]),
-                        seq('single-pick',                                            // [0]
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUINegPrompt =
+      xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUINegPrompt(arr[1]))
+      .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionInclude =
+      xform(arr => new ASTInclude(arr[1]),
+            head(c_funcall('%include',                   // [0][0]
+                           head(discarded_comments,      // -
+                                lws(rjsonc_string),      // [0][1]
+                                discarded_comments,      // -
+                               )),  
+                 optional(SpecialFunctionTail)))
+      .abbreviate_str_repr('SpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionInclude =
+      unexpected(SpecialFunctionInclude,
+                 (rule, input, index) =>
+                 new FatalParseError("%include is only supported when " +
+                                     `using wildcards-plus-tool.js, ` +
+                                     `NOT when ` +
+                                     "running the wildcards-plus.js script " +
+                                     "inside Draw Things",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickSingle =
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
+                            optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickMultiple =
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
+      .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickSingle =
+      xform(seq('revert-single-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickSingle())
+      .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickMultiple =
+      xform(seq('revert-multi-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickMultiple())
+      .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
+      },
+            cutting_seq(seq(c_ident,                                                // [0][0]
+                            discarded_comments,                                     // -
+                            lws(any_assignment_operator),                           // [0][1]
+                            discarded_comments),                                    // -
+                        lws(choice(ExposedRjsonc,                                    // [1]
+                                   head(() => LimitedContent,
+                                        optional(SpecialFunctionTail))))))           // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationUnary =
+      xform(arr => {
+        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
+        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
+      },
+            seq(/conf(?:ig)?/,                                                        // [0]
+                discarded_comments,                                                   // -
+                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
                             discarded_comments,                                       // -
-                            cutting_seq(lws(equals),                                  // [1][0]
-                                        discarded_comments,                           // -
-                                        lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                                   lc_alpha_snake)),        
-                                        optional(SpecialFunctionTail))))
-                  .abbreviate_str_repr('SpecialFunctionSetPickSingle');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionSetPickMultiple =
-                  xform(arr => new ASTSetPickMultiple(arr[1][1]),
-                        seq('multi-pick',                                             // [0]
-                            discarded_comments,                                       // -
-                            cutting_seq(lws(equals),                                  // [1][0]
-                                        discarded_comments,                           // -
-                                        lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                                   lc_alpha_snake)),
-                                        optional(SpecialFunctionTail)))) 
-                  .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionRevertPickSingle =
-                  xform(seq('revert-single-pick',
-                            optional(SpecialFunctionTail)),
-                        () => new ASTRevertPickSingle())
-                  .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionRevertPickMultiple =
-                  xform(seq('revert-multi-pick',
-                            optional(SpecialFunctionTail)),
-                        () => new ASTRevertPickMultiple())
-                  .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionUpdateConfigurationBinary =
-                  xform(arr => {
-                    // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-                    return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
-                  },
-                        cutting_seq(seq(c_ident,                                                // [0][0]
-                                        discarded_comments,                                     // -
-                                        lws(any_assignment_operator),                           // [0][1]
-                                        discarded_comments),                                    // -
-                                    lws(choice(ExposedRjsonc,                                    // [1]
-                                               head(() => LimitedContent,
-                                                    optional(SpecialFunctionTail))))))           // [1][1]
-                  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionUpdateConfigurationUnary =
-                  xform(arr => {
-                    // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-                    return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
-                  },
-                        seq(/conf(?:ig)?/,                                                        // [0]
-                            discarded_comments,                                                   // -
-                            cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
-                                        discarded_comments,                                       // -
-                                        lws(choice(head(RjsoncObject, // mod_RjsoncObject,
-                                                        optional(SpecialFunctionTail)),
-                                                   head(() => LimitedContentNoAWCTrailers,
-                                                        optional(SpecialFunctionTail))))))) // [1][1]
-                  .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-            // -------------------------------------------------------------------------------------------------
-            const SpecialFunctionNotInclude =
-                  cutting_cadr(percent,
-                               choice(
-                                 SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                                 SpecialFunctionUpdateConfigurationBinary,
-                                 (dt_hosted
-                                  ? SpecialFunctionUIPrompt
-                                  : UnexpectedSpecialFunctionUIPrompt),
-                                 (dt_hosted
-                                  ? SpecialFunctionUINegPrompt
-                                  : UnexpectedSpecialFunctionUINegPrompt),
-                                 SpecialFunctionSetPickSingle,
-                                 SpecialFunctionSetPickMultiple,
-                                 SpecialFunctionRevertPickSingle,
-                                 SpecialFunctionRevertPickMultiple,
-                               ))
-                  .abbreviate_str_repr('SpecialFunctionNotInclude');
-            // =================================================================================================
-            // other non-terminals:
-            // =================================================================================================
-            const NamedWildcardReference  =
-                  xform(seq(at,                                        // [0]
-                            optional(caret),                           // [1]
-                            optional(xform(parseInt, uint), 1),        // [2]
-                            optional(xform(parseInt,                   // [3]
-                                           cadr(dash, uint))),
-                            optional(/[,\.&|;]/),                      // [4]
-                            ident,                                     // [5]
-                            optional_punctuation_trailer,  // [6]
-                           ), 
-                        arr => {
-                          const ident   = arr[5];
-                          const min_ct  = arr[2];
-                          const max_ct  = arr[3] ?? min_ct;
-                          const joiner  = arr[4]; // ??''
-                          const caret   = arr[1];
-                          const trailer = arr[6];
+                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
+                                            optional(SpecialFunctionTail)),
+                                       head(() => LimitedContentNoAWCTrailers,
+                                            optional(SpecialFunctionTail))))))) // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionNotInclude =
+      cutting_cadr(percent,
+                   choice(
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
+      .abbreviate_str_repr('SpecialFunctionNotInclude');
+// =================================================================================================
+// other non-terminals:
+// =================================================================================================
+const NamedWildcardReference  =
+      xform(seq(at,                                        // [0]
+                optional(caret),                           // [1]
+                optional(xform(parseInt, uint), 1),        // [2]
+                optional(xform(parseInt,                   // [3]
+                               cadr(dash, uint))),
+                optional(/[,\.&|;]/),                      // [4]
+                ident,                                     // [5]
+                optional_punctuation_trailer,  // [6]
+               ), 
+            arr => {
+              const ident   = arr[5];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const joiner  = arr[4]; // ??''
+              const caret   = arr[1];
+              const trailer = arr[6];
 
-                          if (min_ct == 0 && max_ct == 0) {
-                            lm.log(`WARNING: retrieving 0 items from a named ` +
-                                   `wildcard is a strange thing to do. We'll allow ` +
-                                   `it, but you may have made a mistake in your ` +
-                                   `template.`,
-                                   false)
-                            
-                            return DISCARD;
-                          }
-                          
-                          return new ASTNamedWildcardReference(ident,
-                                                               joiner,
-                                                               caret,
-                                                               min_ct,
-                                                               max_ct,
-                                                               trailer);
-                        })
-                  .abbreviate_str_repr('NamedWildcardReference');
-            // -------------------------------------------------------------------------------------------------
-            const NamedWildcardDesignator = cadr(at, ident)
-                  .abbreviate_str_repr('NamedWildcardDesignator');
-            // -------------------------------------------------------------------------------------------------
-            const NamedWildcardDefinition =
-                  xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
-                        cutting_seq(head(NamedWildcardDesignator,
-                                         discarded_comments,
-                                         lws(equals)),
-                                    discarded_comments,
-                                    head(lws(AnonWildcard),
-                                         optional(SpecialFunctionTail))))
-                  .abbreviate_str_repr('NamedWildcardDefinition');
-            // -------------------------------------------------------------------------------------------------
-            const NamedWildcardUsage      =
-                  xform(seq(at, optional(bang), optional(hash), ident),
-                        arr => {
-                          const [ bang, hash, ident, objs ] =
-                                [ arr[1], arr[2], arr[3], []];
-                          
-                          if (!bang && !hash)
-                            return new ASTNamedWildcardReference(ident);
+              if (min_ct == 0 && max_ct == 0) {
+                lm.log(`WARNING: retrieving 0 items from a named ` +
+                       `wildcard is a strange thing to do. We'll allow ` +
+                       `it, but you may have made a mistake in your ` +
+                       `template.`,
+                       false)
+                
+                return DISCARD;
+              }
+              
+              return new ASTNamedWildcardReference(ident,
+                                                   joiner,
+                                                   caret,
+                                                   min_ct,
+                                                   max_ct,
+                                                   trailer);
+            })
+      .abbreviate_str_repr('NamedWildcardReference');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDesignator = cadr(at, ident)
+      .abbreviate_str_repr('NamedWildcardDesignator');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardDefinition =
+      xform(arr => new ASTNamedWildcardDefinition(arr[0], arr[1]),
+            cutting_seq(head(NamedWildcardDesignator,
+                             discarded_comments,
+                             lws(equals)),
+                        discarded_comments,
+                        head(lws(AnonWildcard),
+                             optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('NamedWildcardDefinition');
+// -------------------------------------------------------------------------------------------------
+const NamedWildcardUsage      =
+      xform(seq(at, optional(bang), optional(hash), ident),
+            arr => {
+              const [ bang, hash, ident, objs ] =
+                    [ arr[1], arr[2], arr[3], []];
+              
+              if (!bang && !hash)
+                return new ASTNamedWildcardReference(ident);
 
-                          // goes before hash so that "@!#" works correctly:
-                          if (bang) 
-                            objs.push(new ASTUnlatchNamedWildcard(ident));
+              // goes before hash so that "@!#" works correctly:
+              if (bang) 
+                objs.push(new ASTUnlatchNamedWildcard(ident));
 
-                          if (hash)
-                            objs.push(new ASTLatchNamedWildcard(ident));
+              if (hash)
+                objs.push(new ASTLatchNamedWildcard(ident));
 
-                          return objs;
-                        })
-                  .abbreviate_str_repr('NamedWildcardUsage');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarReference         =
-                  xform(seq(dollar,
-                            optional(caret),
-                            ident,
-                            optional_punctuation_trailer),
-                        arr => new ASTScalarReference(arr[2],
-                                                      arr[1],
-                                                      arr[3]))
-                  .abbreviate_str_repr('ScalarReference');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarDesignator        =
-                  xform(seq(dollar, ident),
-                        arr => new ASTScalarReference(arr[1]))
-                  .abbreviate_str_repr('ScalarDesignator');
-            // -------------------------------------------------------------------------------------------------
-            const ScalarAssignment        =
-                  xform(arr =>
-                    new ASTScalarAssignment(arr[0],
-                                            arr[1][1],
-                                            arr[1][0] == '='),
-                    seq(ScalarDesignator,                                 // [0]
-                        discarded_comments,                               // - 
-                        cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
-                                    discarded_comments,                   // -
-                                    lws(choice(
-                                      () => rjsonc_string, // [1][1]
-                                      () => LimitedContent,
-                                      // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
-                                    )),
-                                    optional(SpecialFunctionTail))))
-                  .abbreviate_str_repr('ScalarAssignment');
-            // =================================================================================================
-            // Content-related rules:
-            // =================================================================================================
-            const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
-                  choice(
-                    NamedWildcardReference,
-                    anon_wildcard_rule,
-                    plain_text_rule,
-                    ScalarReference,
-                  );
-            // -------------------------------------------------------------------------------------------------
-            const LimitedContent =
-                  make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
-                  .abbreviate_str_repr('LimitedContent');
+              return objs;
+            })
+      .abbreviate_str_repr('NamedWildcardUsage');
+// -------------------------------------------------------------------------------------------------
+const ScalarReference         =
+      xform(seq(dollar,
+                optional(caret),
+                ident,
+                optional_punctuation_trailer),
+            arr => new ASTScalarReference(arr[2],
+                                          arr[1],
+                                          arr[3]))
+      .abbreviate_str_repr('ScalarReference');
+// -------------------------------------------------------------------------------------------------
+const ScalarDesignator        =
+      xform(seq(dollar, ident),
+            arr => new ASTScalarReference(arr[1]))
+      .abbreviate_str_repr('ScalarDesignator');
+// -------------------------------------------------------------------------------------------------
+const ScalarAssignment        =
+      xform(arr =>
+        new ASTScalarAssignment(arr[0],
+                                arr[1][1],
+                                arr[1][0] == '='),
+        seq(ScalarDesignator,                                 // [0]
+            discarded_comments,                               // - 
+            cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
+                        discarded_comments,                   // -
+                        lws(choice(
+                          () => rjsonc_string, // [1][1]
+                          () => LimitedContent,
+                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                        )),
+                        optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('ScalarAssignment');
+// =================================================================================================
+// Content-related rules:
+// =================================================================================================
+const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
+      choice(
+        NamedWildcardReference,
+        anon_wildcard_rule,
+        plain_text_rule,
+        ScalarReference,
+      );
+// -------------------------------------------------------------------------------------------------
+const LimitedContent =
+      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      .abbreviate_str_repr('LimitedContent');
 
-            const LimitedContentNoAWCTrailers =
-                  make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
-                  .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+const LimitedContentNoAWCTrailers =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 
-            // const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-            //       .abbreviate_str_repr('LimitedContentNoSemis');
-            // -------------------------------------------------------------------------------------------------
-            // lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-            // lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
+// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
+//       .abbreviate_str_repr('LimitedContentNoSemis');
+// -------------------------------------------------------------------------------------------------
+// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
+// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
 
-            // const malformed_token =
-            //       // tokens starting with % are actually usually caught before getting here.
-            //       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-            //                  (rule, input, index, match_result) => 
-            //                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
+// const malformed_token =
+//       // tokens starting with % are actually usually caught before getting here.
+//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
+//                  (rule, input, index, match_result) => 
+//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
 
 
-            const make_malformed_token_rule = rule => 
-                  unexpected(rule,
-                             (rule, input, index, match_result) => {
-                               // throw new Error('bomb');
-                               return new FatalParseError(`encountered malformed token: ` +
-                                                          `${inspect_fun(match_result.value)}`, input, index);
-                             }).abbreviate_str_repr(`malformed(${rule.toString()})`);
+const make_malformed_token_rule = rule => 
+      unexpected(rule,
+                 (rule, input, index, match_result) => {
+                   // throw new Error('bomb');
+                   return new FatalParseError(`encountered malformed token: ` +
+                                              `${inspect_fun(match_result.value)}`, input, index);
+                 }).abbreviate_str_repr(`malformed(${rule.toString()})`);
 
-            const make_Content_rule       = ({ before_plain_text_rules = [],
-                                               after_plain_text_rules  = [] } = {}) =>
-                  choice(
-                    ...before_plain_text_rules,
-                    plain_text,
-                    ...after_plain_text_rules,
-                    discarded_comment,
-                    NamedWildcardReference,
-                    NamedWildcardUsage,
-                    SpecialFunctionNotInclude,
-                    UnsetFlag, // before SetFlag!
-                    SetFlag,
-                    ScalarAssignment,
-                    ScalarReference,
-                    make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
-                  );
+const make_Content_rule       = ({ before_plain_text_rules = [],
+                                   after_plain_text_rules  = [] } = {}) =>
+      choice(
+        ...before_plain_text_rules,
+        plain_text,
+        ...after_plain_text_rules,
+        discarded_comment,
+        NamedWildcardReference,
+        NamedWildcardUsage,
+        SpecialFunctionNotInclude,
+        UnsetFlag, // before SetFlag!
+        SetFlag,
+        ScalarAssignment,
+        ScalarReference,
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+      );
 
-            // -------------------------------------------------------------------------------------------------
-            const AnonWildcardAlternativeContent = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-                TestFlagInAlternativeContent,
-                AnonWildcard,
-              ],
-              after_plain_text_rules:  [
-              ],
-            });
-            const TopLevelContent               = make_Content_rule({
-              before_plain_text_rules: [
-                A1111StyleLora,
-                TopLevelTestFlag,
-                AnonWildcard,
-              ],
-              after_plain_text_rules:  [
-                make_malformed_token_rule(r_raw`}\S*`),
-                NamedWildcardDefinition,
-                SpecialFunctionInclude,
-              ],
-            });
-            const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
-            const Prompt                  = tws(TopLevelContentStar);
-            // =================================================================================================
-            Prompt.finalize();
-            // =================================================================================================
-            // END OF SD PROMPT GRAMMAR SECTION.
-            // =================================================================================================
-
-
-            // =================================================================================================
-            // DEV NOTE: Copy into wildcards-plus.js through this line!
-            // =================================================================================================
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternativeContent = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    TestFlagInAlternativeContent,
+    AnonWildcard,
+  ],
+  after_plain_text_rules:  [
+  ],
+});
+const TopLevelContent               = make_Content_rule({
+  before_plain_text_rules: [
+    A1111StyleLora,
+    TopLevelTestFlag,
+    AnonWildcard,
+  ],
+  after_plain_text_rules:  [
+    make_malformed_token_rule(r_raw`}\S*`),
+    NamedWildcardDefinition,
+    SpecialFunctionInclude,
+  ],
+});
+const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
+const Prompt                  = tws(TopLevelContentStar);
+// =================================================================================================
+Prompt.finalize();
+// =================================================================================================
+// END OF SD PROMPT GRAMMAR SECTION.
+// =================================================================================================
 
 
-            // =================================================================================================
-            // MAIN SECTION: all of the Draw Things-specific code goes down here.
-            // -------------------------------------------------------------------------------------------------
-            // fallback prompt to be used if no wildcards are found in the UI prompt:
-            const fallback_prompt     = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
-            const ui_prompt           = pipeline.prompts.prompt;
-            const ui_neg_prompt       = pipeline.prompts.negativePrompt;
-            const ui_hint             = "";
-            let   prompt_string       = ui_prompt;
-            const default_batch_count = 150;
-            LOG_LINE.line_width       = 113;
-            // -------------------------------------------------------------------------------------------------
+// =================================================================================================
+// DEV NOTE: Copy into wildcards-plus.js through this line!
+// =================================================================================================
 
 
-            // -------------------------------------------------------------------------------------------------
-            // UI:
-            // -------------------------------------------------------------------------------------------------
-            const doc_string = `Wildcards Plus v0.9 by ariane-emory (originally based on @wetcircuit's original wildcard.js script)
+// =================================================================================================
+// MAIN SECTION: all of the Draw Things-specific code goes down here.
+// -------------------------------------------------------------------------------------------------
+// fallback prompt to be used if no wildcards are found in the UI prompt:
+const fallback_prompt     = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const ui_prompt           = pipeline.prompts.prompt;
+const ui_neg_prompt       = pipeline.prompts.negativePrompt;
+const ui_hint             = "";
+let   prompt_string       = ui_prompt;
+const default_batch_count = 150;
+LOG_LINE.line_width       = 113;
+// -------------------------------------------------------------------------------------------------
+
+
+// -------------------------------------------------------------------------------------------------
+// UI:
+// -------------------------------------------------------------------------------------------------
+const doc_string = `Wildcards Plus v0.9 by ariane-emory (originally based on @wetcircuit's original wildcard.js script)
 
 Generate a batch of images using inline wildcards to randomize elements within the prompt.
 
@@ -10446,40 +10483,40 @@ The wildcards-plus script adds a variety of useful features above and beyond sim
 
 The full documentation would be too large to fit in this tiny box, please see the README.md file for detailed descriptions of these features!`;
 
-            const user_selection = requestFromUser('Wildcards Plus', '', function() {
-              return [
-	              this.section('Prompt', ui_hint,
-                             [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
-                this.section("Batch count", "",
-                             [ this.slider(default_batch_count, this.slider.fractional(0), 1, 500) ]),
-                this.switch(true, "Clear canvas first (maybe img2img if disabled):"),
-                this.section("When picking a single item, prioritize:", "",
-                             [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
-                                         picker_priority_descriptions) ]),
-                this.section("When picking multiple items, prioritize:", "",
-                             [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
-                                         picker_priority_descriptions) ]),
-                this.section('about', doc_string, [])
-              ];
-            });
+const user_selection = requestFromUser('Wildcards Plus', '', function() {
+  return [
+	  this.section('Prompt', ui_hint,
+                 [ this.textField(prompt_string, fallback_prompt, true, 240) ]),
+    this.section("Batch count", "",
+                 [ this.slider(default_batch_count, this.slider.fractional(0), 1, 500) ]),
+    this.switch(true, "Clear canvas first (maybe img2img if disabled):"),
+    this.section("When picking a single item, prioritize:", "",
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
+                             picker_priority_descriptions) ]),
+    this.section("When picking multiple items, prioritize:", "",
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
+                             picker_priority_descriptions) ]),
+    this.section('about', doc_string, [])
+  ];
+});
 
-            // lm.log(() => `USER SELECTION:`);
-            // lm.log(JSON.stringify(user_selection));
+// lm.log(`USER SELECTION:`);
+// lm.log(JSON.stringify(user_selection));
 
-            prompt_string     = user_selection[0][0]
+prompt_string     = user_selection[0][0]
 const batch_count = user_selection[1][0];
 const clear_first = user_selection[2];
 const user_selected_pick_one_priority =
       picker_priority_descriptions[user_selection[3][0]];
-// lm.log(() => `GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[2][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 const user_selected_pick_multiple_priority =
       picker_priority_descriptions[user_selection[4][0]];
-// lm.log(() => `GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
+// lm.log(`GET ${user_selection[3][0]} FROM ${inspect_fun(picker_priority_descriptions)}} ` +
 //             `= ${picker_configuration.pick_one_priority}`);
 
-lm.log(() => `Single pick priority:   ${user_selected_pick_one_priority}`);
-lm.log(() => `Multiple pick priority: ${user_selected_pick_multiple_priority}`);
+lm.log(`Single pick priority:   ${user_selected_pick_one_priority}`);
+lm.log(`Multiple pick priority: ${user_selected_pick_multiple_priority}`);
 
 // -------------------------------------------------------------------------------------------------
 // parse the prompt_string here:
@@ -10508,19 +10545,19 @@ try {
   // delete base_context.configuration["targetImageWidth"];
 
   LOG_LINE();
-  lm.log(() => `pipeline.configuration is:`);
+  lm.log(`pipeline.configuration is:`);
   LOG_LINE();
-  lm.log(() => `${inspect_fun(pipeline.configuration)}`);
+  lm.log(`${inspect_fun(pipeline.configuration)}`);
 
   LOG_LINE();
-  lm.log(() => `base_context.configuration is:`);
+  lm.log(`base_context.configuration is:`);
   LOG_LINE();
-  lm.log(() => `${inspect_fun(base_context.configuration)}`);
+  lm.log(`${inspect_fun(base_context.configuration)}`);
 
   LOG_LINE();
-  lm.log(() => `The wildcards-plus prompt is:`);
+  lm.log(`The wildcards-plus prompt is:`);
   LOG_LINE();
-  lm.log(() => `${prompt_string}`);
+  lm.log(`${prompt_string}`);
 
   // -----------------------------------------------------------------------------------------------
   // main loop:
@@ -10529,52 +10566,52 @@ try {
     const start_date = new Date();
 
     LOG_LINE();
-    lm.log(() => `Beginning expansion #${ix+1} out of ${batch_count} at ` +
+    lm.log(`Beginning expansion #${ix+1} out of ${batch_count} at ` +
            `${format_simple_time(start_date)}:`);
     LOG_LINE();
 
     // expand the wildcards using a cloned context and generate a new configuration:
     
-    // lm.log(() => `BEFORE CLONING CONTEXT...`);
+    // lm.log(`BEFORE CLONING CONTEXT...`);
     const context = base_context.clone();
-    // lm.log(() => `AFTER CLONING CONTEXT`);
+    // lm.log(`AFTER CLONING CONTEXT`);
     const prompt  = expand_wildcards(AST, context, { correct_articles: true });
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
-      lm.log(() => `GENERATED CONFIGURATION:`);
+      lm.log(`GENERATED CONFIGURATION:`);
       LOG_LINE();
-      lm.log(() => `${inspect_fun(context.configuration)}`);
+      lm.log(`${inspect_fun(context.configuration)}`);
     }
 
     if (context.flags.length > 0) {
       LOG_LINE();
-      lm.log(() => `Flags after:`);
+      lm.log(`Flags after:`);
       LOG_LINE();
-      lm.log(() => `${inspect_fun(context.flags)}`);
+      lm.log(`${inspect_fun(context.flags)}`);
     }
     
     if (context.scalar_variables.size > 0) {
       LOG_LINE();
-      lm.log(() => `Scalars after:`);
+      lm.log(`Scalars after:`);
       LOG_LINE();
       for (const [key, val] of context.scalar_variables)
-        lm.log(() => `$${key} = ${inspect_fun(val)}`);
+        lm.log(`$${key} = ${inspect_fun(val)}`);
     }
 
     LOG_LINE();
-    lm.log(() => `The expanded prompt is:`);
+    lm.log(`The expanded prompt is:`);
     LOG_LINE();
-    lm.log(() => `${prompt}`);
+    lm.log(`${prompt}`);
     
     if (context.configuration.negativePrompt || context.configuration.negativePrompt === '') {
       LOG_LINE();
-      lm.log(() => `Expanded negative prompt:`);
+      lm.log(`Expanded negative prompt:`);
       LOG_LINE();
-      lm.log(() => context.configuration.negativePrompt);
+      lm.log(context.configuration.negativePrompt);
     } else {
       LOG_LINE();
-      lm.log(() => `No negative prompt, using negative prompt from UI: ` +
+      lm.log(`No negative prompt, using negative prompt from UI: ` +
              `${inspect_fun(ui_neg_prompt)}.`);
       
       context.configuration.negativePrompt = ui_neg_prompt;
@@ -10583,13 +10620,13 @@ try {
     LOG_LINE();
 
     if (clear_first) {
-      lm.log(() => `Clearing canvas...`);
+      lm.log(`Clearing canvas...`);
       canvas.clear();
     } else {
-      lm.log(() => `Not clearing canvas`);
+      lm.log(`Not clearing canvas`);
     }
 
-    lm.log(() => `Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
+    lm.log(`Generating image #${ix+1} out of ${batch_count} at ${format_simple_time()}...`);
 
     // ---------------------------------------------------------------------------------------------
     // run the pipeline:
@@ -10607,24 +10644,24 @@ try {
     const end_time     = new Date().getTime();
     const elapsed_time = (end_time - start_date.getTime()) / 1000;
 
-    lm.log(() => `... image generated in ${elapsed_time} seconds.`);
+    lm.log(`... image generated in ${elapsed_time} seconds.`);
   }
 
   LOG_LINE();
-  lm.log(() => `Job complete. Open the console to see the job report.`);
+  lm.log(`Job complete. Open the console to see the job report.`);
 }
 catch(ex) {
   if (ex instanceof Error) {
     if (ex.message === 'cancelled')
-      lm.log(() => `Cancelled.`);
+      lm.error(`Cancelled.`);
     else
-      lm.log(() => `wildcards-plus caught a fatal exception, ` +
-             `click here to open the console for more details\n\n` + 
-             `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
+      lm.error(`wildcards-plus caught a fatal exception, ` +
+               `click here to open the console for more details\n\n` + 
+               `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    lm.log(() => `wildcards-plus caught a fatal exception, ` +
-           `click here to open the console for more details\n` +
-           `exception:\n${inspect_fun(ex)}`);
+    lm.error(`wildcards-plus caught a fatal exception, ` +
+             `click here to open the console for more details\n` +
+             `exception:\n${inspect_fun(ex)}`);
   }
 }
 // =================================================================================================

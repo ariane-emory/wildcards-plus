@@ -8645,7 +8645,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8715,7 +8715,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
     if (typeof thing === 'string') {
       if (log_level__expand_and_walk)
-        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+        lm.log(`nothing to walk in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
       return thing;
     }
 
@@ -10889,7 +10889,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    // log_level__expand_and_walk = 1;
+    log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
@@ -10908,7 +10908,7 @@ async function main() {
       LOG_LINE();
       lm.log(`${inspect_fun(context.flags)}`);
     }
-    
+
     if (context.scalar_variables.size > 0) {
       LOG_LINE();
       lm.log(`Scalars after:`);
