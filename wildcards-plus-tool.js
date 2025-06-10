@@ -4443,7 +4443,7 @@ class Context {
     }
   }
   // -------------------------------------------------------------------------------------------------
-  munge_configuration({ replace = true, is_dt_hosted = dt_hosted } = {}) {
+  munge_configuration() {
     const munged_configuration = structured_clone(this.configuration);
 
     if (is_empty_object(munged_configuration))
@@ -4494,7 +4494,7 @@ class Context {
     }
 
     // when running in DT, sampler needs to be an index:
-    if (is_dt_hosted && typeof munged_configuration.sampler === 'string') { 
+    if (dt_hosted && typeof munged_configuration.sampler === 'string') { 
       lm.log(`correcting munged_configuration.sampler = ` +
              `${inspect_fun(munged_configuration.sampler)} to ` +
              `munged_configuration.sampler = ` +
