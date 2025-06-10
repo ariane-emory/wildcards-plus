@@ -3364,17 +3364,16 @@ function count_occurrences(arr) {
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
-
   const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
+  let   abs_bytes = Math.abs(bytes);
 
   let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
+  while (abs_bytes >= base && i < units.length - 1) {
+    abs_bytes /= base;
     i++;
   }
 
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  const value = abs_bytes.toFixed(2).replace(/\.?0+$/, '');
   return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
