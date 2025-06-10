@@ -4455,7 +4455,7 @@ class Context {
 
     if (munged_configuration.model === '') {
       lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This ` +
-             `probably isn't  what you meant to do, your prompt template may contain an error!`,
+             `probably isn't what you meant to do, your prompt template may contain an error!`,
              log_level__expand_and_walk);
       delete munged_configuration.model;
     }
@@ -4474,12 +4474,18 @@ class Context {
       else if (munged_configuration.model.endsWith('_f16')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
       else 
-        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+        munged_configuration.model = `${munged_configuration.model}_f16.ckpt`;
     }
     
+    if (munged_configuration.sampler === '') {
+      lm.log(`WARNING: munged_configuration.sampler is an empty string, deleting key! This ` +
+             `probably isn't what you meant to do, your prompt template may contain an error!`,
+             log_level__expand_and_walk);
+      delete munged_configuration.sampler;
+    }
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-    if (munged_configuration.sampler &&
-        typeof munged_configuration.sampler === 'string') {
+    else if (munged_configuration.sampler &&
+             typeof munged_configuration.sampler === 'string') {
       const lc  = munged_configuration.sampler.toLowerCase();
       const got = dt_samplers_caps_correction.get(lc);
 
@@ -4490,33 +4496,31 @@ class Context {
                `'${munged_configuration.sampler}', ` +
                `we're probably going to crash in a moment`);
     }
-    
-    if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
-      if (munged_configuration.sampler !== undefined &&
-          typeof munged_configuration.sampler === 'string') {
-        lm.log(`correcting munged_configuration.sampler = ` +
-               `${inspect_fun(munged_configuration.sampler)} to ` +
-               `munged_configuration.sampler = ` +
-               `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
-               log_level__expand_and_walk);
-        const index = dt_samplers.indexOf(munged_configuration.sampler);
 
-        if (index === -1) {
-          lm.log(`WARNING: could not find index of sampler ` +
-                 `'${munged_configuration.sampler}'. `+
-                 `Are you sure you used the correct name? ` +
-                 `deleting sampler from configuration`);
+    // when running in DT, sampler needs to be an index:
+    if (is_dt_hosted && typeof munged_configuration.sampler === 'string') { 
+      lm.log(`correcting munged_configuration.sampler = ` +
+             `${inspect_fun(munged_configuration.sampler)} to ` +
+             `munged_configuration.sampler = ` +
+             `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+             log_level__expand_and_walk);
 
-          delete munged_configuration.sampler;
-        }
-        else {
-          munged_configuration.sampler = index;
-        }
+      const index = dt_samplers.indexOf(munged_configuration.sampler);
+
+      if (index === -1) {
+        lm.log(`WARNING: could not find index of sampler ` +
+               `'${munged_configuration.sampler}'. `+
+               `Are you sure you used the correct name? ` +
+               `deleting sampler from configuration`);
+
+        delete munged_configuration.sampler;
+      }
+      else {
+        munged_configuration.sampler = index;
       }
     }
     // when running in Node.js, sampler needs to be a string:
-    else if (munged_configuration.sampler !== undefined &&
-             typeof munged_configuration.sampler === 'number') {
+    else if (typeof munged_configuration.sampler === 'number') {
       lm.log(`correcting munged_configuration.sampler = ` +
              `${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ` +
@@ -9109,182 +9113,182 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         try {
           let value = thing.value;
 
-        const fatal_errors = false;
-        
-        const error_fun = fatal_errors
-              ? msg => { throw new Error(msg); }
-              : msg => { throw new ThrownReturn(warning_str(msg)); };
-        
-        if (value instanceof ASTNode) {
-          const expanded_value = lm.indent(() =>
-            // don't correct articles in config values so that we don't mess up, e.g.,
-            // %sampled = { Euler A AYS };
-            expand_wildcards(thing.value, context, // not walk because we're going to parse it as JSON
-                             { correct_articles: false })); 
-
-          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? RjsoncObject
-                                                : Rjsonc).match(expanded_value);
-
-          if (thing instanceof ASTUpdateConfigurationBinary) {
-            value = jsconc_parsed_expanded_value?.is_finished
-              ? jsconc_parsed_expanded_value.value
-              : expanded_value;
-          }
-          else { // ASTUpdateConfigurationUnary
-            error_fun(`${thing.constructor.name}.value must expand to produce a valid ` +
-                      `rJSONC object, Rjsonc.match(...) result was ` +
-                      inspect_fun(jsconc_parsed_expanded_value));
-          }
-        }
-        else {
-          value = structured_clone(value); // do we need to clone this? I forget.
-        }
-
-        if (thing instanceof ASTUpdateConfigurationUnary) { 
-          const new_obj  = {};
-          const warnings = [];
+          const fatal_errors = false;
           
-          for (const key_name of Object.keys(value)) {
-            const our_entry = get_our_configuration_key_entry(key_name);
+          const error_fun = fatal_errors
+                ? msg => { throw new Error(msg); }
+                : msg => { throw new ThrownReturn(warning_str(msg)); };
+          
+          if (value instanceof ASTNode) {
+            const expanded_value = lm.indent(() =>
+              // don't correct articles in config values so that we don't mess up, e.g.,
+              // %sampled = { Euler A AYS };
+              expand_wildcards(thing.value, context, // not walk because we're going to parse it as JSON
+                               { correct_articles: false })); 
+
+            const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                  ? RjsoncObject
+                                                  : Rjsonc).match(expanded_value);
+
+            if (thing instanceof ASTUpdateConfigurationBinary) {
+              value = jsconc_parsed_expanded_value?.is_finished
+                ? jsconc_parsed_expanded_value.value
+                : expanded_value;
+            }
+            else { // ASTUpdateConfigurationUnary
+              error_fun(`${thing.constructor.name}.value st expand to produce a valid ` +
+                        `rJSONC object, Rjsonc.match(...) result was ` +
+                        inspect_fun(jsconc_parsed_expanded_value));
+            }
+          }
+          else {
+            value = structured_clone(value); // do we need to clone this? I forget.
+          }
+
+          if (thing instanceof ASTUpdateConfigurationUnary) { 
+            const new_obj  = {};
+            const warnings = [];
+            
+            for (const key_name of Object.keys(value)) {
+              const our_entry = get_our_configuration_key_entry(key_name);
+              const our_name  = our_entry
+                    ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                    : key_name;
+
+              if (our_entry?.expected_type &&
+                  typeof value[key_name] !== our_entry.expected_type) {
+                warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
+                                          `${inspect_fun(value[key_name])} ` + 
+                                          `to configuration key '${our_name}', ` +
+                                          `expected ${our_entry.expected_type}`));
+                continue;
+              }
+
+              // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
+              
+              new_obj[our_name] = value[key_name];
+            }
+
+            context.configuration = thing.assign
+              ? new_obj
+              : { ...context.configuration, ...new_obj };
+
+            if (log_configuration_enabled)
+              lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
+                                     `${inspect_fun(new_obj, true)}`,
+                                     log_level__expand_and_walk));
+            if (warnings.length > 0)
+              throw new ThrownReturn(warnings.join(' '));          
+          }
+          else { // ASTUpdateConfigurationBinary
+            const our_entry = get_our_configuration_key_entry(thing.key);
             const our_name  = our_entry
                   ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
-                  : key_name;
+                  : thing.key;
+
+            // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
             if (our_entry?.expected_type &&
-                typeof value[key_name] !== our_entry.expected_type) {
-              warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
-                                        `${inspect_fun(value[key_name])} ` + 
-                                        `to configuration key '${our_name}', ` +
-                                        `expected ${our_entry.expected_type}`));
-              continue;
-            }
-
-            // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
+                typeof value !== our_entry.expected_type)
+              throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
+                                                 `${inspect_fun(value)} ` + 
+                                                 `to configuration key '${our_name}', ` +
+                                                 `expected ${our_entry.expected_type}`));
             
-            new_obj[our_name] = value[key_name];
+            if (thing.assign) {
+              context.configuration[our_name] = value;
+            }
+            else { // increment
+              if (Array.isArray(value)) {
+                const tmp_arr = context.configuration[our_name]??[];
+
+                if (! Array.isArray(tmp_arr))
+                  error_fun(`can't add array ${inspect_fun(value)} ` +
+                            `to non-array ${inspect_fun(tmp_arr)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+                
+                const new_arr = [ ...tmp_arr, ...value ];
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +      
+                         `increment by array ${inspect_fun(value)}, ` +             
+                         `total ${inspect_fun(new_arr)}`); 
+                
+                context.configuration[our_name] = new_arr;
+              }
+              else if (typeof value === 'object') {
+                const tmp_obj = context.configuration[our_name]??{};
+
+                if (typeof tmp_obj !== 'object')
+                  error_fun(`can't add object ${inspect_fun(value)} `+
+                            `to non-object ${inspect_fun(tmp_obj)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                const new_obj = { ...tmp_obj, ...value };
+
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +      
+                         `increment by object ${inspect_fun(value)}, ` +             
+                         `total ${inspect_fun(new_obj)}`); 
+
+                context.configuration[our_name] = new_obj;
+              }
+              else if (typeof value === 'number') {
+                const tmp_num = context.configuration[our_name]??0;
+                
+                if (typeof tmp_num !== 'number')
+                  error_fun(`can't add number ${inspect_fun(value)} `+
+                            `to non-number ${inspect_fun(tmp_num)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +
+                         `increment by number ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+                
+                context.configuration[our_name] = tmp_num + value;
+              }
+              else if (typeof value === 'string') {
+                const tmp_str = context.configuration[our_name]??'';
+
+                if (typeof tmp_str !== 'string')
+                  error_fun(`can't add string ${inspect_fun(value)} `+
+                            `to non-string ${inspect_fun(tmp_str)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                if (log_level__expand_and_walk >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +
+                         `increment by string ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+
+                context.configuration[our_name] =
+                  lm.indent(() => smart_join([tmp_str, value],
+                                             { correct_articles: false })); // never correct here?
+              }
+              else {
+                // probly won't work most of the time, but let's try anyhow, I guess:
+
+                if (log_level__expand_and_walk >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` 
+                         `incrementing by unknown type value ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+
+                context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+              }
+            }
+
+            if (log_configuration_enabled)
+              lm.indent(() => lm.log(`%${our_name} ` +
+                                     `${thing.assign ? '=' : '+='} ` +
+                                     `${inspect_fun(value, true)}`,
+                                     log_level__expand_and_walk));
           }
 
-          context.configuration = thing.assign
-            ? new_obj
-            : { ...context.configuration, ...new_obj };
-
-          if (log_configuration_enabled)
-                lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
-                                       `${inspect_fun(new_obj, true)}`,
-                                       log_level__expand_and_walk));
-          if (warnings.length > 0)
-            throw new ThrownReturn(warnings.join(' '));          
-        }
-        else { // ASTUpdateConfigurationBinary
-          const our_entry = get_our_configuration_key_entry(thing.key);
-          const our_name  = our_entry
-                ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
-                : thing.key;
-
-          // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
-
-          if (our_entry?.expected_type &&
-              typeof value !== our_entry.expected_type)
-            throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
-                                               `${inspect_fun(value)} ` + 
-                                               `to configuration key '${our_name}', ` +
-                                               `expected ${our_entry.expected_type}`));
-          
-          if (thing.assign) {
-            context.configuration[our_name] = value;
-          }
-          else { // increment
-            if (Array.isArray(value)) {
-              const tmp_arr = context.configuration[our_name]??[];
-
-              if (! Array.isArray(tmp_arr))
-                error_fun(`can't add array ${inspect_fun(value)} ` +
-                          `to non-array ${inspect_fun(tmp_arr)} ` +
-                          `in key ${inspect_fun(our_name)}`);
-              
-              const new_arr = [ ...tmp_arr, ...value ];
-              if (log_expand_and_walk_enabled >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` +      
-                       `increment by array ${inspect_fun(value)}, ` +             
-                       `total ${inspect_fun(new_arr)}`); 
-              
-              context.configuration[our_name] = new_arr;
-            }
-            else if (typeof value === 'object') {
-              const tmp_obj = context.configuration[our_name]??{};
-
-              if (typeof tmp_obj !== 'object')
-                error_fun(`can't add object ${inspect_fun(value)} `+
-                          `to non-object ${inspect_fun(tmp_obj)} ` +
-                          `in key ${inspect_fun(our_name)}`);
-
-              const new_obj = { ...tmp_obj, ...value };
-
-              if (log_expand_and_walk_enabled >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` +      
-                       `increment by object ${inspect_fun(value)}, ` +             
-                       `total ${inspect_fun(new_obj)}`); 
-
-              context.configuration[our_name] = new_obj;
-            }
-            else if (typeof value === 'number') {
-              const tmp_num = context.configuration[our_name]??0;
-              
-              if (typeof tmp_num !== 'number')
-                error_fun(`can't add number ${inspect_fun(value)} `+
-                          `to non-number ${inspect_fun(tmp_num)} ` +
-                          `in key ${inspect_fun(our_name)}`);
-
-              if (log_expand_and_walk_enabled >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` +
-                       `increment by number ${inspect_fun(value)}, ` +
-                       `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
-              
-              context.configuration[our_name] = tmp_num + value;
-            }
-            else if (typeof value === 'string') {
-              const tmp_str = context.configuration[our_name]??'';
-
-              if (typeof tmp_str !== 'string')
-                error_fun(`can't add string ${inspect_fun(value)} `+
-                          `to non-string ${inspect_fun(tmp_str)} ` +
-                          `in key ${inspect_fun(our_name)}`);
-
-              if (log_level__expand_and_walk >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` +
-                       `increment by string ${inspect_fun(value)}, ` +
-                       `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-
-              context.configuration[our_name] =
-                lm.indent(() => smart_join([tmp_str, value],
-                                           { correct_articles: false })); // never correct here?
-            }
-            else {
-              // probly won't work most of the time, but let's try anyhow, I guess:
-
-              if (log_level__expand_and_walk >= 2)
-                lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                       `${inspect_fun(context.configuration[our_name])}, ` 
-                       `incrementing by unknown type value ${inspect_fun(value)}, ` +
-                       `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
-
-              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-            }
-          }
-
-          if (log_configuration_enabled)
-            lm.indent(() => lm.log(`%${our_name} ` +
-                                   `${thing.assign ? '=' : '+='} ` +
-                                   `${inspect_fun(value, true)}`,
-                                   log_level__expand_and_walk));
-        }
-
-        throw new ThrownReturn(''); // produce nothing
+          throw new ThrownReturn(''); // produce nothing
         }
         finally {
           context.munge_configuration();
