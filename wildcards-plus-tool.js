@@ -4146,7 +4146,7 @@ const configuration_key_names = [
     shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_entry(preferred_needle_key, alternate_needle_key, needle_value) {
+function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
     lm.log(`\nLOOKING UP ${preferred_needle_key} FOR ` +
            `${inspect_fun(alternate_needle_key)} ` +
@@ -4206,12 +4206,12 @@ function get_entry(preferred_needle_key, alternate_needle_key, needle_value) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  const entry = get_entry('dt_name', 'automatic1111_name', name);
+  const entry = get_configuration_key_entry('dt_name', 'automatic1111_name', name);
   return entry ? entry['dt_name'] : name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  const entry = get_entry('automatic1111_name', 'dt_name', name);
+  const entry = get_configuration_key_entry('automatic1111_name', 'dt_name', name);
   return entry ? entry['automatic1111_name'] : name;
 }
 // -------------------------------------------------------------------------------------------------
