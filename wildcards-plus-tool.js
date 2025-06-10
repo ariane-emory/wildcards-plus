@@ -4152,7 +4152,7 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
            `${inspect_fun(needle_key)} ` +
            `${inspect_fun(needle_value)}`);
 
-  needle_value = needle_value.toLowerCase();
+  needle_value = needle_value.toLowerCase(); // normalize
 
   // -----------------------------------------------------------------------------------------------
   // is needle_value a shorthand?
