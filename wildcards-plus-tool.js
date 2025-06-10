@@ -9286,9 +9286,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
         throw new ThrownReturn(''); // produce nothing
         }
-        catch(err) {
+        finally {
           context.munge_configuration();
-          throw err;
         }
       }
       // ---------------------------------------------------------------------------------------------
