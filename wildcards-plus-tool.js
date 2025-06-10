@@ -10027,7 +10027,7 @@ class ASTSetPickMultiple extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-multiple = ${this.limited_content}`;
+    return `%multi-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10044,7 +10044,7 @@ class ASTSetPickSingle extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-single = ${this.limited_content}`;
+    return `%single-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10056,7 +10056,7 @@ class ASTRevertPickMultiple extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%revert-pick-multiple`;
+    return `%revert-pick-multi`;
   }
 }
 // -------------------------------------------------------------------------------------------------

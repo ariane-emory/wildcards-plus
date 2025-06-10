@@ -1,29 +1,27 @@
-%ui-prompt...
+// %ui-prompt...
 
-@bit = { foo | bar | baz | qux | quux | corge | grault };
+@name_bit = { foo | bar | baz | qux | quux | corge | grault };
 
 @name = {
-%single-pick = true_randomness;
-$name = { @^bit <@bit };
-%revert-single-pick;
-$name, $name! \n
-};
+ %single-pick = true_randomness;
+ $name = { @^name_bit <@name_bit };
+ %revert-single-pick;
+ $name, $name!
+}; \n
 
-\n
-
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
-@name
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+@name? \n
