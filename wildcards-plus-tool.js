@@ -4018,8 +4018,8 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score',
     expected_type: 'number', },
-  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count',
-    expected_type: 'number', },
+  // { dt_name: 'batchCount',                        automatic1111_name: 'batch_count',
+  //   expected_type: 'number', },
   { dt_name: 'batchCount',                        automatic1111_name: 'n_iter',
     expected_type: 'number', },
   { dt_name: 'batchSize',                         automatic1111_name: 'batch_size',
