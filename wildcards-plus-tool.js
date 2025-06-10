@@ -9137,9 +9137,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           let new_obj = value;
 
           for (const key_name of Object.keys(value)) {
+            const our_entry = get_our_configuration_key_entry(key_name);
+            const our_name  = our_entry[dt_hosted? 'dt_name' : 'automatic1111_name'];
             
-            new_obj[get_our_configuration_key_name(key_name)] =
-              value[key_name];
+            new_obj[our_name]= value[key_name];
 
             // probably validate types here
           }
