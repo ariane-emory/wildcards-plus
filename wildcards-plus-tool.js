@@ -9150,6 +9150,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
         else { // ASTUpdateConfigurationBinary
           const our_name = get_our_configuration_key_name(thing.key); 
+          const our_entry = get_our_configuration_key_entry(thing.key);
+
+          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)))}`);
           
           if (thing.assign) {
             context.configuration[our_name] = value;
@@ -9238,7 +9241,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           }
 
           if (log_configuration_enabled)
-            lm.indent(() => lm.log(`%${our_name} ` +
+                                                              lm.indent(() => lm.log(`%${our_name} ` +
                                    `${thing.assign ? '=' : '+='} ` +
                                    `${inspect_fun(value, true)}`,
                                    log_level__expand_and_walk));
