@@ -4234,7 +4234,7 @@ function get_our_configuration_key_name(key_name) {
 
   return (entry
           ? entry[dt_hosted ? 'dt_name' : 'automatic1111_name']
-          : name);
+          : key_name);
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
@@ -9136,8 +9136,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (thing instanceof ASTUpdateConfigurationUnary) { 
           let new_obj = value;
 
-          for (const key of Object.keys(value)) {
-            new_obj[get_our_configuration_key_name(key)??key] = value[key];
+          for (const key_name of Object.keys(value)) {
+            
+            new_obj[get_our_configuration_key_name(key_name)] =
+              value[key_name];
 
             // probably validate types here
           }
@@ -9451,7 +9453,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                         { correct_articles: correct_articles })
 
     ret = unescape(walked.replace(/^[<]+/, ''));
-    // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
 
     context.munge_configuration();
   });
