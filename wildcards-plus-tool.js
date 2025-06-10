@@ -2908,13 +2908,13 @@ RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // =================================================================================================
 const always = () => true;
 const never  = () => false;
+const id     = x  => x;
 const picker_priority = Object.freeze({
   avoid_repetition_short:        'Avoiding repetition (short term only)',
   avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
-const id = x => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
