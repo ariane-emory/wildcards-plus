@@ -4152,13 +4152,13 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
            `${inspect_fun(needle_key)} ` +
            `${inspect_fun(needle_value)}`);
 
-  let needle_value_lc = needle_value.toLowerCase();
+  needle_value = needle_value.toLowerCase();
 
   // -----------------------------------------------------------------------------------------------
   // is needle_value a shorthand?
   // -----------------------------------------------------------------------------------------------
   let entry = configuration_key_names.find(obj => 
-    obj.shorthands?.includes(needle_value_lc))
+    obj.shorthands?.includes(needle_value))
 
   if (entry) {
     if (log_name_lookups_enabled)
@@ -4173,9 +4173,9 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
   entry = configuration_key_names.find(obj => {
     if (log_name_lookups_enabled)
       lm.log(`test ${inspect_fun(obj[alternate_needle_key].toLowerCase())} === ` +
-             `${inspect_fun(needle_value_lc)} = ` +
-             `${obj[alternate_needle_key].toLowerCase() === needle_value_lc}`);
-    return obj[alternate_needle_key].toLowerCase() === needle_value_lc;
+             `${inspect_fun(needle_value)} = ` +
+             `${obj[alternate_needle_key].toLowerCase() === needle_value}`);
+    return obj[alternate_needle_key].toLowerCase() === needle_value;
   });
 
   if (entry) {
@@ -4188,7 +4188,7 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
   // -----------------------------------------------------------------------------------------------
   // look up the alternate key:
   // -----------------------------------------------------------------------------------------------
-  entry = configuration_key_names.find(obj => obj[needle_key].toLowerCase() === needle_value_lc);
+  entry = configuration_key_names.find(obj => obj[needle_key].toLowerCase() === needle_value);
 
   if (entry) {
     if (log_name_lookups_enabled)
