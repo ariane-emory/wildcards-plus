@@ -9136,8 +9136,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (thing instanceof ASTUpdateConfigurationUnary) { 
           let new_obj = value;
 
-          for (const key of Object.keys(value)) 
-            new_obj[get_our_configuration_key_name(key)??key] = value[key]
+          for (const key of Object.keys(value)) {
+            new_obj[get_our_configuration_key_name(key)??key] = value[key];
+
+            // probably validate types here
+          }
           
           context.configuration = thing.assign
             ? new_obj
