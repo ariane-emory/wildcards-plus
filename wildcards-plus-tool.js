@@ -200,8 +200,6 @@ function save_post_request(options, data) {
 }
 // -------------------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
-  const copied = context.shallow_copy({ top_file: false });  
-
   function walk(thing) {
     if (thing instanceof ASTInclude) {
       const current_file = copied.files[copied.files.length - 1];
@@ -245,8 +243,11 @@ function process_includes(thing, context = new Context()) {
     }
   }
 
+  const copied = context.shallow_copy({ top_file: false });  
+
   return walk(thing).flat(1);
 }
+
 // =================================================================================================
 // END OF NODE-ONLY HELPER FUNCTIONS SECTION.
 // =================================================================================================
@@ -10839,12 +10840,10 @@ async function main() {
     audit_elapsed = measure_time(() =>
       audit_warnings = audit_semantics(AST, { base_context: base_context }));
   });
-
   lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
 
   for (const err of audit_warnings)
     lm.log(err, false);
-
 
   let posted_count        = 0;
   let prior_prompt        = null;
