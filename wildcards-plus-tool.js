@@ -4168,19 +4168,13 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // is it just miscapitalized?
+  // is it just a miscapitalized alternate_needle_key?
   // -----------------------------------------------------------------------------------------------
-  entry = configuration_key_names.find(obj => {
-    if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[alternate_needle_key].toLowerCase())} === ` +
-             `${inspect_fun(needle_value)} = ` +
-             `${obj[alternate_needle_key].toLowerCase() === needle_value}`);
-    return obj[alternate_needle_key].toLowerCase() === needle_value;
-  });
+  entry = configuration_key_names.find(obj => obj[alternate_needle_key].toLowerCase() === needle_value);
 
   if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${alternate_needle_key} ${inspect_fun(entry[alternate_needle_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${alternate_needle_key} ${inspect_fun(entry[alternate_needle_key])}`);
     
     return entry;
   } 
@@ -4192,17 +4186,16 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
 
   if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`ENTRY ${alternate_needle_key} FOR ` +
-             `${inspect_fun(needle_key)} ${inspect_fun(needle_value)}`);
+      lm.log(`ENTRY ${alternate_needle_key} FOR  ${inspect_fun(needle_key)} ${inspect_fun(needle_value)}`);
     
     return entry;
   }
 
   // -----------------------------------------------------------------------------------------------
-  // didn't find it on either side, just return the argument:
+  // didn't find it on either side, return null.
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    lm.log(`RETURNING ARGUMENT ${inspect_fun(needle_value)}\n`);
+    lm.log(`RETURNING NULL FROM LOOKUP FOR  ${inspect_fun(needle_value)}\n`);
 
   // possibly an error? maybe not always.
   return null;
@@ -4210,16 +4203,12 @@ function get_entry(needle_key, alternate_needle_key, needle_value) {
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
   const entry = get_entry('automatic1111_name', 'dt_name', name);
-  return entry
-    ? entry['dt_name']
-    : name;
+  return entry ? entry['dt_name'] : name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
   const entry = get_entry('dt_name', 'automatic1111_name', name);
-  return entry
-    ? entry['automatic1111_name']
-    : name;
+  return entry ? entry['automatic1111_name'] : name;
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
