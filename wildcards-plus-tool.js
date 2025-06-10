@@ -200,27 +200,25 @@ function save_post_request(options, data) {
 }
 // -------------------------------------------------------------------------------------------------
 function process_includes(thing, context = new Context()) {
-  function walk(thing, context) {
+  function walk(thing) {
     if (thing instanceof ASTInclude) {
-      const current_file = context.files[context.files.length - 1];
+      const current_file = copied.files[copied.files.length - 1];
       const res = []
 
       // lm.log(`INSPECT: ${inspect_fun(thing, null, 2)}`);
 
-      const copied = context.shallow_copy({ top_file: false });
-      
       for (let filename of thing.args) {
         if (typeof filename !== 'string')
           throw new Error(`include's arguments must be strings, got ${inspect_fun(filename)}`);
         
         filename = path.join(path.dirname(current_file), filename);
         
-        if (context.files.includes(filename)) {
+        if (copied.files.includes(filename)) {
           lm.log(`WARNING: skipping duplicate include of '${filename}'.`);
           continue;
         }
 
-        context.files.push(filename);
+        copied.files.push(filename);
 
         const parse_file_result = parse_file(filename);
 
@@ -236,7 +234,7 @@ function process_includes(thing, context = new Context()) {
       const ret = [];
 
       for (const t of thing)
-        ret.push(walk(t, context));
+        ret.push(walk(t));
 
       return ret;
     }
@@ -244,8 +242,9 @@ function process_includes(thing, context = new Context()) {
       return thing;
     }
   }
-  
-  return walk(thing, context).flat(1);
+
+  const copied = context.shallow_copy({ top_file: false });  
+  return walk(thing).flat(1);
 }
 // =================================================================================================
 // END OF NODE-ONLY HELPER FUNCTIONS SECTION.
@@ -4462,7 +4461,7 @@ const prelude_text = `
 @__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
                             {?female #gender.female 
                             |?male   #gender.male
-                            |?neuter #gender.neuter }
+                            |?neuter #gender.neuter    }
                             {3 !gender.#female #female
                             |2 !gender.#male   #male
                             |1 !gender.#neuter #neuter } } 
