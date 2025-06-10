@@ -8782,7 +8782,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   }
   // -----------------------------------------------------------------------------------------------
   function warning_str(str) {
-    return `\\<WARNING: ${str}!>`;
+    return `[WARNING: ${str}!]`;
   }
   // -----------------------------------------------------------------------------------------------
   // const log = (guard_bool, msg, with_indentation = true) => { 
@@ -9160,11 +9160,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
           if (our_entry.expected_type &&
               typeof value !== our_entry.expected_type)
-                                        throw new Error(`bad assignment value ${inspect_fun(value)}`);
-                                      
-                                      if (thing.assign) {
-                                        context.configuration[our_name] = value;
-                                      }
+            throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
+                                               `${inspect_fun(value)} ` + 
+                                               `to configuration key '${our_name}', ` +
+                                               `expected ${our_entry.expected_type}`));
+          
+          if (thing.assign) {
+            context.configuration[our_name] = value;
+          }
           else { // increment
             if (Array.isArray(value)) {
               const tmp_arr = context.configuration[our_name]??[];
@@ -9249,7 +9252,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           }
 
           if (log_configuration_enabled)
-                                                              lm.indent(() => lm.log(`%${our_name} ` +
+            lm.indent(() => lm.log(`%${our_name} ` +
                                    `${thing.assign ? '=' : '+='} ` +
                                    `${inspect_fun(value, true)}`,
                                    log_level__expand_and_walk));
