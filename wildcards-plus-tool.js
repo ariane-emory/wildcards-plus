@@ -4029,7 +4029,7 @@ const configuration_key_names = [
     expected_type: 'string',
     shorthands: [ 'clip_l', 'clipl' ], },
   { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip',
-    expected_type: 'boolean' },
+    expected_type: 'number' },
   { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight',
     expected_type: 'number', },
   { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left',
@@ -9152,8 +9152,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const our_name = get_our_configuration_key_name(thing.key); 
           const our_entry = get_our_configuration_key_entry(thing.key);
 
-          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
-          
+          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`, false);
+
+          if (our_entry.expected_type &&
+              typeof value !== our_entry.expected_type)
+            throw new Error(`bad assignment value ${inspect_fun(value)}`);
+              
           if (thing.assign) {
             context.configuration[our_name] = value;
           }
