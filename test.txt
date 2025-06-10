@@ -22,3 +22,7 @@
 // foo, @tits bar,
 
 %ui-prompt...
+
+@bit = { foo | bar | baz }
+
+@bit<@bit

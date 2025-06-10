@@ -9211,8 +9211,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        let str = lm.indent(() => smart_join(walk(res.value, { correct_articles: correct_articles }),
-                                             { correct_articles: correct_articles }));
+        let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -10891,7 +10890,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    // log_level__expand_and_walk = 1;
+    log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
