@@ -3966,11 +3966,11 @@ const configuration_key_names = [
   // identical keys:
   // -----------------------------------------------------------------------------------------------
   { dt_name: 'controls',                          automatic1111_name: 'controls',
-    expected_type: 'Array' },
+    expected_type: 'object' },
   { dt_name: 'fps',                               automatic1111_name: 'fps',
     expected_type: 'number' },
   { dt_name: 'loras',                             automatic1111_name: 'loras',
-    expected_type: 'Array' },
+    expected_type: 'object' },
   { dt_name: 'model',                             automatic1111_name: 'model',
     expected_type: 'string' },
   { dt_name: 'prompt',                            automatic1111_name: 'prompt',
@@ -9152,7 +9152,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           const our_name = get_our_configuration_key_name(thing.key); 
           const our_entry = get_our_configuration_key_entry(thing.key);
 
-          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)))}`);
+          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
           
           if (thing.assign) {
             context.configuration[our_name] = value;
