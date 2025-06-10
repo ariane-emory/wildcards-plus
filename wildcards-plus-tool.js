@@ -254,7 +254,7 @@ function process_includes(thing, context = new Context()) {
 
 
 // =================================================================================================
-// SET inspect_fun APPROPRIATELY FOR node.js:
+// set inspect_fun appropriately for node.js:
 // =================================================================================================
 let inspect_fun           = (thing, no_break = false) =>
     util.inspect(thing,
@@ -9134,8 +9134,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
 
         if (thing instanceof ASTUpdateConfigurationUnary) { 
-          let new_obj = {};
-
+          const new_obj  = {};
           const warnings = [];
           
           for (const key_name of Object.keys(value)) {
@@ -9150,15 +9149,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                         `${inspect_fun(value[key_name])} ` + 
                                         `to configuration key '${our_name}', ` +
                                         `expected ${our_entry.expected_type}`));
-              // throw new Error('stop');
               continue;
             }
 
-            lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
+            // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
             
             new_obj[our_name] = value[key_name];
-            
-            // probably validate types here
           }
 
           context.configuration = thing.assign
@@ -9178,7 +9174,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                 : thing.key;
 
-          lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
+          // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
           if (our_entry?.expected_type &&
               typeof value !== our_entry.expected_type)
@@ -11008,7 +11004,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    log_level__expand_and_walk = 1;
+    // log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
