@@ -3976,6 +3976,7 @@ const configuration_key_names = [
   { dt_name: 'prompt',                            automatic1111_name: 'prompt',
     expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
+    // expected_type: [ 'string', 'number' ],
     shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
   { dt_name: 'seed',                              automatic1111_name: 'seed',
     expected_type: 'number' },
