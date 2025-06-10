@@ -9473,9 +9473,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   let ret;
 
   lm.indent(() => {
-    const walked = walk(thing,
-                        { correct_articles: correct_articles })
-
+    const walked = walk(thing, { correct_articles: correct_articles })
     ret = unescape(walked.replace(/^[<]+/, ''));
   });
 
@@ -9496,7 +9494,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
 
 // =================================================================================================
-// FLAG AUDITING FUNCTION.
+// SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
@@ -9698,7 +9696,7 @@ function audit_semantics(root_ast_node,
   return warnings;
 }
 // =================================================================================================
-// END OF THE FLAG AUDITING FUNCTION.
+// END OF THE SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 
 
