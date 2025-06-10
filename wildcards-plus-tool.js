@@ -9138,9 +9138,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
           for (const key_name of Object.keys(value)) {
             const our_entry = get_our_configuration_key_entry(key_name);
-            const our_name  = our_entry[dt_hosted? 'dt_name' : 'automatic1111_name'];
+            const our_name  = our_entry
+                  ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                  : key_name;
             
-            new_obj[our_name]= value[key_name];
+            new_obj[our_name] = value[key_name];
 
             // probably validate types here
           }
@@ -9156,7 +9158,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
         else { // ASTUpdateConfigurationBinary
           const our_entry = get_our_configuration_key_entry(thing.key);
-          const our_name  = our_entry[dt_hosted? 'dt_name' : 'automatic1111_name'];
+          const our_name  = our_entry
+                ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                : thing.key;
           // const our_name = get_our_configuration_key_name(thing.key); 
 
           lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
