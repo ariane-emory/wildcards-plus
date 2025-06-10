@@ -3308,9 +3308,12 @@ function benchmark(thunk, {
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function capitalize(string) {
-  // lm.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-  return string.charAt(0).toUpperCase() + string.slice(1);
+function capitalize(str) {
+  // lm.log(`Capitalizing ${typeof str} ${inspect_fun(str)}`);
+  if (str === '')
+    return str;
+  
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 // -------------------------------------------------------------------------------------------------
 function choose_indefinite_article(word) {
@@ -8889,9 +8892,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       else if (thing instanceof ASTScalarReference) {
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
-
-        if (false)
-          lm.log(`scalar ref $${thing.name} = ${inspect_fun(got)}`);
 
         if (thing.capitalize)
           got = capitalize(got);
