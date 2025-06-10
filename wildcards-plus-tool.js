@@ -3349,6 +3349,15 @@ function choose_indefinite_article(word) {
   return 'a';
 }
 // -------------------------------------------------------------------------------------------------
+function count_occurrences(arr) {
+  const counts = new Map();
+
+  for (const item of arr) 
+    counts.set(item, (counts.get(item) || 0) + 1);
+
+  return counts;
+}
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
@@ -9441,8 +9450,10 @@ function audit_semantics(root_ast_node,
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template. ` +
-                    `${suggestion}`,
+                    `this suggests that you may have a typo or other error in your template.` +
+                    (suggestion
+                     ? ` ${suggestion}`
+                     : ''),
                     errors_arr);
     }
     // ---------------------------------------------------------------------------------------------
@@ -10842,8 +10853,13 @@ async function main() {
   });
   lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
 
-  for (const err of audit_warnings)
-    lm.log(err, false);
+  const audit_warning_counts = count_occurrences(audit_warnings);
+  
+  for (let [warning, count] of audit_warning_counts)
+    lm.log((count > 1
+            ? `${warning} (${count} times)`
+            : warning),
+           false);
 
   let posted_count        = 0;
   let prior_prompt        = null;
