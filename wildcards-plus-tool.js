@@ -4443,11 +4443,7 @@ class Context {
     }
   }
   // -------------------------------------------------------------------------------------------------
-  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
-
-    // lm.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-
+  munge_configuration({ replace = true, is_dt_hosted = dt_hosted } = {}) {
     const munged_configuration = structured_clone(this.configuration);
 
     if (is_empty_object(munged_configuration))
