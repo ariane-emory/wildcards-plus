@@ -4223,6 +4223,14 @@ function get_automatic1111_name(name) {
   return entry ? entry['automatic1111_name'] : name;
 }
 // -------------------------------------------------------------------------------------------------
+function get_our_entry(name) {
+  return (dt_hosted
+          ? get_configuration_key_entry_prefer_dt_name(name)
+          : get_configuration_key_entry_prefer_automatic1111_name(name));
+
+  return res;
+}
+// -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
   const res = (dt_hosted
                ? get_dt_name
