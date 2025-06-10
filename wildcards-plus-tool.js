@@ -11015,6 +11015,7 @@ async function main() {
     // log_flags_enabled          = true;
 
     const prompt  = expand_wildcards(AST, context);
+    context.munge_configuration(); // for good measure...
 
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
