@@ -9519,12 +9519,12 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, errors_arr) {    
+  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
     if (typeof local_audit_semantics_mode !== 'string' ||
-        !Array.isArray(errors_arr))
+        !Array.isArray(warnings_arr))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, mode, errors_arr) {
+    function walk_children(thing, mode, warnings_arr) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
                         `${abbreviate(compress(inspect_fun(mode)))}`);
@@ -9536,12 +9536,12 @@ function audit_semantics(root_ast_node,
         //   lm.log(`children: ${abbreviate(children.map(thing_str_repr).toString())}`);
 
         // lm.indent(() => {
-        walk(children, mode, errors_arr);
+        walk(children, mode, warnings_arr);
         // }); // propagate arg
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg, errors_arr) {
+    function warn_or_throw(msg, warnings_arr) {
       if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
@@ -9553,12 +9553,12 @@ function audit_semantics(root_ast_node,
       else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings &&
                ! already_warned_msgs.has(msg)) {
         // lm.log(msg, false); // false arg for no indentation and not local log function
-        errors_arr.push(msg);
+        warnings_arr.push(msg);
         // already_warned_msgs.add(msg);
       }
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr) {
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
       if (dummy_context.flag_is_set(flag) ||
           local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
@@ -9572,7 +9572,7 @@ function audit_semantics(root_ast_node,
                     (suggestion
                      ? ` ${suggestion}`
                      : ''),
-                    errors_arr);
+                    warnings_arr);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
@@ -9599,13 +9599,13 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, errors_arr) // propagate local_audit_semantics_mode
+            walk(elem, local_audit_semantics_mode, warnings_arr) // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
-                        errors_arr);
+                        warnings_arr);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
@@ -9618,11 +9618,11 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
                         `${suggestion}`,
-                        errors_arr);
+                        warnings_arr);
         }
         
         // lm.indent(() =>
-        walk(got, audit_semantics_mode, errors_arr)
+        walk(got, audit_semantics_mode, warnings_arr)
         // ); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
@@ -9632,16 +9632,16 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a made typo or other error in your ` +
                         `template. ${suggestion}`,
-                        errors_arr);
+                        warnings_arr);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
+        walk(got, local_audit_semantics_mode, warnings_arr); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9650,7 +9650,7 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9661,26 +9661,26 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode; // propagate local_audit_semantics_mode
         
-        walk_children(thing, mode, errors_arr);
+        walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, warnings_arr); // propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr); // don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9688,14 +9688,14 @@ function audit_semantics(root_ast_node,
     });
   }
 
-  const errors =  [];
+  const warnings =  [];
   
-  walk(root_ast_node, audit_semantics_mode, errors);
+  walk(root_ast_node, audit_semantics_mode, warnings);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return errors;
+  return warnings;
 }
 // =================================================================================================
 // END OF THE FLAG AUDITING FUNCTION.
