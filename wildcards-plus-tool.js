@@ -9106,7 +9106,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
-        let value = thing.value;
+        try {
+          let value = thing.value;
 
         const fatal_errors = false;
         
@@ -9282,8 +9283,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                                    `${inspect_fun(value, true)}`,
                                    log_level__expand_and_walk));
         }
-        
+
         throw new ThrownReturn(''); // produce nothing
+        }
+        catch(err) {
+          context.munge_configuration();
+          throw err;
+        }
       }
       // ---------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
@@ -9476,8 +9482,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                         { correct_articles: correct_articles })
 
     ret = unescape(walked.replace(/^[<]+/, ''));
-
-    context.munge_configuration();
   });
 
   if (log_level__expand_and_walk)
