@@ -4156,8 +4156,8 @@ function get_other_name(desired_key, needle_key, needle_value) {
   // -----------------------------------------------------------------------------------------------
   // is needle_value a shorthand?
   // -----------------------------------------------------------------------------------------------
-  let entry     = configuration_key_names.find(obj => 
-    obj?.shorthands?.includes(needle_value_lc))
+  let entry = configuration_key_names.find(obj => 
+    obj.shorthands?.includes(needle_value_lc))
 
   if (entry) {
     if (log_name_lookups_enabled)
@@ -4208,11 +4208,11 @@ function get_other_name(desired_key, needle_key, needle_value) {
 }
 // -------------------------------------------------------------------------------------------------
 function get_dt_name(name) {
-  return get_other_name('dt_name',            'automatic1111_name', name);
+  return get_other_name('dt_name', 'automatic1111_name', name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_automatic1111_name(name) {
-  return get_other_name('automatic1111_name', 'dt_name',            name);
+  return get_other_name('automatic1111_name', 'dt_name', name);
 }
 // -------------------------------------------------------------------------------------------------
 function get_our_name(name) {
