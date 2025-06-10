@@ -3537,6 +3537,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
 
+  if (typeof arr == 'string')
+    throw new Error(`got string`);
+  
   maybe_trap();
   
   if (! arr || typeof arr === 'string')
@@ -8986,9 +8989,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           //   lm.log(`assigning ${thing_str_repr(thing.source)} ` +
           //          `to '${thing.destination.name}'`);
           
-          let new_val = smart_join(walk(thing.source,
-                                        { correct_articles: correct_articles }),
-                                   { correct_articles: correct_articles });
+          let new_val = walk(thing.source,
+                             { correct_articles: correct_articles });
 
           if (! thing.assign) {
             const old_val = context.scalar_variables.get(thing.destination.name)??'';
@@ -10889,7 +10891,7 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    log_level__expand_and_walk = 1;
+    // log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
