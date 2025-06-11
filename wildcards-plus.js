@@ -20,29 +20,32 @@
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = false;
-let inspect_depth                     = 50;
-let log_configuration_enabled         = true;
-let log_loading_prelude               = true;
-let log_post_enabled                  = true;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
-let log_level__audit                  = 0;
-let log_level__expand_and_walk        = 0;
-let log_level__smart_join             = 0;
-let prelude_disabled                  = false;
-let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
-let print_ast_json_enabled            = false;
-let save_post_requests_enabled        = true;
-let unnecessary_choice_is_an_error    = true;
-let double_latching_is_an_error       = false;
-let double_unlatching_is_an_error     = false;
+let abbreviate_str_repr_enabled        = true;
+let fire_and_forget_post_enabled       = false;
+let inspect_depth                      = 50;
+let log_configuration_enabled          = true;
+let log_loading_prelude                = true;
+let log_post_enabled                   = true;
+let log_finalize_enabled               = false;
+let log_flags_enabled                  = false;
+let log_match_enabled                  = false;
+let log_name_lookups_enabled           = false;
+let log_picker_enabled                 = false;
+let log_level__audit                   = 0;
+let log_level__expand_and_walk         = 0;
+let log_level__smart_join              = 0;
+let prelude_disabled                   = false;
+let print_ast_then_die                 = false;
+let print_ast_before_includes_enabled  = false;
+let print_ast_after_includes_enabled   = false;
+let print_ast_json_enabled             = false;
+let print_packrat_cache_counts_enabled = false;
+let packrat_enabled                    = false;
+let save_post_requests_enabled         = true;
+let unnecessary_choice_is_an_error     = true;
+let double_latching_is_an_error        = false;
+let double_unlatching_is_an_error      = false;
+let rule_match_counter_enabled         = false;
 // =================================================================================================
 
 
@@ -204,11 +207,7 @@ if (false) {
 //         |-- Elem
 //         |-- Label
 //         |
-//         | Rules that make sense only when input is an Array of Tokens:
-//         |
-//         |-- TokenLabel
-//         |
-//         | Rules that make sense only when input is a string:
+//         | Rules for terminals:
 //         |
 //         |-- Literal
 //         |-- Regex
@@ -218,7 +217,8 @@ if (false) {
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-const DISCARD = Symbol('DISCARD');
+const DISCARD              = Symbol('DISCARD');
+const END_QUANTIFIED_MATCH = Symbol('END_QUANTIFIED_MATCH');
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -265,15 +265,17 @@ class FatalParseError extends Error {
 // Rule class
 // -------------------------------------------------------------------------------------------------
 class Rule {
+  static match_counter = 0;
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    // this.memoize     = false;
+    this.memoize = packrat_enabled;
     // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (this.abbreviated)
-      throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
+      throw new Error(`${inspect_fun(this)} is already abbreviated, ` +
+                      `this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
       return;
@@ -361,6 +363,9 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
+    if (rule_match_counter_enabled)
+      Rule.match_counter += 1;
+    
     if (! (cache instanceof Map))
       throw new Error(`bad match args: ${inspect_fun(arguments)}`);
     
@@ -543,14 +548,17 @@ class Quantified extends Rule {
     let match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === undefined)
-      throw new Error("match_result === undefined, this likely indicated a programmer error");
+      throw new Error("match_result === undefined, this likely indicates a programmer error");
     
     if (match_result === false)
-      throw new Error("math_result === false, this likely indicated a programmer error");
+      throw new Error("math_result === false, this likely indicates a programmer error");
     
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
 
+    if (match_result.value === END_QUANTIFIED_MATCH)
+      return new MatchResult([], input, match_result.index);
+    
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
       values.push(match_result.value);
@@ -599,6 +607,9 @@ class Quantified extends Rule {
         break;
       }
 
+      if (match_result.value === END_QUANTIFIED_MATCH)
+        return new MatchResult(values, input, index);
+      
       if (match_result.value !== DISCARD)
         values.push(match_result.value);
       
@@ -1487,96 +1498,6 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
-// // -------------------------------------------------------------------------------------------------
-// // Tail class
-// // -------------------------------------------------------------------------------------------------
-// class Tail extends Rule {
-//   // -----------------------------------------------------------------------------------------------
-//   constructor(index, rule) {
-//     super();
-//     this.rule  = make_rule_func(rule);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __direct_children() {
-//     return [ this.rule ];
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_finalize(indent, visited) {
-//     this.rule = this.__vivify(this.rule);
-//     this.rule.__finalize(indent + 1, visited);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __match(input, index, cache) {
-//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-//     if (! rule_match_result)
-//       return null;
-
-//     // I forget why I did this? Could be a bad idea?
-//     const ret = rule_match_result.value.slice(1);
-
-//     if (log_match_enabled)
-//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-//           `${inspect_fun(ret)}`);
-
-//     rule_match_result.value = ret;
-
-//     return rule_match_result
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_toString(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-//     return `CDR(${rule_str})`;
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// function tail(rule) { // convenience constructor
-//   return new Tail(rule);
-// }
-// // =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-// TokenLabel class, this can probably be deleted soon?
-// -------------------------------------------------------------------------------------------------
-class TokenLabel extends Rule {
-  // -----------------------------------------------------------------------------------------------
-  constructor(label) {
-    super();
-    this.label  = label;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    // do nothing.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(input, index, cache) {
-    if (index_is_at_end_of_input(index, input))
-      return null;
-
-    let the_token = input[index];
-
-    if (the_token?.label != this.label)
-      return null;
-
-    return new MatchResult(the_token,
-                           input,
-                           index + 1) // always matches just 1 token.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    return `'${this.label}'`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function tok(label) { // convenience constructor
-  return new TokenLabel(label);
-}
-// -------------------------------------------------------------------------------------------------
-
 // -------------------------------------------------------------------------------------------------
 // Literal class
 // -------------------------------------------------------------------------------------------------
@@ -1786,7 +1707,7 @@ function compress(str) {
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
-// // -------------------------------------------------------------------------------------------------
+// // ----------------------------------------------------------------------------------------------
 // function log(indent, str = "", indent_str = "| ") {
 //   if (! log_enabled)
 //     return;
@@ -2112,8 +2033,8 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
-const STOP = expect(never_match);
-STOP.abbreviate_str_repr("STOP");
+const ABORT = expect(never_match);
+ABORT.abbreviate_str_repr("ABORT");
 // -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
@@ -2127,10 +2048,10 @@ whites_plus.abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_decorator2("LWS", 1, whites_star);
-const tws = make_whitespace_decorator2("TWS", 0, whites_star);
-const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
-const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+const lws  = make_whitespace_decorator2("LWS",  1, whites_star);
+const tws  = make_whitespace_decorator2("TWS",  0, whites_star);
+const lhws = make_whitespace_decorator2("LHWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("THWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
@@ -2410,24 +2331,21 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const push             = (value, rule) => xform(rule, arr => [value, ...arr]);
-const enclosing        = (left, enclosed, right) =>
+const end_quantified_match_if = rule => xform(rule, () => END_QUANTIFIED_MATCH);
+const push                    = (value, rule) => xform(rule, arr => [value, ...arr]);
+const enclosing               = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right));
-const head             = (...rules) => first (seq            (...rules));
-const cadr             = (...rules) => second(seq            (...rules));
-const wst_head         = (...rules) => first (wst_seq        (...rules));
-const wst_cadr         = (...rules) => second(wst_seq        (...rules));
-const cutting_head     = (...rules) => first (cutting_seq    (...rules));
-const cutting_cadr     = (...rules) => second(cutting_seq    (...rules));
-const wst_cutting_head = (...rules) => first (wst_cutting_seq(...rules));
-const wst_cutting_cadr = (...rules) => second(wst_cutting_seq(...rules));
-const flat = (rule, depth = Infinity) => xform(arr => {
-  const flattened = arr.flat(depth);
-  // if (arr.toString() !== flattened.toString())
-  //   lm.log(`flatten ${arr} => ${flattened}`);
-  return flattened;
-}, rule);
-const flat1 = rule => flat(rule, 1); 
+const head                    = (...rules) => first (seq            (...rules));
+const cadr                    = (...rules) => second(seq            (...rules));
+const wst_head                = (...rules) => first (wst_seq        (...rules));
+const wst_cadr                = (...rules) => second(wst_seq        (...rules));
+const cutting_head            = (...rules) => first (cutting_seq    (...rules));
+const cutting_cadr            = (...rules) => second(cutting_seq    (...rules));
+const wst_cutting_head        = (...rules) => first (wst_cutting_seq(...rules));
+const wst_cutting_cadr        = (...rules) => second(wst_cutting_seq(...rules));
+const flat1                   = rule => flat(rule, 1); 
+const flat                    = (rule, depth = Infinity) =>
+      xform(rule, arr => arr.flat(depth));
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
@@ -2876,7 +2794,8 @@ class WeightedPicker {
     }
 
     if (log_picker_enabled)
-      lm.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+      lm.log(`pick from ${legal_option_indices.length} legal options ` +
+             `${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
@@ -2888,7 +2807,8 @@ class WeightedPicker {
 
       if (log_picker_enabled) {
         lm.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ` +
+               `${adjusted_weight}`);
         lm.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
       
@@ -3612,7 +3532,8 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
+                                 always_include_type_str = false } = {}) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3674,7 +3595,7 @@ function unescape(str) {
 // these are used by the context.munge_configuration() method and some walk cases.
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-// ----------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Karras',    // 0
   'Euler a',            // 1
@@ -3712,7 +3633,8 @@ const configuration_key_names = [
   { dt_name: 'prompt',                            automatic1111_name: 'prompt',
     expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
+    expected_type: [ 'string', 'number' ],
+    shorthands: ['sampler_index', 'sampler_name', ] },
   { dt_name: 'seed',                              automatic1111_name: 'seed',
     expected_type: 'number' },
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness',
@@ -8454,9 +8376,12 @@ function load_prelude(into_context = new Context()) {
     // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
   
-  if (log_loading_prelude)
+  if (log_loading_prelude) {
     lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
-
+    if (rule_match_counter_enabled)
+      lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
+  }
+  
   return into_context;
 }
 // =================================================================================================
@@ -8839,13 +8764,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         try {
-          let value = thing.value;
-
+          const type_is_okay = (val, type_or_types) =>
+                (!type_or_types
+                 ? true
+                 : (Array.isArray(type_or_types)
+                    ? type_or_types.includes(typeof val)
+                    : typeof val === type_or_types));
           const fatal_errors = false;
-          
           const error_fun = fatal_errors
                 ? msg => { throw new Error(msg); }
                 : msg => { throw new ThrownReturn(warning_str(msg)); };
+
+          let value = thing.value;
           
           if (value instanceof ASTNode) {
             const expanded_value = lm.indent(() =>
@@ -8883,8 +8813,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                     ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                     : key_name;
 
-              if (our_entry?.expected_type &&
-                  typeof value[key_name] !== our_entry.expected_type) {
+              if (!type_is_okay(value[key_name], our_entry?.expected_type)) {
                 warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
                                           `${inspect_fun(value[key_name])} ` + 
                                           `to configuration key '${our_name}', ` +
@@ -8916,8 +8845,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
             // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
-            if (our_entry?.expected_type &&
-                typeof value !== our_entry.expected_type)
+            if (!type_is_okay(value, our_entry?.expected_type))
               throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
                                                  `${inspect_fun(value)} ` + 
                                                  `to configuration key '${our_name}', ` +
@@ -9022,7 +8950,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           context.munge_configuration();
         }
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
                thing instanceof ASTSetPickMultiple) {
         const cur_key = thing instanceof ASTSetPickSingle
@@ -9050,7 +8978,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
         const sub_prompt = thing instanceof ASTUIPrompt
               ? { desc: 'UI prompt', text: ui_prompt }
@@ -9209,9 +9137,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   let ret;
 
   lm.indent(() => {
-    const walked = walk(thing,
-                        { correct_articles: correct_articles })
-
+    const walked = walk(thing, { correct_articles: correct_articles })
     ret = unescape(walked.replace(/^[<]+/, ''));
   });
 
@@ -9232,7 +9158,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
 
 // =================================================================================================
-// FLAG AUDITING FUNCTION.
+// SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
@@ -9241,7 +9167,7 @@ const audit_semantics_modes = Object.freeze({
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, noisy = false,
+                         { base_context = null, 
                            audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
@@ -9249,56 +9175,40 @@ function audit_semantics(root_ast_node,
                     `this likely indicates a programmer error`);
 
   const visited = new Set();
-  const already_warned_msgs = new Set();
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, errors_arr) {    
+  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
     if (typeof local_audit_semantics_mode !== 'string' ||
-        !Array.isArray(errors_arr))
+        !Array.isArray(warnings_arr))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
-    const log = (msg_thunk, indent = true) => {
-      if (noisy)
-        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
-    };
-    function walk_children(thing, mode, errors_arr) {
+    function walk_children(thing, mode, warnings_arr) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
                         `${abbreviate(compress(inspect_fun(mode)))}`);
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0) {
-        // if (log_level__audit >= 2)
-        //   lm.log(`children: ${abbreviate(children.map(thing_str_repr).toString())}`);
-
-        // lm.indent(() => {
-        walk(children, mode, errors_arr);
-        // }); // propagate arg
-      }
+      if (children?.length > 0)
+        walk(children, mode, warnings_arr);      
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg, errors_arr) {
+    function warn_or_throw(msg, warnings_arr) {
       if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.throw_error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
         throw new Error(msg);
-      }
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings &&
-               ! already_warned_msgs.has(msg)) {
-        // lm.log(msg, false); // false arg for no indentation and not local log function
-        errors_arr.push(msg);
-        // already_warned_msgs.add(msg);
-      }
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
+        warnings_arr.push(msg);
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr) {
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
       if (dummy_context.flag_is_set(flag) ||
           local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
@@ -9306,12 +9216,13 @@ function audit_semantics(root_ast_node,
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template.` +
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+                    `Maybe this was intentional, but it could suggest that you may made have ` +
+                    `a typo or other error in your template.` +
                     (suggestion
                      ? ` ${suggestion}`
                      : ''),
-                    errors_arr);
+                    warnings_arr);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
@@ -9319,15 +9230,16 @@ function audit_semantics(root_ast_node,
 
     if (visited.has(thing)) {
       if (log_level__audit >= 2)
-        lm.log(`already audited ${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+        lm.log(`already audited ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
     
     visited.add(thing);
+
     if (log_level__audit >= 2)
       lm.log(`audit semantics in ` +
-             // `${thing.constructor.name} ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9338,13 +9250,14 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, errors_arr) // propagate local_audit_semantics_mode
+            walk(elem, local_audit_semantics_mode, warnings_arr)
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
-                        errors_arr);
+                        warnings_arr);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
@@ -9357,11 +9270,11 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template. ` +
                         `${suggestion}`,
-                        errors_arr);
+                        warnings_arr);
         }
         
         // lm.indent(() =>
-        walk(got, audit_semantics_mode, errors_arr)
+        walk(got, audit_semantics_mode, warnings_arr)
         // ); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
@@ -9369,18 +9282,20 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`,
-                        errors_arr);
+                        `this suggests that you may have a made typo or other error in your ` +
+                        `template. ${suggestion}`,
+                        warnings_arr);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
+        walk(got, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9389,7 +9304,7 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, errors_arr);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9400,26 +9315,29 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, errors_arr);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
+              : local_audit_semantics_mode;
+        // ^ propagate local_audit_semantics_mode
         
-        walk_children(thing, mode, errors_arr);
+        walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, errors_arr); // propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, errors_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9427,17 +9345,17 @@ function audit_semantics(root_ast_node,
     });
   }
 
-  const errors =  [];
+  const warnings =  [];
   
-  walk(root_ast_node, audit_semantics_mode, errors);
+  walk(root_ast_node, audit_semantics_mode, warnings);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return errors;
+  return warnings;
 }
 // =================================================================================================
-// END OF THE FLAG AUDITING FUNCTION.
+// END OF THE SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 
 
@@ -9846,7 +9764,9 @@ class ASTUpdateConfigurationUnary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+         ? this.value
+         : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9866,7 +9786,9 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+           ? this.value
+           : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9973,11 +9895,13 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break   = r(/(?=[\s|}]|$)/)
-      .abbreviate_str_repr('structural_word_break');
+const structural_word_break_ahead   = r(/(?=[\s|}]|$)/)
+      .abbreviate_str_repr('structural_word_break_ahead');
+const structural_close_ahead        = r(/(?=\s*})/)
+      .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => head(rule, structural_word_break);
-const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
+const with_swb                = rule => head(rule, structural_word_break_ahead);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -10070,8 +9994,7 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.',
-                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => [arr[0], ...arr[1]]);
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
@@ -10104,7 +10027,7 @@ const CheckFlagWithSetConsequent =
 const CheckFlagWithOrAlternatives = // last check alternative
       xform(cutting_seq(question,                // [0]
                         plus(flag_ident, comma), // [1]
-                        structural_word_break),  // [2]
+                        structural_word_break_ahead),  // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
@@ -10115,7 +10038,7 @@ const NotFlagWithSetConsequent = // last not alternative
                         flag_ident,             // [1]
                         dot_hash,               // [2]
                         flag_ident,             // [3]
-                        structural_word_break), // - 
+                        structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3]}]; 
@@ -10125,11 +10048,11 @@ const NotFlagWithSetConsequent = // last not alternative
 // -------------------------------------------------------------------------------------------------
 const SetFlag =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break))
+            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break))
+            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -10237,7 +10160,8 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
                  ? optional_punctuation_trailer
                  : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
+const AnonWildcardAlternative        =
+      make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -10248,7 +10172,7 @@ const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAltern
 // =================================================================================================
 const SpecialFunctionTail =
       choice(seq(discarded_comments, lws(semicolon)),
-             structural_word_break)
+             structural_word_break_ahead)
       .abbreviate_str_repr('SpecialFunctionTail');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
@@ -10345,9 +10269,9 @@ const SpecialFunctionUpdateConfigurationBinary =
                             discarded_comments,                                     // -
                             lws(any_assignment_operator),                           // [0][1]
                             discarded_comments),                                    // -
-                        lws(choice(ExposedRjsonc,                                    // [1]
+                        lws(choice(ExposedRjsonc,                                   // [1]
                                    head(() => LimitedContent,
-                                        optional(SpecialFunctionTail))))))           // [1][1]
+                                        optional(SpecialFunctionTail))))))          // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
@@ -10500,32 +10424,19 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
 const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
-
 const LimitedContentNoAWCTrailers =
       make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
-
-// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-//       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
-
-// const malformed_token =
-//       // tokens starting with % are actually usually caught before getting here.
-//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-//                  (rule, input, index, match_result) => 
-//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
 const make_malformed_token_rule = rule => 
       unexpected(rule,
                  (rule, input, index, match_result) => {
                    // throw new Error('bomb');
                    return new FatalParseError(`encountered malformed token: ` +
-                                              `${inspect_fun(match_result.value)}`, input, index);
+                                              `${inspect_fun(match_result.value)}`,
+                                              input,
+                                              index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
@@ -10540,12 +10451,13 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         SetFlag,
         ScalarAssignment,
         ScalarReference,
-        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`),
+        // ^ reminder, structural_chars === '{|}'
       );
-
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
+    end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
@@ -10553,7 +10465,7 @@ const AnonWildcardAlternativeContent = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent               = make_Content_rule({
+const TopLevelContent                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10565,8 +10477,8 @@ const TopLevelContent               = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
-const Prompt                  = tws(TopLevelContentStar);
+const TopLevelContentStar            = flat1(wst_star(TopLevelContent));
+const Prompt                         = tws(TopLevelContentStar);
 // =================================================================================================
 Prompt.finalize();
 // =================================================================================================
