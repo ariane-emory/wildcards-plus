@@ -72,7 +72,8 @@ function parse_file(filename) {
   else {
     try {
       result = Prompt.match(prompt_input, 0, cache);
-      lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
+      if (rule_match_counter_enabled)
+        lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
     }
     catch (err) {
       if (err instanceof FatalParseError) {
@@ -286,6 +287,7 @@ if (false)
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
+let rule_match_counter_enabled        = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
@@ -480,7 +482,7 @@ if (false) {
 //
 // -------------------------------------------------------------------------------------------------
 const DISCARD         = Symbol('DISCARD');
-const STOP_QUANTIFIED_MATCH = Symbol('STOP_QUANTIFIED_MATCH');
+const END_QUANTIFIED_MATCH = Symbol('END_QUANTIFIED_MATCH');
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -625,7 +627,8 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
-    Rule.match_counter += 1;
+    if (rule_match_counter_enabled)
+      Rule.match_counter += 1;
     
     if (! (cache instanceof Map))
       throw new Error(`bad match args: ${inspect_fun(arguments)}`);
@@ -817,7 +820,7 @@ class Quantified extends Rule {
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
 
-    if (match_result.value === STOP_QUANTIFIED_MATCH)
+    if (match_result.value === END_QUANTIFIED_MATCH)
       return new MatchResult([], input, match_result.index);
   
     // if (match_result.value === '' || match_result.value)
@@ -868,7 +871,7 @@ class Quantified extends Rule {
         break;
       }
 
-      if (match_result.value === STOP_QUANTIFIED_MATCH)
+      if (match_result.value === END_QUANTIFIED_MATCH)
         return new MatchResult(values, input, index);
         
       if (match_result.value !== DISCARD)
@@ -2592,24 +2595,21 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const push             = (value, rule) => xform(rule, arr => [value, ...arr]);
-const enclosing        = (left, enclosed, right) =>
+const end_quantified_match_if = rule => xform(rule, () => END_QUANTIFIED_MATCH);
+const push                    = (value, rule) => xform(rule, arr => [value, ...arr]);
+const enclosing               = (left, enclosed, right) =>
       xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right));
-const head             = (...rules) => first (seq            (...rules));
-const cadr             = (...rules) => second(seq            (...rules));
-const wst_head         = (...rules) => first (wst_seq        (...rules));
-const wst_cadr         = (...rules) => second(wst_seq        (...rules));
-const cutting_head     = (...rules) => first (cutting_seq    (...rules));
-const cutting_cadr     = (...rules) => second(cutting_seq    (...rules));
-const wst_cutting_head = (...rules) => first (wst_cutting_seq(...rules));
-const wst_cutting_cadr = (...rules) => second(wst_cutting_seq(...rules));
-const flat = (rule, depth = Infinity) => xform(arr => {
-  const flattened = arr.flat(depth);
-  // if (arr.toString() !== flattened.toString())
-  //   lm.log(`flatten ${arr} => ${flattened}`);
-  return flattened;
-}, rule);
-const flat1 = rule => flat(rule, 1); 
+const head                    = (...rules) => first (seq            (...rules));
+const cadr                    = (...rules) => second(seq            (...rules));
+const wst_head                = (...rules) => first (wst_seq        (...rules));
+const wst_cadr                = (...rules) => second(wst_seq        (...rules));
+const cutting_head            = (...rules) => first (cutting_seq    (...rules));
+const cutting_cadr            = (...rules) => second(cutting_seq    (...rules));
+const wst_cutting_head        = (...rules) => first (wst_cutting_seq(...rules));
+const wst_cutting_cadr        = (...rules) => second(wst_cutting_seq(...rules));
+const flat1                   = rule => flat(rule, 1); 
+const flat                    = (rule, depth = Infinity) =>
+      xform(rule, arr => arr.flat(depth));
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
@@ -8642,7 +8642,8 @@ function load_prelude(into_context = new Context()) {
   
   if (log_loading_prelude) {
     lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
-    lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
+    if (rule_match_counter_enabled)
+      lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
   }
   
   return into_context;
@@ -10160,7 +10161,7 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 const structural_word_break_ahead   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break_ahead');
-const  structural_close_ahead        = r(/(?=\s*[|}])/)
+const structural_close_ahead        = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
@@ -10721,7 +10722,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
-    // xform(structural_close_ahead, () => STOP_QUANTIFIED_MATCH),
+    end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
@@ -10815,7 +10816,8 @@ async function main() {
 
     try {
       result = Prompt.match(prompt_input);
-      lm.log(`MATCH_COUNT = ${rule.match_counter}`);
+      if (rule_match_counter_enabled)
+        lm.log(`MATCH_COUNT = ${Rule.match_counter}`);
     }
     catch (err) {
       if (err instanceof FatalParseError) {
