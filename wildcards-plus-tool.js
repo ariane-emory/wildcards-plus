@@ -287,7 +287,6 @@ if (false)
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled       = true;
-let rule_match_counter_enabled        = true;
 let fire_and_forget_post_enabled      = false;
 let inspect_depth                     = 50;
 let log_configuration_enabled         = true;
@@ -310,6 +309,7 @@ let save_post_requests_enabled        = true;
 let unnecessary_choice_is_an_error    = true;
 let double_latching_is_an_error       = false;
 let double_unlatching_is_an_error     = false;
+let rule_match_counter_enabled        = false;
 // =================================================================================================
 
 
@@ -10258,8 +10258,7 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.',
-                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => [arr[0], ...arr[1]]);
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
@@ -10722,7 +10721,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
-    // end_quantified_match_if(structural_close_ahead),
+    end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
