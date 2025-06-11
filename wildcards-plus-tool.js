@@ -8791,7 +8791,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     }
 
     if (log_level__expand_and_walk)
-      lm.log(`Walking ${thing_str_repr(thing, { always_include_type_str: true, length: 200 })}`);
+      lm.log(`Walking ${thing_str_repr(thing,
+                                       { always_include_type_str: true, length: 200 })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8805,7 +8806,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             if (log_level__expand_and_walk)
               lm.log(`Walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
-                     `${thing_str_repr(thing[ix], { always_include_type_str: true, length: 200 })} `
+                     `${thing_str_repr(thing[ix],
+                                       { always_include_type_str: true, length: 200 })} `
                     );
 
             const elem_ret =
@@ -8818,7 +8820,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               lm.log(`walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
                      `${thing_str_repr(thing[ix])} ` +
-                     `=> ${thing_str_repr(elem_ret, { always_include_type_str: true, length: 200 })}`
+                     `=> ${thing_str_repr(elem_ret,
+                                          { always_include_type_str: true, length: 200 })}`
                     );
           }
 
@@ -8874,7 +8877,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
+        const got = context.named_wildcards.get(thing.name);
+        // ^ an ASTAnonWildcard or an ASTLatchedNamedWildcard 
         
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
@@ -9095,9 +9099,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             const expanded_value = lm.indent(() =>
               // don't correct articles in config values so that we don't mess up, e.g.,
               // %sampled = { Euler A AYS };
-              expand_wildcards(thing.value, context, // not walk because we're going to parse it as JSON
+              expand_wildcards(thing.value, context, 
                                { correct_articles: false })); 
-
+            // ^ not walk because we're going to parse it as JSON
+            
             const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                   ? RjsoncObject
                                                   : Rjsonc).match(expanded_value);
@@ -9359,15 +9364,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(`Expanding LoRA file ` +
-                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(`expanded LoRa file `+
-                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`+
-                   `is ${thing_str_repr(walked_file, { always_include_type_str: true, length: 200 })} `);
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`+
+                   `is ` +
+                   `${thing_str_repr(walked_file,
+                                     { always_include_type_str: true, length: 200 })} `);
         });
         
         let walked_weight = null;
@@ -9375,15 +9384,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(`Expanding LoRA weight  ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(`expanded LoRA weight ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })} is ` +
-                   `${thing_str_repr(walked_weight, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })} is ` +
+                   `${thing_str_repr(walked_weight,
+                                     { always_include_type_str: true, length: 200 })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9416,9 +9428,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // ------------------------ -------------------------------------------------------------------
       // uncrecognized type:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else {
         throw new Error(`confusing thing: ` +
                         (typeof thing === 'object'

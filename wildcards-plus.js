@@ -42,7 +42,7 @@ let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
 let packrat_enabled                    = false;
 let save_post_requests_enabled         = true;
-let unnecessary_choice_is_an_error     = true;
+let unnecessary_choice_is_an_error     = false;
 let double_latching_is_an_error        = false;
 let double_unlatching_is_an_error      = false;
 let rule_match_counter_enabled         = false;
@@ -185,6 +185,7 @@ if (false) {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
+//         |-- Lookahead
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -1093,6 +1094,47 @@ const never_match = new NeverMatch();
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
+// Lookahead class
+// -------------------------------------------------------------------------------------------------
+class Lookahead extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule) {
+    super();
+    this.rule          = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
+
+    if (match_result === null)
+      return null;
+    
+    match_result.index = index;
+
+    return match_result;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(visited) {
+    this.rule = this.__vivify(this.rule);
+    
+    lm.indent(() => this.rule.__finalize(visited));
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `(?=${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function lookahead(rule) { // convenience constructor
+  return new Lookahead(rule);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
 // Optional class
 // -------------------------------------------------------------------------------------------------
 class Optional extends Rule {
@@ -1548,6 +1590,10 @@ class Regex extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(regexp) {
     super();
+    regexp = typeof regexp === 'string'
+      ? new RegExp(regexp)
+      : regexp;
+    
     this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
   }
   // -----------------------------------------------------------------------------------------------
@@ -8477,7 +8523,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
     }
 
     if (log_level__expand_and_walk)
-      lm.log(`Walking ${thing_str_repr(thing, { always_include_type_str: true, length: 200 })}`);
+      lm.log(`Walking ${thing_str_repr(thing,
+                                       { always_include_type_str: true, length: 200 })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8491,7 +8538,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             if (log_level__expand_and_walk)
               lm.log(`Walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
-                     `${thing_str_repr(thing[ix], { always_include_type_str: true, length: 200 })} `
+                     `${thing_str_repr(thing[ix],
+                                       { always_include_type_str: true, length: 200 })} `
                     );
 
             const elem_ret =
@@ -8504,7 +8552,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               lm.log(`walking array element #${ix + 1} `+
                      `of ${thing.length} ` +
                      `${thing_str_repr(thing[ix])} ` +
-                     `=> ${thing_str_repr(elem_ret, { always_include_type_str: true, length: 200 })}`
+                     `=> ${thing_str_repr(elem_ret,
+                                          { always_include_type_str: true, length: 200 })}`
                     );
           }
 
@@ -8560,7 +8609,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
+        const got = context.named_wildcards.get(thing.name);
+        // ^ an ASTAnonWildcard or an ASTLatchedNamedWildcard 
         
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
@@ -8781,9 +8831,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             const expanded_value = lm.indent(() =>
               // don't correct articles in config values so that we don't mess up, e.g.,
               // %sampled = { Euler A AYS };
-              expand_wildcards(thing.value, context, // not walk because we're going to parse it as JSON
+              expand_wildcards(thing.value, context, 
                                { correct_articles: false })); 
-
+            // ^ not walk because we're going to parse it as JSON
+            
             const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                   ? RjsoncObject
                                                   : Rjsonc).match(expanded_value);
@@ -9045,15 +9096,19 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(`Expanding LoRA file ` +
-                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
                                                          { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(`expanded LoRa file `+
-                   `${thing_str_repr(thing.file, { always_include_type_str: true, length: 200 })}`+
-                   `is ${thing_str_repr(walked_file, { always_include_type_str: true, length: 200 })} `);
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`+
+                   `is ` +
+                   `${thing_str_repr(walked_file,
+                                     { always_include_type_str: true, length: 200 })} `);
         });
         
         let walked_weight = null;
@@ -9061,15 +9116,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         lm.indent(() => {
           if (log_level__expand_and_walk)
             lm.log(`Expanding LoRA weight  ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
                                                            { correct_articles: false })); // not walk!
 
           if (log_level__expand_and_walk)
             lm.log(`expanded LoRA weight ` +
-                   `${thing_str_repr(thing.weight, { always_include_type_str: true, length: 200 })} is ` +
-                   `${thing_str_repr(walked_weight, { always_include_type_str: true, length: 200 })}`);
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })} is ` +
+                   `${thing_str_repr(walked_weight,
+                                     { always_include_type_str: true, length: 200 })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -9102,9 +9160,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // ------------------------ -------------------------------------------------------------------
       // uncrecognized type:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else {
         throw new Error(`confusing thing: ` +
                         (typeof thing === 'object'
@@ -9895,7 +9953,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break_ahead   = r(/(?=[\s|}]|$)/)
+const structural_chars              = '{|}';
+const structural_word_break_ahead   = r_raw`(?=[\s${structural_chars}]|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead        = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
@@ -9935,22 +9994,24 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const structural_chars        = '{|}';
+const pseudo_structural_chars = '<\(\)';
 const syntax_chars            = '@#$%;';
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
+      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
+        raw`(?=[\s{|}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule('')
+const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
 // const plain_text_no_semis  = make_plain_text_rule(';')
 //       .abbreviate_str_repr('plain_text_no_semis');
@@ -10161,7 +10222,7 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
                  : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        =
-      make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -10455,7 +10516,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternativeContent = make_Content_rule({
+const ContentInAnonWildcardAlternative = make_Content_rule({
   before_plain_text_rules: [
     end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
@@ -10465,7 +10526,7 @@ const AnonWildcardAlternativeContent = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent                = make_Content_rule({
+const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10477,8 +10538,8 @@ const TopLevelContent                = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const TopLevelContentStar            = flat1(wst_star(TopLevelContent));
-const Prompt                         = tws(TopLevelContentStar);
+const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
 // =================================================================================================
