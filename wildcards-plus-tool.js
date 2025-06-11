@@ -479,8 +479,8 @@ if (false) {
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-const DISCARD    = Symbol('DISCARD');
-const STOP_EARLY = Symbol('STOP_EARLY');
+const DISCARD         = Symbol('DISCARD');
+const STOP_QUANTIFIED_MATCH = Symbol('STOP_QUANTIFIED_MATCH');
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -817,7 +817,7 @@ class Quantified extends Rule {
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
 
-    if (match_result.value === STOP_EARLY)
+    if (match_result.value === STOP_QUANTIFIED_MATCH)
       return new MatchResult([], input, match_result.index);
   
     // if (match_result.value === '' || match_result.value)
@@ -868,7 +868,7 @@ class Quantified extends Rule {
         break;
       }
 
-      if (match_result.value === STOP_EARLY)
+      if (match_result.value === STOP_QUANTIFIED_MATCH)
         return new MatchResult(values, input, index);
         
       if (match_result.value !== DISCARD)
@@ -10158,13 +10158,13 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break   = r(/(?=[\s|}]|$)/)
-      .abbreviate_str_repr('structural_word_break');
-const structural_close        = r(/(?=\s*[|}])/)
-      .abbreviate_str_repr('structural_close');
+const structural_word_break_ahead   = r(/(?=[\s|}]|$)/)
+      .abbreviate_str_repr('structural_word_break_ahead');
+const  structural_close_ahead        = r(/(?=\s*[|}])/)
+      .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => head(rule, structural_word_break);
-const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
+const with_swb                = rule => head(rule, structural_word_break_ahead);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -10291,7 +10291,7 @@ const CheckFlagWithSetConsequent =
 const CheckFlagWithOrAlternatives = // last check alternative
       xform(cutting_seq(question,                // [0]
                         plus(flag_ident, comma), // [1]
-                        structural_word_break),  // [2]
+                        structural_word_break_ahead),  // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
@@ -10302,7 +10302,7 @@ const NotFlagWithSetConsequent = // last not alternative
                         flag_ident,             // [1]
                         dot_hash,               // [2]
                         flag_ident,             // [3]
-                        structural_word_break), // - 
+                        structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3]}]; 
@@ -10312,11 +10312,11 @@ const NotFlagWithSetConsequent = // last not alternative
 // -------------------------------------------------------------------------------------------------
 const SetFlag =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break))
+            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break))
+            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -10436,7 +10436,7 @@ const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAltern
 // =================================================================================================
 const SpecialFunctionTail =
       choice(seq(discarded_comments, lws(semicolon)),
-             structural_word_break)
+             structural_word_break_ahead)
       .abbreviate_str_repr('SpecialFunctionTail');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
@@ -10721,7 +10721,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
-    xform(structural_close, () => STOP_EARLY),
+    // xform(structural_close_ahead, () => STOP_QUANTIFIED_MATCH),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
