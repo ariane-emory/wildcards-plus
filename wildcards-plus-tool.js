@@ -304,7 +304,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = true;
+let print_ast_before_includes_enabled  = false;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -10263,8 +10263,8 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      choice(r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
-               raw`(?=[\s{|}]|$)|(?:[${pseudo_structural_chars}]+(?=[@$]))`));
+      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
+        raw`(?=[\s{|}]|$)|(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
