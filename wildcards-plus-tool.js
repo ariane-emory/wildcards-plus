@@ -10260,7 +10260,7 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
       choice(r(new RegExp(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+(?=[\s{|}]|$)`)),
-             r_raw`[${pseudo_structural_chars}]+(?=[@$])`);
+             r_raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
