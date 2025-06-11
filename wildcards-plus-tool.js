@@ -10261,7 +10261,7 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
 const make_plain_text_rule = additional_excluded_chars => 
       choice(head(r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`,
                   structural_word_break_ahead),
-             r_raw`[${pseudo_structural_chars}]+(?=[${syntax_chars}])`);
+             r_raw`[${pseudo_structural_chars}]+(?=[@$])`);
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
