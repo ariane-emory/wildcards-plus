@@ -10163,7 +10163,7 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break_ahead   = r(/(?=[\s|}]|$)/)
+const structural_word_break_ahead   = r(/(?=[\s{|}]|$)/)
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead        = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
@@ -10216,7 +10216,10 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
+      head(r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`,
+           choice(structural_word_break_ahead,
+                  r_raw`(?=[${syntax_chars}])`
+                 ));
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule('')
       .abbreviate_str_repr('plain_text');
