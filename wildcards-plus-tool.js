@@ -61,7 +61,7 @@ function parse_file(filename) {
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
-  log_match_enabled          = true;
+  // log_match_enabled          = true;
   // log_flags_enabled          = true;
   // log_level__expand_and_walk = 1;
   let  result        = null;
@@ -814,12 +814,15 @@ class Quantified extends Rule {
     if (match_result === false)
       throw new Error("math_result === false, this likely indicates a programmer error");
     
-    if (match_result === null || match_result.value === STOP_EARLY)
+    if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
-    
+
+    if (match_result.value === STOP_EARLY)
+      return new MatchResult([], input, match_result.index);
+  
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
-    values.push(match_result.value);
+          values.push(match_result.value);
     
     update_index(match_result.index);
 
@@ -865,6 +868,9 @@ class Quantified extends Rule {
         break;
       }
 
+      if (match_result.value === STOP_EARLY)
+        return new MatchResult(values, input, index);
+        
       if (match_result.value !== DISCARD)
         values.push(match_result.value);
       
