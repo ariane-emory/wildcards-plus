@@ -3976,7 +3976,7 @@ const configuration_key_names = [
   { dt_name: 'prompt',                            automatic1111_name: 'prompt',
     expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    // expected_type: [ 'string', 'number' ],
+    expected_type: [ 'string', 'number' ],
     shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
   { dt_name: 'seed',                              automatic1111_name: 'seed',
     expected_type: 'number' },
@@ -9104,13 +9104,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
         try {
-          let value = thing.value;
-
+          const type_is_okay = (val, type_or_types) =>
+                (!type_or_types
+                 ? true
+                 : (Array.isArray(type_or_types)
+                    ? type_or_types.includes(typeof val)
+                    : typeof val === type_or_types));
           const fatal_errors = false;
-          
           const error_fun = fatal_errors
                 ? msg => { throw new Error(msg); }
                 : msg => { throw new ThrownReturn(warning_str(msg)); };
+
+          let value = thing.value;
           
           if (value instanceof ASTNode) {
             const expanded_value = lm.indent(() =>
@@ -9148,8 +9153,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                     ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
                     : key_name;
 
-              if (our_entry?.expected_type &&
-                  typeof value[key_name] !== our_entry.expected_type) {
+              if (!type_is_okay(value[key_name], our_entry?.expected_type)) {
                 warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
                                           `${inspect_fun(value[key_name])} ` + 
                                           `to configuration key '${our_name}', ` +
@@ -9181,8 +9185,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
             // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
 
-            if (our_entry?.expected_type &&
-                typeof value !== our_entry.expected_type)
+            if (!type_is_okay(value, our_entry?.expected_type))
               throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
                                                  `${inspect_fun(value)} ` + 
                                                  `to configuration key '${our_name}', ` +
