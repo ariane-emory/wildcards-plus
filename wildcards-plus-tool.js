@@ -310,7 +310,7 @@ let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
 let packrat_enabled                    = false;
 let save_post_requests_enabled         = true;
-let unnecessary_choice_is_an_error     = true;
+let unnecessary_choice_is_an_error     = false;
 let double_latching_is_an_error        = false;
 let double_unlatching_is_an_error      = false;
 let rule_match_counter_enabled         = false;
@@ -10218,7 +10218,7 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
 const make_plain_text_rule = additional_excluded_chars => 
       head(r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`,
            choice(structural_word_break_ahead,
-                  r_raw`(?=[${syntax_chars}])`
+                  r_raw`(?=[@#$])`
                  ));
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule('')
