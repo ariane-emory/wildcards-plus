@@ -1858,6 +1858,10 @@ class Regex extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(regexp) {
     super();
+    regexp = typeof regexp === 'string'
+      ? new RegExp(regexp)
+      : regexp;
+    
     this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
   }
   // -----------------------------------------------------------------------------------------------
@@ -10259,8 +10263,8 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      choice(r(new RegExp(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}` +
-                          raw`+(?=[\s{|}]|$)|(?:[${pseudo_structural_chars}]+(?=[@$]))`)));
+      choice(r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}` +
+               raw`+(?=[\s{|}]|$)|(?:[${pseudo_structural_chars}]+(?=[@$]))`));
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
