@@ -485,7 +485,7 @@ if (false) {
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-const DISCARD         = Symbol('DISCARD');
+const DISCARD              = Symbol('DISCARD');
 const END_QUANTIFIED_MATCH = Symbol('END_QUANTIFIED_MATCH');
 // -------------------------------------------------------------------------------------------------
 
@@ -2316,10 +2316,10 @@ whites_plus.abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_decorator2("LWS", 1, whites_star);
-const tws = make_whitespace_decorator2("TWS", 0, whites_star);
-const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
-const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+const lws  = make_whitespace_decorator2("LWS",  1, whites_star);
+const tws  = make_whitespace_decorator2("TWS",  0, whites_star);
+const lhws = make_whitespace_decorator2("LHWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("THWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
