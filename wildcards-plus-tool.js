@@ -10700,7 +10700,8 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         SetFlag,
         ScalarAssignment,
         ScalarReference,
-        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`),
+        // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
