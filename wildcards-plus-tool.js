@@ -91,19 +91,21 @@ function parse_file(filename) {
   log_match_enabled = old_log_match_enabled;
   log_level__expand_and_walk = old_log_level__expand_and_walk;
   
-  const sortedEntries = Array.from(cache.entries())
-        .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
+  if (print_packrat_cache_counts_enabled) {
+    const sortedEntries = Array.from(cache.entries())
+          .sort(([, a], [, b]) => b.size - a.size);  // Sort descending by .size
 
-  let total = 0;
+    let total = 0;
 
-  for (const [rule, ruleCache] of sortedEntries) {
-    lm.log(`${rule.toString()}: ` +
-           `${format_pretty_number(ruleCache.size)}`);
-    total += ruleCache.size;
+    for (const [rule, ruleCache] of sortedEntries) {
+      lm.log(`${rule.toString()}: ` +
+             `${format_pretty_number(ruleCache.size)}`);
+      total += ruleCache.size;
+    }
+
+    if (sortedEntries.length > 0)
+      lm.log(`Total: ${format_pretty_number(total)}`);
   }
-
-  if (sortedEntries.length > 0)
-    lm.log(`Total: ${format_pretty_number(total)}`);
   
   // check that the parsed result is complete;
   if (! result.is_finished)
@@ -286,30 +288,32 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = false;
-let inspect_depth                     = 50;
-let log_configuration_enabled         = true;
-let log_loading_prelude               = true;
-let log_post_enabled                  = true;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
-let log_level__audit                  = 0;
-let log_level__expand_and_walk        = 0;
-let log_level__smart_join             = 0;
-let prelude_disabled                  = false;
-let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
-let print_ast_json_enabled            = false;
-let save_post_requests_enabled        = true;
-let unnecessary_choice_is_an_error    = true;
-let double_latching_is_an_error       = false;
-let double_unlatching_is_an_error     = false;
-let rule_match_counter_enabled        = false;
+let abbreviate_str_repr_enabled        = true;
+let fire_and_forget_post_enabled       = false;
+let inspect_depth                      = 50;
+let log_configuration_enabled          = true;
+let log_loading_prelude                = true;
+let log_post_enabled                   = true;
+let log_finalize_enabled               = false;
+let log_flags_enabled                  = false;
+let log_match_enabled                  = false;
+let log_name_lookups_enabled           = false;
+let log_picker_enabled                 = false;
+let log_level__audit                   = 0;
+let log_level__expand_and_walk         = 0;
+let log_level__smart_join              = 0;
+let prelude_disabled                   = false;
+let print_ast_then_die                 = false;
+let print_ast_before_includes_enabled  = false;
+let print_ast_after_includes_enabled   = false;
+let print_ast_json_enabled             = false;
+let print_packrat_cache_counts_enabled = false;
+let packrat_enabled                    = false;
+let save_post_requests_enabled         = true;
+let unnecessary_choice_is_an_error     = true;
+let double_latching_is_an_error        = false;
+let double_unlatching_is_an_error      = false;
+let rule_match_counter_enabled         = false;
 // =================================================================================================
 
 
@@ -532,7 +536,7 @@ class Rule {
   static match_counter = 0;
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    // this.memoize     = false;
+    this.memoize = packrat_enabled;
     // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
@@ -822,10 +826,10 @@ class Quantified extends Rule {
 
     if (match_result.value === END_QUANTIFIED_MATCH)
       return new MatchResult([], input, match_result.index);
-  
+    
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
-          values.push(match_result.value);
+      values.push(match_result.value);
     
     update_index(match_result.index);
 
@@ -873,7 +877,7 @@ class Quantified extends Rule {
 
       if (match_result.value === END_QUANTIFIED_MATCH)
         return new MatchResult(values, input, index);
-        
+      
       if (match_result.value !== DISCARD)
         values.push(match_result.value);
       
