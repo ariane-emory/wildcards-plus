@@ -10429,7 +10429,7 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
                  : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        =
-      make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -10723,7 +10723,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternativeContent = make_Content_rule({
+const ContentInAnonWildcardAlternative = make_Content_rule({
   before_plain_text_rules: [
     end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
@@ -10733,7 +10733,7 @@ const AnonWildcardAlternativeContent = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent                = make_Content_rule({
+const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10745,8 +10745,8 @@ const TopLevelContent                = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const TopLevelContentStar            = flat1(wst_star(TopLevelContent));
-const Prompt                         = tws(TopLevelContentStar);
+const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
 // =================================================================================================
