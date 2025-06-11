@@ -10722,7 +10722,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
-    end_quantified_match_if(structural_close_ahead),
+    // end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
