@@ -814,12 +814,12 @@ class Quantified extends Rule {
     if (match_result === false)
       throw new Error("math_result === false, this likely indicates a programmer error");
     
-    if (match_result === null)
+    if (match_result === null || match_result.value === STOP_EARLY)
       return new MatchResult([], input, index); // empty array happens here
-
+    
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
-      values.push(match_result.value);
+    values.push(match_result.value);
     
     update_index(match_result.index);
 
