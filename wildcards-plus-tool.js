@@ -10209,7 +10209,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break_ahead   = r(/(?=[\s{|}]|$)/)
+const structural_chars              = '{|}';
+const structural_word_break_ahead   = r_raw`(?=[\s${structural_chars}]|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead        = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
@@ -10249,7 +10250,6 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const structural_chars        = '{|}';
 const pseudo_structural_chars = '<\(\)';
 const syntax_chars            = '@#$%;';
 const comment_beginning       = raw`\/\/|\/\*`;
