@@ -468,11 +468,7 @@ if (false) {
 //         |-- Elem
 //         |-- Label
 //         |
-//         | Rules that make sense only when input is an Array of Tokens:
-//         |
-//         |-- TokenLabel
-//         |
-//         | Rules that make sense only when input is a string:
+//         | Rules for terminals:
 //         |
 //         |-- Literal
 //         |-- Regex
@@ -537,7 +533,8 @@ class Rule {
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (this.abbreviated)
-      throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
+      throw new Error(`${inspect_fun(this)} is already abbreviated, ` +
+                      `this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
       return;
@@ -1751,96 +1748,6 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
-// // -------------------------------------------------------------------------------------------------
-// // Tail class
-// // -------------------------------------------------------------------------------------------------
-// class Tail extends Rule {
-//   // -----------------------------------------------------------------------------------------------
-//   constructor(index, rule) {
-//     super();
-//     this.rule  = make_rule_func(rule);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __direct_children() {
-//     return [ this.rule ];
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_finalize(indent, visited) {
-//     this.rule = this.__vivify(this.rule);
-//     this.rule.__finalize(indent + 1, visited);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __match(input, index, cache) {
-//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-//     if (! rule_match_result)
-//       return null;
-
-//     // I forget why I did this? Could be a bad idea?
-//     const ret = rule_match_result.value.slice(1);
-
-//     if (log_match_enabled)
-//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-//           `${inspect_fun(ret)}`);
-
-//     rule_match_result.value = ret;
-
-//     return rule_match_result
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_toString(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-//     return `CDR(${rule_str})`;
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// function tail(rule) { // convenience constructor
-//   return new Tail(rule);
-// }
-// // =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-// TokenLabel class, this can probably be deleted soon?
-// -------------------------------------------------------------------------------------------------
-class TokenLabel extends Rule {
-  // -----------------------------------------------------------------------------------------------
-  constructor(label) {
-    super();
-    this.label  = label;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    // do nothing.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(input, index, cache) {
-    if (index_is_at_end_of_input(index, input))
-      return null;
-
-    let the_token = input[index];
-
-    if (the_token?.label != this.label)
-      return null;
-
-    return new MatchResult(the_token,
-                           input,
-                           index + 1) // always matches just 1 token.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    return `'${this.label}'`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function tok(label) { // convenience constructor
-  return new TokenLabel(label);
-}
-// -------------------------------------------------------------------------------------------------
-
 // -------------------------------------------------------------------------------------------------
 // Literal class
 // -------------------------------------------------------------------------------------------------
@@ -2050,7 +1957,7 @@ function compress(str) {
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
-// // -------------------------------------------------------------------------------------------------
+// // ----------------------------------------------------------------------------------------------
 // function log(indent, str = "", indent_str = "| ") {
 //   if (! log_enabled)
 //     return;
@@ -3140,7 +3047,8 @@ class WeightedPicker {
     }
 
     if (log_picker_enabled)
-      lm.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+      lm.log(`pick from ${legal_option_indices.length} legal options ` +
+             `${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
@@ -3152,7 +3060,8 @@ class WeightedPicker {
 
       if (log_picker_enabled) {
         lm.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ` +
+               `${adjusted_weight}`);
         lm.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
       
@@ -3876,7 +3785,8 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing, { length = thing_str_repr.abbrev_length, always_include_type_str = false } = {}) {
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
+                                 always_include_type_str = false } = {}) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3938,7 +3848,7 @@ function unescape(str) {
 // these are used by the context.munge_configuration() method and some walk cases.
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-// ----------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Karras',    // 0
   'Euler a',            // 1
@@ -3977,7 +3887,7 @@ const configuration_key_names = [
     expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
     expected_type: [ 'string', 'number' ],
-    shorthands: ['sampler_index', 'sampler_name', ] }, // expected type: special handling, number or string
+    shorthands: ['sampler_index', 'sampler_name', ] },
   { dt_name: 'seed',                              automatic1111_name: 'seed',
     expected_type: 'number' },
   { dt_name: 'sharpness',                         automatic1111_name: 'sharpness',
@@ -9290,7 +9200,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           context.munge_configuration();
         }
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
                thing instanceof ASTSetPickMultiple) {
         const cur_key = thing instanceof ASTSetPickSingle
@@ -9318,7 +9228,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
         const sub_prompt = thing instanceof ASTUIPrompt
               ? { desc: 'UI prompt', text: ui_prompt }
@@ -9515,7 +9425,6 @@ function audit_semantics(root_ast_node,
                     `this likely indicates a programmer error`);
 
   const visited = new Set();
-  const already_warned_msgs = new Set();
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
@@ -9533,14 +9442,8 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0) {
-        // if (log_level__audit >= 2)
-        //   lm.log(`children: ${abbreviate(children.map(thing_str_repr).toString())}`);
-
-        // lm.indent(() => {
-        walk(children, mode, warnings_arr);
-        // }); // propagate arg
-      }
+      if (children?.length > 0)
+        walk(children, mode, warnings_arr);      
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg, warnings_arr) {
@@ -9549,15 +9452,10 @@ function audit_semantics(root_ast_node,
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.throw_error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
         throw new Error(msg);
-      }
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings &&
-               ! already_warned_msgs.has(msg)) {
-        // lm.log(msg, false); // false arg for no indentation and not local log function
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
         warnings_arr.push(msg);
-        // already_warned_msgs.add(msg);
-      }
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
@@ -9582,15 +9480,16 @@ function audit_semantics(root_ast_node,
 
     if (visited.has(thing)) {
       if (log_level__audit >= 2)
-        lm.log(`already audited ${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+        lm.log(`already audited ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
     
     visited.add(thing);
+
     if (log_level__audit >= 2)
       lm.log(`audit semantics in ` +
-             // `${thing.constructor.name} ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9601,7 +9500,8 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr) // propagate local_audit_semantics_mode
+            walk(elem, local_audit_semantics_mode, warnings_arr)
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
@@ -9639,11 +9539,13 @@ function audit_semantics(root_ast_node,
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode, warnings_arr); // propagate local_audit_semantics_mode
+        walk(got, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode, warnings_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9674,15 +9576,18 @@ function audit_semantics(root_ast_node,
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
+              : local_audit_semantics_mode;
+        // ^ propagate local_audit_semantics_mode
         
         walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr); // propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, warnings_arr); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -10109,7 +10014,9 @@ class ASTUpdateConfigurationUnary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+         ? this.value
+         : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10129,7 +10036,9 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+           ? this.value
+           : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -10500,7 +10409,8 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
                  ? optional_punctuation_trailer
                  : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
+const AnonWildcardAlternative        =
+      make_AnonWildcardAlternative_rule(() => AnonWildcardAlternativeContent)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -10608,9 +10518,9 @@ const SpecialFunctionUpdateConfigurationBinary =
                             discarded_comments,                                     // -
                             lws(any_assignment_operator),                           // [0][1]
                             discarded_comments),                                    // -
-                        lws(choice(ExposedRjsonc,                                    // [1]
+                        lws(choice(ExposedRjsonc,                                   // [1]
                                    head(() => LimitedContent,
-                                        optional(SpecialFunctionTail))))))           // [1][1]
+                                        optional(SpecialFunctionTail))))))          // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
@@ -10763,32 +10673,19 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
 const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
-
 const LimitedContentNoAWCTrailers =
       make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
-
-// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-//       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
-
-// const malformed_token =
-//       // tokens starting with % are actually usually caught before getting here.
-//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-//                  (rule, input, index, match_result) => 
-//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
 const make_malformed_token_rule = rule => 
       unexpected(rule,
                  (rule, input, index, match_result) => {
                    // throw new Error('bomb');
                    return new FatalParseError(`encountered malformed token: ` +
-                                              `${inspect_fun(match_result.value)}`, input, index);
+                                              `${inspect_fun(match_result.value)}`,
+                                              input,
+                                              index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
@@ -10805,7 +10702,6 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         ScalarReference,
         make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
       );
-
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
