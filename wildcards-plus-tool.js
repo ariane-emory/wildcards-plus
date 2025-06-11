@@ -61,7 +61,7 @@ function parse_file(filename) {
   const cache        = new Map();
   const old_log_match_enabled = log_match_enabled;
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
-  // log_match_enabled          = true;
+  log_match_enabled          = true;
   // log_flags_enabled          = true;
   // log_level__expand_and_walk = 1;
   let  result        = null;
@@ -72,6 +72,7 @@ function parse_file(filename) {
   else {
     try {
       result = Prompt.match(prompt_input, 0, cache);
+      lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
     }
     catch (err) {
       if (err instanceof FatalParseError) {
@@ -478,7 +479,8 @@ if (false) {
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-const DISCARD = Symbol('DISCARD');
+const DISCARD    = Symbol('DISCARD');
+const STOP_EARLY = Symbol('STOP_EARLY');
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -525,6 +527,7 @@ class FatalParseError extends Error {
 // Rule class
 // -------------------------------------------------------------------------------------------------
 class Rule {
+  static match_counter = 0;
   // -----------------------------------------------------------------------------------------------
   constructor() {
     // this.memoize     = false;
@@ -622,6 +625,8 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
+    Rule.match_counter += 1;
+    
     if (! (cache instanceof Map))
       throw new Error(`bad match args: ${inspect_fun(arguments)}`);
     
@@ -804,10 +809,10 @@ class Quantified extends Rule {
     let match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === undefined)
-      throw new Error("match_result === undefined, this likely indicated a programmer error");
+      throw new Error("match_result === undefined, this likely indicates a programmer error");
     
     if (match_result === false)
-      throw new Error("math_result === false, this likely indicated a programmer error");
+      throw new Error("math_result === false, this likely indicates a programmer error");
     
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
@@ -2283,8 +2288,8 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
-const STOP = expect(never_match);
-STOP.abbreviate_str_repr("STOP");
+const ABORT = expect(never_match);
+ABORT.abbreviate_str_repr("ABORT");
 // -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
@@ -8629,9 +8634,11 @@ function load_prelude(into_context = new Context()) {
     // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
   
-  if (log_loading_prelude)
+  if (log_loading_prelude) {
     lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
-
+    lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
+  }
+  
   return into_context;
 }
 // =================================================================================================
@@ -9467,7 +9474,7 @@ function audit_semantics(root_ast_node,
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
       warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
-                    `maybe this is intentional, but it could suggest that you may made have ` +
+                    `Maybe this was intentional, but it could suggest that you may made have ` +
                     `a typo or other error in your template.` +
                     (suggestion
                      ? ` ${suggestion}`
@@ -10147,6 +10154,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 const structural_word_break   = r(/(?=[\s|}]|$)/)
       .abbreviate_str_repr('structural_word_break');
+const structural_close        = r(/(?=\s*[|}])/)
+      .abbreviate_str_repr('structural_close');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break);
 const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
@@ -10706,6 +10715,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternativeContent = make_Content_rule({
   before_plain_text_rules: [
+    xform(structural_close, () => STOP_EARLY),
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
@@ -10799,6 +10809,7 @@ async function main() {
 
     try {
       result = Prompt.match(prompt_input);
+      lm.log(`MATCH_COUNT = ${rule.match_counter}`);
     }
     catch (err) {
       if (err instanceof FatalParseError) {
