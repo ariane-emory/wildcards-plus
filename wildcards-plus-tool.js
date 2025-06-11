@@ -10733,7 +10733,7 @@ const AnonWildcardAlternativeContent = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent               = make_Content_rule({
+const TopLevelContent                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10745,8 +10745,8 @@ const TopLevelContent               = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const TopLevelContentStar     = flat1(wst_star(TopLevelContent));
-const Prompt                  = tws(TopLevelContentStar);
+const TopLevelContentStar            = flat1(wst_star(TopLevelContent));
+const Prompt                         = tws(TopLevelContentStar);
 // =================================================================================================
 Prompt.finalize();
 // =================================================================================================
