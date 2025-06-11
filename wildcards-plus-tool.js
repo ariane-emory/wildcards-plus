@@ -10210,7 +10210,7 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
@@ -10221,7 +10221,7 @@ const make_plain_text_rule = additional_excluded_chars =>
                   r_raw`(?=[@#$])`
                  ));
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule('')
+const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
 // const plain_text_no_semis  = make_plain_text_rule(';')
 //       .abbreviate_str_repr('plain_text_no_semis');
