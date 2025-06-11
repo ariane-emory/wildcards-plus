@@ -10259,8 +10259,7 @@ const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      choice(head(r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`,
-                  structural_word_break_ahead),
+      choice(with_swb(r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`),
              r_raw`[${pseudo_structural_chars}]+(?=[@$])`);
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
