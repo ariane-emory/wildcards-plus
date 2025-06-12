@@ -3632,6 +3632,21 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
     
     update_pos_vars();
+
+    // new:
+    while (next_char === ' ') {
+      lm.log(`MUNCH!`);
+      chomp_right_side();
+    }
+    
+    if (
+      str.includes("  ")
+      // left_word.startsWith(' ') ||
+      //   left_word.endsWith(' ') ||
+      //   right_word.startsWith(' ') ||
+      //   right_word.endsWith(' ')
+    )
+      throw new Error("stop");
     
     if (right_word === '') {
       if (log_level__smart_join >= 2)
