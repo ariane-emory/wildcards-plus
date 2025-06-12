@@ -3644,12 +3644,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       str += '<';
       continue;
     }
-    
+
     while  (collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
     while (collapsible_punctuation.includes(prev_char) &&
-           next_char && collapsible_punctuation.includes(next_char))
+           next_char &&
+           collapsible_punctuation.includes(next_char))
       move_chars_left(1);
 
     // Normalize article if needed:
