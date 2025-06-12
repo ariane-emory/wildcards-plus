@@ -3533,8 +3533,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return arr[0];
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => "_-".includes(ch);
+  
+  const collapsible_punctuation =   ",.;:!?";
+  const punctuationp    = (ch) => "_-,.;:!?".includes(ch);
+  const linkingp        = (ch) => "_-".includes(ch);
   // const whitep       = (ch)  => " \n".includes(ch);
   
   // handle "a" → "an" if necessary:
@@ -3642,11 +3644,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       str += '<';
       continue;
     }
-
-    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
+    
+    while  (collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
       move_chars_left(3);
     
-    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
+    while (collapsible_punctuation.includes(prev_char) &&
+           next_char && collapsible_punctuation.includes(next_char))
       move_chars_left(1);
 
     // Normalize article if needed:
