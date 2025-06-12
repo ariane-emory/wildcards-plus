@@ -8948,6 +8948,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
             lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
           });
 
+        res = res.filter(x => x);
+        
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
                                { correct_articles: false });
