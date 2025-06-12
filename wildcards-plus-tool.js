@@ -9337,7 +9337,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               : 'pick_multiple_priority';
         const prior_key = thing instanceof ASTRevertPickSingle
               ? 'pick_one_priority'
-              : 'ppick_multiple_priority';
+              : 'pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
