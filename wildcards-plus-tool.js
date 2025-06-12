@@ -57,9 +57,9 @@ function ask(question) {
 }
 // -------------------------------------------------------------------------------------------------
 function parse_file(filename) {
-  const prompt_input = fs.readFileSync(filename, 'utf8');
-  const cache        = new Map();
-  const old_log_match_enabled = log_match_enabled;
+  const prompt_input                   = fs.readFileSync(filename, 'utf8');
+  const cache                          = new Map();
+  const old_log_match_enabled          = log_match_enabled;
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
@@ -88,7 +88,7 @@ function parse_file(filename) {
     }
   }
 
-  log_match_enabled = old_log_match_enabled;
+  log_match_enabled          = old_log_match_enabled;
   log_level__expand_and_walk = old_log_level__expand_and_walk;
   
   if (print_packrat_cache_counts_enabled) {
