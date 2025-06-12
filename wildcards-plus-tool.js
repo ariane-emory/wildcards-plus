@@ -8887,8 +8887,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
-        let res = [];
-
+        let res;
         let anon_wildcard;
         
         if (got instanceof ASTLatchedNamedWildcard) {          
