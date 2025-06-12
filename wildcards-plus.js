@@ -27,6 +27,7 @@ let log_configuration_enabled          = true;
 let log_loading_prelude                = true;
 let log_post_enabled                   = true;
 let log_finalize_enabled               = false;
+let log_intercalate_enabled            = false;
 let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
@@ -3123,6 +3124,9 @@ function indent_lines(indent, str, indent_str = "| ") {
 }
 // -------------------------------------------------------------------------------------------------
 function intercalate(separator, array, { final_separator = null } = {}) {
+  if (log_intercalate_enabled)
+    lm.log(`INTERCALATE ARGS: ${compress(inspect_fun(arguments))}`);
+
   if (array.length === 0) return [];
 
   const result = [array[0]];
@@ -3134,6 +3138,9 @@ function intercalate(separator, array, { final_separator = null } = {}) {
     result.push(sep, array[ix]);
   }
 
+  if (log_intercalate_enabled)
+    lm.log(`INTERCALATED: ${compress(inspect_fun(result))}`);
+  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3236,10 +3243,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   smart_join_trap_counter += 1;
 
-
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
+    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
 
   if (typeof arr == 'string')
     throw new Error(`got string`);
@@ -3288,7 +3293,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const add_a_space = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`SPACE!`, true);
+        lm.log(`SPACE!`);
 
       prev_char  = ' ';
       str       += ' ';
@@ -3296,7 +3301,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const chomp_left_side = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CHOMP LEFT!`, true);
+        lm.log(`CHOMP LEFT!`);
       
       str      = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
@@ -3306,7 +3311,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     const chomp_right_side = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CHOMP RIGHT!`, true);
+        lm.log(`CHOMP RIGHT!`);
 
       arr[ix] = arr[ix].slice(1);
 
@@ -3315,7 +3320,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     const consume_right_word = () => {
       if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
 
       // if (right_word === '""' || right_word === "''")
       //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
@@ -3428,8 +3433,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
+    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
@@ -8615,22 +8619,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
-        let res = [];
-
+        let res;
         let anon_wildcard;
         
         if (got instanceof ASTLatchedNamedWildcard) {          
           anon_wildcard = got.original_value;
-          
-          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-          //   const expanded = lm.indent(() => walk(got.latched_value, 
-          //                                         { correct_articles: correct_articles})); 
-          //   // ^ not quite sure whether to use walk or expand_wildcards here.
-          
-          //   if (expanded)
-          //     res.push(expanded);
-          ///}
-          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
+          res           = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
@@ -8639,18 +8633,25 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                   picker_allow, picker_forbid, picker_each, 
-                                   picker_priority).filter(s => s !== '');
+          res           = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                             picker_allow, picker_forbid, picker_each, 
+                                             picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
         }
+
+        res = res.filter(x => x);
         
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let effective_joiner;
+        // compute effective_trailer:
+        const effective_trailer = thing.trailer
+              ? thing.trailer
+              : anon_wildcard.trailer; // might be null, but that should be okay
+        
+        let effective_joiner = null;   // might remain null, but that should be okay      
         let intercalate_options = {}
 
         // compute effective_joiner:
@@ -8661,20 +8662,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         else if (thing.joiner)
           effective_joiner = thing.joiner;
         else if (',.'.includes(anon_wildcard.trailer))
-          effective_joiner = anon_wildcard.trailer;
-        else
-          effective_joiner = null; // should be okay if null
-        
-        // compute effective_trailer:
-        const effective_trailer = thing.trailer
-              ? thing.trailer
-              : anon_wildcard.trailer; // might be null, but that should be okay
+          effective_joiner = anon_wildcard.trailer; // might be null, but that should be okay
         
         // log effective joiner/trailers:
         if (log_level__expand_and_walk >= 2)
           lm.indent(() => {
             lm.log(`EFFECTIVE_JOINER:  ${inspect_fun(effective_joiner)}`);
-            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer) }`);
+            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer)}`);
             lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
           });
 
@@ -9029,7 +9023,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        if (log_configuration_enabled)
+        if (log_level__expand_and_walk >= 2)
           lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
                                  `${inspect_fun(walked)}.`));
         
@@ -9074,8 +9068,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               ? 'pick_one_priority'
               : 'pick_multiple_priority';
         const prior_key = thing instanceof ASTRevertPickSingle
-              ? 'prior_pick_one_priority'
-              : 'prior_pick_multiple_priority';
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
