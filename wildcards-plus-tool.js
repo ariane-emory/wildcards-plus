@@ -10482,16 +10482,16 @@ const make_AnonWildcardAlternative_rule = content_rule =>
 const make_AnonWildcard_rule            =
       (alternative_rule, can_have_trailer = false, empty_value = undefined) => {
         const new_ASTAnonWildcard = arr =>
-             new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
+              new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        const xform_fun = empty_value !== undefined
-              ? arr => (arr.length === 0
+        const xform_fun = empty_value === undefined
+              ? arr => new_ASTAnonWildcard(arr)
+              : arr => (arr.length === 0
                         ? empty_value
-                        : new_ASTAnonWildcard(arr))
-              : arr => new_ASTAnonWildcard(arr);
+                        : new_ASTAnonWildcard(arr));
         
         return xform(xform_fun,
                      seq(optional('unsafe'),
