@@ -10692,7 +10692,7 @@ const NamedWildcardDefinition =
                              discarded_comments,
                              lws(equals)),
                         discarded_comments,
-                        head(lws(AnonWildcard),
+                        head(lws(AnonWildcardInDefinition),
                              optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
