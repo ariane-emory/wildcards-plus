@@ -9291,7 +9291,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        if (log_configuration_enabled)
+        if (log_level__expand_and_walk >= 2)
           lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
                                  `${inspect_fun(walked)}.`));
         
@@ -9336,8 +9336,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               ? 'pick_one_priority'
               : 'pick_multiple_priority';
         const prior_key = thing instanceof ASTRevertPickSingle
-              ? 'prior_pick_one_priority'
-              : 'prior_pick_multiple_priority';
+              ? 'pick_one_priority'
+              : 'ppick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
