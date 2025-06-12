@@ -63,7 +63,7 @@ function parse_file(filename) {
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 1;
+  // log_level__expand_and_walk = 2; // not here, later during walk! 
   let  result        = null;
 
   if (dt_hosted) {
@@ -304,7 +304,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = false;
+let print_ast_before_includes_enabled  = true;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -10976,13 +10976,16 @@ async function main() {
     const context = base_context.clone();
     context.reset_temporaries(); // probably unnecessary?
 
-    // log_level__expand_and_walk = 1;
+    const old_log_level__expand_and_walk = log_level__expand_and_walk;
+    log_level__expand_and_walk = 1;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
 
+    log_level__expand_and_walk = old_log_level__expand_and_walk;
+    
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
       lm.log(`Final config is :`);
