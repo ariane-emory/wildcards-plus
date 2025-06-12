@@ -10986,6 +10986,7 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join;
     // log_level__expand_and_walk = 2;
+    log_level__smart_join = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
