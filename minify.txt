@@ -38,5 +38,5 @@ $features        += { (@1-3features: @random_weight) },
 |french pedicure
 },
 
-FOO, $features BAR, \n
-(@1-3foot_decorations {|<: @random_weight}),
+// FOO, $features BAR, \n
+(@1-3foot_decorations {|: @random_weight}),
