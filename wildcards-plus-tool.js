@@ -10757,22 +10757,27 @@ const make_malformed_token_rule = rule =>
                                               index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
 const make_Content_rule       = ({ before_plain_text_rules = [],
-                                   after_plain_text_rules  = [] } = {}) =>
-      choice(
-        ...before_plain_text_rules,
-        plain_text_no_semis,
-        ...after_plain_text_rules,
-        discarded_comment,
-        NamedWildcardReference,
-        NamedWildcardUsage,
-        SpecialFunctionNotInclude,
-        UnsetFlag, // before SetFlag!
-        SetFlag,
-        ScalarAssignment,
-        ScalarReference,
-        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`),
-        // ^ reminder, structural_chars === '{|}'
-      );
+                                   plain_text_rule         = null,
+                                   after_plain_text_rules  = [] } = {}) => {
+                                     if (! plain_text_rule)
+                                       throw new Error(`bad make_Content_rule args: ` +
+                                                       `${inspect_fun(arguments)}`);
+                                     return choice(
+                                       ...before_plain_text_rules,
+                                       plain_text_rule,
+                                       ...after_plain_text_rules,
+                                       discarded_comment,
+                                       NamedWildcardReference,
+                                       NamedWildcardUsage,
+                                       SpecialFunctionNotInclude,
+                                       UnsetFlag, // before SetFlag!
+                                       SetFlag,
+                                       ScalarAssignment,
+                                       ScalarReference,
+                                       make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`),
+                                       // ^ reminder, structural_chars === '{|}'
+                                     );
+                                   };
 // -------------------------------------------------------------------------------------------------
 const ContentInAnonWildcardAlternative = make_Content_rule({
   before_plain_text_rules: [
@@ -10781,6 +10786,7 @@ const ContentInAnonWildcardAlternative = make_Content_rule({
     TestFlagInAlternativeContent,
     AnonWildcard,
   ],
+  plain_text_rule: plain_text,
   after_plain_text_rules:  [
   ],
 });
@@ -10790,6 +10796,7 @@ const ContentAtTopLevel                = make_Content_rule({
     TopLevelTestFlag,
     AnonWildcard,
   ],
+  plain_text_rule: plain_text,
   after_plain_text_rules:  [
     make_malformed_token_rule(r_raw`}\S*`),
     NamedWildcardDefinition,
