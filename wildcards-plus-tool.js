@@ -10479,28 +10479,32 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                                 SetFlag, UnsetFlag)),
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false,
-                                        empty_value = null)  =>
-      xform(empty_value
-            ? arr => (arr.length === 0
-                      ? empty_value
-                      : new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                      unsafe: arr[0] == 'unsafe' }))
-            : arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                   unsafe: arr[0] == 'unsafe' }),
-            seq(optional('unsafe'),
-                discarded_comments,
-                lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
-                (can_have_trailer
-                 ? optional_punctuation_trailer
-                 : unexpected_punctuation_trailer)));
+const make_AnonWildcard_rule            =
+      (alternative_rule, can_have_trailer = false, empty_value = null) => {
+        const new_ASTAnonWildcard = arr =>
+              new ASTAnonWildcard(arr[1], { trailer: arr[2],
+                                            unsafe: arr[0] == 'unsafe' });
+        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+        const tail_rule = can_have_trailer
+              ? optional_punctuation_trailer
+              : unexpected_punctuation_trailer;
+        return xform(empty_value
+                     ? arr => (arr.length === 0
+                               ? empty_value
+                               : new_ASTAnonWildcard(arr))
+                     : arr => new_ASTAnonWildcard(arr),
+                     seq(optional('unsafe'),
+                         discarded_comments,
+                         body_rule,
+                         tail_rule));
+      };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative        =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardInDefinition       = make_AnonWildcard_rule(AnonWildcardAlternative, true, null)
+const AnonWildcardInDefinition       = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
 const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false, '')
       .abbreviate_str_repr('AnonWildcardNoTrailer');
