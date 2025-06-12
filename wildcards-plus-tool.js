@@ -8944,7 +8944,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (log_level__expand_and_walk >= 2)
           lm.indent(() => {
             lm.log(`EFFECTIVE_JOINER:  ${inspect_fun(effective_joiner)}`);
-            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer)}`);
+            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer) }`);
             lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
           });
 
