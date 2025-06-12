@@ -10488,11 +10488,12 @@ const make_AnonWildcard_rule            =
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        return xform(empty_value
-                     ? arr => (arr.length === 0
-                               ? empty_value
-                               : new_ASTAnonWildcard(arr))
-                     : arr => new_ASTAnonWildcard(arr),
+        const xform_fun = empty_value
+              ? arr => (arr.length === 0
+                        ? empty_value
+                        : new_ASTAnonWildcard(arr))
+              : arr => new_ASTAnonWildcard(arr);
+        return xform(xform_fun,
                      seq(optional('unsafe'),
                          discarded_comments,
                          body_rule,
@@ -10502,11 +10503,11 @@ const make_AnonWildcard_rule            =
 const AnonWildcardAlternative        =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
+const AnonWildcard             = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardInDefinition       = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+const AnonWildcardInDefinition = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcardInDefinition');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false, '')
+const AnonWildcardNoTrailer    = make_AnonWildcard_rule(AnonWildcardAlternative, false, '')
       .abbreviate_str_repr('AnonWildcardNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
