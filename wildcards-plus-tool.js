@@ -8942,26 +8942,26 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         // log effective joiner/trailers:
         if (log_level__expand_and_walk >= 2)
-              lm.indent(() => {
-                lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-                lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
-                lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
-              });
+          lm.indent(() => {
+            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
+          });
 
-            lm.indent(() => {
-              let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
-                                   { correct_articles: false });
-              // ^ don't need to correct articles here since punctuation and the word 'and' both can't
-              //   trigger an article correction anyhow.
-              
-              if (effective_trailer && str.length > 0)
-                str = smart_join([str, effective_trailer],
-                                 { correct_articles: false });
-              // ^ don't need to correct articles for trailers since punctuation can't trigger an
-              //   article correction anyhow.
+        lm.indent(() => {
+          let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
+                               { correct_articles: false });
+          // ^ don't need to correct articles here since punctuation and the word 'and' both can't
+          //   trigger an article correction anyhow.
+          
+          if (effective_trailer && str.length > 0)
+            str = smart_join([str, effective_trailer],
+                             { correct_articles: false });
+          // ^ don't need to correct articles for trailers since punctuation can't trigger an
+          //   article correction anyhow.
 
-              throw new ThrownReturn(str);
-            });
+          throw new ThrownReturn(str);
+        });
       }
       // -------------------------------------------------------------------------------------------
       // scalar references:
@@ -9843,9 +9843,10 @@ class ASTNamedWildcardReference extends ASTLeafNode {
         str += `${this.min_count}-${this.max_count}`;
       else
         str += `${this.max_count}`;
-
-      str += this.joiner;
     }
+
+    if (this.joiner)
+      str += this.joiner;
 
     str += this.name;
 
