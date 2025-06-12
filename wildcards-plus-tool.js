@@ -8892,16 +8892,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         
         if (got instanceof ASTLatchedNamedWildcard) {          
           anon_wildcard = got.original_value;
-          
-          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-          //   const expanded = lm.indent(() => walk(got.latched_value, 
-          //                                         { correct_articles: correct_articles})); 
-          //   // ^ not quite sure whether to use walk or expand_wildcards here.
-          
-          //   if (expanded)
-          //     res.push(expanded);
-          ///}
-          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
+          res           = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
@@ -8910,9 +8901,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                   picker_allow, picker_forbid, picker_each, 
-                                   picker_priority);
+          res           = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                             picker_allow, picker_forbid, picker_each, 
+                                             picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
