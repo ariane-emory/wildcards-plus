@@ -10479,9 +10479,15 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                                 SetFlag, UnsetFlag)),
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                 unsafe: arr[0] == 'unsafe' }),
+const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false,
+                                        empty_value = null)  =>
+      xform(empty_value
+            ? arr => (arr.length === 0
+                      ? empty_value
+                      : new ASTAnonWildcard(arr[1], { trailer: arr[2],
+                                                      unsafe: arr[0] == 'unsafe' }))
+            : arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
+                                                   unsafe: arr[0] == 'unsafe' }),
             seq(optional('unsafe'),
                 discarded_comments,
                 lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
@@ -10492,9 +10498,11 @@ const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = fal
 const AnonWildcardAlternative        =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
+const AnonWildcardInDefinition       = make_AnonWildcard_rule(AnonWildcardAlternative, true, null)
+      .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false, '')
       .abbreviate_str_repr('AnonWildcardNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
