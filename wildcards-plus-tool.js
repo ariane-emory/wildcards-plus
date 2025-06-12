@@ -8922,13 +8922,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         let effective_trailer;
         let intercalate_options = {}
 
-        if (log_level__expand_and_walk >= 2)
-          lm.indent(() => {
-            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
-            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
-          });
-
+        // compute effective_joiner:
         if (thing.joiner === '&') {
           effective_joiner = ',';
           intercalate_options.final_separator = 'and';
@@ -8937,23 +8931,37 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           effective_joiner = thing.joiner;
         else if (',.'.includes(anon_wildcard.trailer))
           effective_joiner = anon_wildcard.trailer;
-        else
+        else (thing.joiner) // might be null, but that should be okay
           effective_joiner = thing.joiner;
-        
-        lm.indent(() => {
-          let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
-                               { correct_articles: false });
-          // ^ don't need to correct articles here since punctuation and the word 'and' both can't
-          //   trigger an article correction anyhow.
-          
-          if (effective_trailer && str.length > 0)
-            str = smart_join([str, effective_trailer],
-                             { correct_articles: false });
-          // ^ don't need to correct articles for trailers since punctuation can't trigger an
-          //   article correction anyhow.
 
-          throw new ThrownReturn(str);
-        });
+        // compute effective_trailer:
+        if (thing.trailer)
+          effective_trailer = thing.trailer;
+        else
+          effective_trailer = anon_wildcard.trailer; // might be null, but that should be okay
+        
+        // log effective joiner/trailers:
+        if (log_level__expand_and_walk >= 2)
+              lm.indent(() => {
+                lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+                lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+                lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
+              });
+
+            lm.indent(() => {
+              let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
+                                   { correct_articles: false });
+              // ^ don't need to correct articles here since punctuation and the word 'and' both can't
+              //   trigger an article correction anyhow.
+              
+              if (effective_trailer && str.length > 0)
+                str = smart_join([str, effective_trailer],
+                                 { correct_articles: false });
+              // ^ don't need to correct articles for trailers since punctuation can't trigger an
+              //   article correction anyhow.
+
+              throw new ThrownReturn(str);
+            });
       }
       // -------------------------------------------------------------------------------------------
       // scalar references:
