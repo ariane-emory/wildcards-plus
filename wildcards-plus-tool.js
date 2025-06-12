@@ -8918,13 +8918,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let has_explicit_trailer_or_separator = !!(thing.joiner || thing.trailer);
-        
         let effective_joiner;
+        let effective_trailer;
         let intercalate_options = {}
-        let effective_trailer = has_explicit_trailer_or_separator
-            ? thing.trailer
-            : anon_wildcard.trailer;
 
         if (log_level__expand_and_walk >= 2)
           lm.indent(() => {
