@@ -8919,7 +8919,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           res[0] = capitalize(res[0]);
 
         let effective_joiner;
-        let effective_trailer;
         let intercalate_options = {}
 
         // compute effective_joiner:
@@ -8933,10 +8932,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           effective_joiner = anon_wildcard.trailer;
 
         // compute effective_trailer:
-        if (thing.trailer)
-          effective_trailer = thing.trailer;
-        else
-          effective_trailer = anon_wildcard.trailer; // might be null, but that should be okay
+        const effective_trailer = thing.trailer
+              ? thing.trailer
+              : anon_wildcard.trailer; // might be null, but that should be okay
         
         // log effective joiner/trailers:
         if (log_level__expand_and_walk >= 2)
@@ -10984,7 +10982,7 @@ async function main() {
     context.reset_temporaries(); // probably unnecessary?
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
-    log_level__expand_and_walk = 2;
+    // log_level__expand_and_walk = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
