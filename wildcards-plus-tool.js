@@ -3504,7 +3504,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   smart_join_trap_counter += 1;
 
-
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
            log_level__expand_and_walk);
