@@ -10221,10 +10221,10 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_chars              = '{|}';
-const structural_word_break_ahead   = r_raw`(?=[\s${structural_chars}]|$)`
+const structural_chars            = '{|}';
+const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
-const structural_close_ahead        = r(/(?=\s*})/)
+const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
@@ -10248,10 +10248,6 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
-// const liberal_ident           =
-//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-//             str => str.toLowerCase().replace(/-/g, '_'))
-//       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -10281,8 +10277,6 @@ const make_plain_text_rule = additional_excluded_chars =>
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
-// const plain_text_no_semis  = make_plain_text_rule(';')
-//       .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -10296,7 +10290,7 @@ const A1111StyleLora =
                             optional(wst_cadr(colon,                             // [3]
                                               choice(A1111StyleLoraWeight,
                                                      () => LimitedContentNoAWCTrailers)),
-                                     "1.0"), // [4][0]
+                                     "1.0"),
                             rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
@@ -10315,13 +10309,6 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-// const flag_ident = xform(dot_chained(ident),
-//                          arr => {
-//                            lm.log();
-//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
-//                            return arr;
-//                          });
 const flag_ident = xform(seq(choice(ident, '*'),
                              star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => [arr[0], ...arr[1]]);
@@ -10354,19 +10341,19 @@ const CheckFlagWithSetConsequent =
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
 const CheckFlagWithOrAlternatives = // last check alternative
-      xform(cutting_seq(question,                // [0]
-                        plus(flag_ident, comma), // [1]
-                        structural_word_break_ahead),  // [2]
+      xform(cutting_seq(question,                     // [0]
+                        plus(flag_ident, comma),      // [1]
+                        structural_word_break_ahead), // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
 const NotFlagWithSetConsequent = // last not alternative
-      xform(cutting_seq(bang,                   // [0]
-                        flag_ident,             // [1]
-                        dot_hash,               // [2]
-                        flag_ident,             // [3]
+      xform(cutting_seq(bang,                         // [0]
+                        flag_ident,                   // [1]
+                        dot_hash,                     // [2]
+                        flag_ident,                   // [3]
                         structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
@@ -10375,7 +10362,7 @@ const NotFlagWithSetConsequent = // last not alternative
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
-const SetFlag =
+const SetFlag   =
       xform(arr => new ASTSetFlag(arr),
             cutting_cadr(hash, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
@@ -10389,7 +10376,7 @@ const unexpected_TestFlag_at_top_level = rule =>
         new FatalParseError(`check/not flag guards without set consequents at the top level ` +
                             `would serve no purpose and so are not permitted`,
                             input, index));
-const innapropriately_placed_TestFlag = rule => 
+const innapropriately_placed_TestFlag  = rule => 
       unexpected(rule, (rule, input, index) =>
         new FatalParseError(`innapropriately placed test flag`,
                             input, index));
@@ -10423,18 +10410,12 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
              .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
-             // Maybe these next two shouldn't be here?
-             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // lm.log(`ARR: ${inspect_fun(arr)}`);
   const weight = arr[1];
 
   if (weight == 0)
@@ -10456,7 +10437,6 @@ const make_ASTAnonWildcardAlternative = arr => {
         not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.flag));
-
   return new ASTAnonWildcardAlternative(
     weight,
     check_flags,
@@ -10468,7 +10448,7 @@ const make_ASTAnonWildcardAlternative = arr => {
       ...set_or_unset_flags,
       ...arr[3]
     ]);
-}
+};
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
@@ -10492,7 +10472,6 @@ const make_AnonWildcard_rule            =
               : arr => (arr.length === 0
                         ? empty_value
                         : new_ASTAnonWildcard(arr));
-        
         return xform(xform_fun,
                      seq(optional('unsafe'),
                          discarded_comments,
@@ -10500,7 +10479,7 @@ const make_AnonWildcard_rule            =
                          tail_rule));
       };
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        =
+const AnonWildcardAlternative  =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard             = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
@@ -10549,10 +10528,10 @@ const UnexpectedSpecialFunctionUINegPrompt =
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
-            head(c_funcall('%include',                   // [0][0]
-                           head(discarded_comments,      // -
-                                lws(rjsonc_string),      // [0][1]
-                                discarded_comments,      // -
+            head(c_funcall('%include',              // [0][0]
+                           head(discarded_comments, // -
+                                lws(rjsonc_string), // [0][1]
+                                discarded_comments, // -
                                )),  
                  optional(SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionInclude');
@@ -10603,32 +10582,27 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
-      },
-            cutting_seq(seq(c_ident,                                                // [0][0]
-                            discarded_comments,                                     // -
-                            lws(any_assignment_operator),                           // [0][1]
-                            discarded_comments),                                    // -
-                        lws(choice(ExposedRjsonc,                                   // [1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '='),
+            cutting_seq(seq(c_ident,                                        // [0][0]
+                            discarded_comments,                             // -
+                            lws(any_assignment_operator),                   // [0][1]
+                            discarded_comments),                            // -
+                        lws(choice(ExposedRjsonc,                           // [1]
                                    head(() => LimitedContent,
-                                        optional(SpecialFunctionTail))))))          // [1][1]
+                                        optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
-      },
-            seq(/conf(?:ig)?/,                                                        // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
-                                            optional(SpecialFunctionTail)),
-                                       head(() => LimitedContentNoAWCTrailers,
-                                            optional(SpecialFunctionTail))))))) // [1][1]
+      xform(arr => 
+        new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+        seq(/conf(?:ig)?/,                                                  // [0]
+            discarded_comments,                                             // -
+            cutting_seq(lws(choice(plus_equals, equals)),                   // [1][0]
+                        discarded_comments,                                 // -
+                        lws(choice(head(RjsoncObject,
+                                        optional(SpecialFunctionTail)),
+                                   head(() => LimitedContentNoAWCTrailers,
+                                        optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
