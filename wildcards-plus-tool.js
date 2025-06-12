@@ -10480,7 +10480,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, can_have_trailer = false, empty_value = null) => {
+      (alternative_rule, can_have_trailer = false, empty_value = undefined) => {
         const new_ASTAnonWildcard = arr =>
               new ASTAnonWildcard(arr[1], { trailer: arr[2],
                                             unsafe: arr[0] == 'unsafe' });
@@ -10488,7 +10488,7 @@ const make_AnonWildcard_rule            =
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        const xform_fun = empty_value
+        const xform_fun = empty_value !== undefined
               ? arr => (arr.length === 0
                         ? empty_value
                         : new_ASTAnonWildcard(arr))
