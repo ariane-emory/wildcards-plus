@@ -8930,7 +8930,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           effective_joiner = thing.joiner;
         else if (',.'.includes(anon_wildcard.trailer))
           effective_joiner = anon_wildcard.trailer;
-
+        else
+          effective_joiner = null; // should be okay if null
+        
         // compute effective_trailer:
         const effective_trailer = thing.trailer
               ? thing.trailer
