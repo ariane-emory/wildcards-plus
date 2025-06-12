@@ -10276,8 +10276,8 @@ const make_plain_text_rule = additional_excluded_chars =>
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule(';')
-      .abbreviate_str_repr('plain_text');
+const plain_text_no_semis  = make_plain_text_rule(';')
+      .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -10739,10 +10739,10 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
@@ -10758,7 +10758,7 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
         ...before_plain_text_rules,
-        plain_text,
+        plain_text_no_semis,
         ...after_plain_text_rules,
         discarded_comment,
         NamedWildcardReference,
