@@ -8922,11 +8922,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
+        const thing_has_explicit_joiner_or_trailer = thing.joiner || thing.trailer;
         // compute effective_trailer:
         const effective_trailer = thing.trailer
               ? thing.trailer
-              : anon_wildcard.trailer; // might be null, but that should be okay
-        
+              : (thing_has_explicit_joiner_or_trailer
+                 ? null
+                 : anon_wildcard.trailer); // might be null, but that should be okay
+                 
         let effective_joiner = null;   // might remain null, but that should be okay      
         let intercalate_options = {}
 
@@ -8937,7 +8940,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
         else if (thing.joiner)
           effective_joiner = thing.joiner;
-        else if (',.'.includes(anon_wildcard.trailer))
+        else if (!thing_has_explicit_joiner_or_trailer && ',.'.includes(anon_wildcard.trailer))
           effective_joiner = anon_wildcard.trailer;
         
         // log effective joiner/trailers:
