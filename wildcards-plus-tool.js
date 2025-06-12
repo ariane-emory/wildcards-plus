@@ -3535,7 +3535,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   
   const collapsible_punctuation =   ",.;:!?";
-  const punctuationp    = (ch) => "_-,.;:!?".includes(ch);
+  const spaceless_punctuationp    = (ch) => "_-,.;:!?".includes(ch);
   const linkingp        = (ch) => "_-".includes(ch);
   // const whitep       = (ch)  => " \n".includes(ch);
   
@@ -3691,11 +3691,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (!chomped &&
         !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-        !right_word.startsWith('\\n') &&
-        !right_word.startsWith('\\ ') && 
-        !punctuationp (next_char)     && 
-        !linkingp     (prev_char)     &&
-        !linkingp     (next_char)     &&
+        !right_word.startsWith('\\n')       &&
+        !right_word.startsWith('\\ ')       && 
+        !spaceless_punctuationp (next_char) && 
+        !linkingp     (prev_char)           &&
+        !linkingp     (next_char)           &&
         !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
         !'([])'.substring(2,4).includes(next_char))
       add_a_space();
