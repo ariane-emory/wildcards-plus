@@ -30,4 +30,13 @@ $features        += { (@1-3features: @random_weight) },
 // prompt body: 
 // =======================================================================================
 
-FOO, $features BAR,
+@foot_decorations =
+{0 
+|anklet
+|toe rings
+|painted toenails
+|french pedicure
+},
+
+FOO, $features BAR, \n
+(@1-3foot_decorations {|<: @random_weight}),
