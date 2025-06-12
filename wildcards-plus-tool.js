@@ -8935,8 +8935,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         }
         else if (thing.joiner)
           effective_joiner = thing.joiner;
-        else if (!has_explicit_trailer_or_separator &&
-                 ',.'.includes(anon_wildcard.trailer))
+        else if (',.'.includes(anon_wildcard.trailer))
           effective_joiner = anon_wildcard.trailer;
         else
           effective_joiner = thing.joiner;
