@@ -8938,7 +8938,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         else if (thing.joiner)
           effective_joiner = thing.joiner;
         else if (',.'.includes(anon_wildcard.trailer))
-          effective_joiner = anon_wildcard.trailer;
+          effective_joiner = anon_wildcard.trailer; // might be null, but that should be okay
         
         // log effective joiner/trailers:
         if (log_level__expand_and_walk >= 2)
