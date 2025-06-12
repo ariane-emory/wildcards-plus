@@ -8943,8 +8943,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         // log effective joiner/trailers:
         if (log_level__expand_and_walk >= 2)
           lm.indent(() => {
-            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+            lm.log(`EFFECTIVE_JOINER:  ${inspect_fun(effective_joiner)}`);
+            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer)}`);
             lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
           });
 
@@ -10986,7 +10986,7 @@ async function main() {
     context.reset_temporaries(); // probably unnecessary?
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
-    log_level__expand_and_walk = 1;
+    log_level__expand_and_walk = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
