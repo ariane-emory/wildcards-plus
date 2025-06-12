@@ -23,20 +23,22 @@ $features = {}
 // =======================================================================================
 // update vars:
 // =======================================================================================
-%multi-pick       = true_randomness;
-$features        += { (@1-3features: @random_weight) },
+// %multi-pick       = true_randomness;
+// $features        += { (@1-3features: @random_weight) },
+// FOO, $features BAR, \n
 
 // =======================================================================================
 // prompt body: 
 // =======================================================================================
 
-@foot_decorations =
+@colours =
 {0 
-|anklet
-|toe rings
-|painted toenails
-|french pedicure
+|red
+|blue
+|green
+|yellow
+|black
+|white
 },
 
-// FOO, $features BAR, \n
-(@1-3foot_decorations {|: @random_weight}),
+(@1-2colours {|: @random_weight}),
