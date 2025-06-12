@@ -10260,7 +10260,7 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // plain_text terminal variants:
 // =================================================================================================
 const pseudo_structural_chars = raw`<\(\)\[\]`;
-const syntax_chars            = raw`@#$%;`;
+const syntax_chars            = raw`@#$%`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
@@ -10276,7 +10276,7 @@ const make_plain_text_rule = additional_excluded_chars =>
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule()
+const plain_text           = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
