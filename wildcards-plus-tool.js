@@ -8913,11 +8913,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
           
           res = anon_wildcard.pick(thing.min_count, thing.max_count,
                                    picker_allow, picker_forbid, picker_each, 
-                                   picker_priority).filter(s => s !== '');
+                                   picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
         }
+
+        res = res.filter(x => x);
         
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
@@ -8944,12 +8946,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (log_level__expand_and_walk >= 2)
           lm.indent(() => {
             lm.log(`EFFECTIVE_JOINER:  ${inspect_fun(effective_joiner)}`);
-            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer) }`);
+            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer)}`);
             lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
           });
 
-        res = res.filter(x => x);
-        
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
                                { correct_articles: false });
