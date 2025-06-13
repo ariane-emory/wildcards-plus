@@ -3586,16 +3586,16 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
       if (log_level__smart_join >= 2)
         //lm.indent(() => 
-          lm.log(`ix = ${inspect_fun(ix)}, \n` +
-                 `str = ${inspect_fun(str)}, \n` +
-                 `left_word = ${inspect_fun(left_word)}, ` +         
-                 `right_word = ${inspect_fun(right_word)}, \n` + 
-                 `prev_char = ${inspect_fun(prev_char)}, ` +         
-                 `next_char = ${inspect_fun(next_char)}, \n` + 
-                 `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                 `next_char_is_escaped = ${next_char_is_escaped}`, true)
-          //);
-        };
+        lm.log(`ix = ${inspect_fun(ix)}, \n` +
+               `str = ${inspect_fun(str)}, \n` +
+               `left_word = ${inspect_fun(left_word)}, ` +         
+               `right_word = ${inspect_fun(right_word)}, \n` + 
+               `prev_char = ${inspect_fun(prev_char)}, ` +         
+               `next_char = ${inspect_fun(next_char)}, \n` + 
+               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+               `next_char_is_escaped = ${next_char_is_escaped}`, true)
+      //);
+    };
 
     const collapse_punctuation = () => {
       while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
@@ -3624,27 +3624,22 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     // collapse_punctuation();
 
-    // handle "a" → "an" if necessary:
-    const article_correction = (original_article, right_word) => {
-      const chose = choose_indefinite_article(right_word);
-      const lower_original = original_article.toLowerCase();
-
-      if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose) {
-        return original_article[0] === original_article[0].toUpperCase()
-          ? chose[0].toUpperCase() + chose.slice(1)
-          : chose;
-      }
-
-      return original_article;
-    };
-    
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
       
       if (article_match) {
         const original_article = article_match[1];
-        const updated_article  = article_correction(original_article, right_word);
+        const chose            = choose_indefinite_article(right_word);
+        const lower_original   = original_article.toLowerCase();
+        let   updated_article; 
+
+        if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose)
+          updated_article = original_article[0] === original_article[0].toUpperCase()
+          ? chose[0].toUpperCase() + chose.slice(1)
+          : chose;
+        else 
+          updated_article = original_article;
 
         if (updated_article !== original_article) 
           str = str.slice(0, -original_article.length) + updated_article;
