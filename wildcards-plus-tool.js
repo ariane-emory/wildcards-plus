@@ -3625,8 +3625,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     // collapse_punctuation();
 
     // handle "a" → "an" if necessary:
-    const article_correction = (original_article, next_word) => {
-      const chose = choose_indefinite_article(next_word);
+    const article_correction = (original_article, right_word) => {
+      const chose = choose_indefinite_article(right_word);
       const lower_original = original_article.toLowerCase();
 
       if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose) {
