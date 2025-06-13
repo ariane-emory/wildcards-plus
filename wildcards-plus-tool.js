@@ -3615,12 +3615,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       };
 
       const collapse_punctuation = () => {
-        while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
+        while  (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
           move_chars_left(3);
 
         const test = () =>
-              left_collapsible_punctuation.includes(prev_char) &&
-              right_collapsible_punctuation.includes(next_char);
+              left_collapsible_punctuation_chars.includes(prev_char) &&
+              right_collapsible_punctuation_chars.includes(next_char);
 
         if (test()) {
           while (test()) {
@@ -3648,9 +3648,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       }
 
       const linking_chars                  = "_-";      
-      const punctuation_chars              = ",.;:?!";
-      const left_collapsible_punctuation   = ",.;!?";
-      const right_collapsible_punctuation  = ",.;:!?)";
+      const left_collapsible_punctuation_chars   = ",.;!?";
+      const punctuation_chars              = ",.;!?:";
+      const right_collapsible_punctuation_chars  = ",.;!?:])";
       
       collapse_punctuation();
       
@@ -3692,21 +3692,20 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       }
 
       if (false) { // just for reference
-        const linking_chars                  = "_-";      
-        const punctuation_chars              = ",.;:?!";
-        const left_collapsible_punctuation   = ",.;!?";
-        const right_collapsible_punctuation  = ",.;:!?)";
+        const linking_chars                        = "_-";      
+        const punctuation_chars                    = ",.;!?:";
+        const left_collapsible_punctuation_chars   = ",.;!?";
+        const right_collapsible_punctuation_chars  = ",.;!?:])";
       }
       
       if (!chomped &&
           !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !right_word.startsWith('\\n') &&
-          !right_word.startsWith('\\ ') && 
-          !punctuation_chars.includes (next_char)     && 
-          !linking_chars.includes     (prev_char)     &&
-          !linking_chars.includes     (next_char)     &&
-          !'(['.includes(prev_char)                   && 
-          !'])'.includes(next_char))
+          !right_word.startsWith('\\n')                             &&
+          !right_word.startsWith('\\ ')                             && 
+          !right_collapsible_punctuation_chars.includes (next_char) && 
+          !linking_chars.includes                       (prev_char) &&
+          !linking_chars.includes                       (next_char) &&
+          !'(['.includes(prev_char))
         add_a_space();
 
       collapse_punctuation();
