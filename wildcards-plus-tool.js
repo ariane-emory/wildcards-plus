@@ -10263,10 +10263,10 @@ const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') 
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = (kadditional_excluded_initial_chars   = '',
+const make_plain_text_rule = (additional_excluded_initial_chars    = '',
                               additional_excluded_subsequent_chars = '') => 
-      r(raw`${make_plain_text_char_RegExp_source_str(kadditional_excluded_initial_chars)}` +
-        raw`${make_plain_text_char_RegExp_source_str(kadditional_excluded_initial_chars)}*` +
+      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
+        raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
