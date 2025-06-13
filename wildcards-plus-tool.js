@@ -3624,9 +3624,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           lm.log(`ix = ${inspect_fun(ix)}, \n` +
                  `str = ${inspect_fun(str)}, \n` +
                  `left_word = ${inspect_fun(left_word)}, ` +         
-                 `right_word = ${inspect_fun(right_word)}, ` +       
+                 `right_word = ${inspect_fun(right_word)}, \n` + 
                  `prev_char = ${inspect_fun(prev_char)}, ` +         
-                 `next_char = ${inspect_fun(next_char)}, ` + 
+                 `next_char = ${inspect_fun(next_char)}, \n` + 
                  `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
                  `next_char_is_escaped = ${next_char_is_escaped}`, true));
     };
