@@ -3705,6 +3705,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
+    collapse_punctuation();
     consume_right_word();
   }
 
