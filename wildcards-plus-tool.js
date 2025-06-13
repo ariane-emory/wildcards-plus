@@ -3708,7 +3708,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     collapse_punctuation();
 
-    const consume_right_word = () => {
+    // const consume_right_word = () =>
+    {
       if (log_level__smart_join >= 2)
         lm.log(`CONSUME ${inspect_fun(right_word)}!`);
 
@@ -3719,7 +3720,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       str       += left_word;
     }
 
-    consume_right_word();
+    // consume_right_word();
   }
 
   if (log_level__smart_join >= 1)
