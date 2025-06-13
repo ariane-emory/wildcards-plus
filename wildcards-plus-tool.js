@@ -3547,11 +3547,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let left_word = arr[0];  // ?.toString() ?? "";
-  let str       = left_word;
+  let str = arr[0];
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word           = null;
+    let left_word  = str;  
+    let right_word = null;
 
     try {
       let prev_char            = null;
