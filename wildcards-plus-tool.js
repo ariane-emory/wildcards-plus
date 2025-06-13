@@ -3532,13 +3532,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  
   const left_collapsible_punctuation  =   ",.;:!?";
   const right_collapsible_punctuation =   ",.;:!?)";
   const spaceless_punctuationp    = (ch) => "_-,.;:!?".includes(ch);
   const linkingp        = (ch) => "_-".includes(ch);
-  // const whitep       = (ch)  => " \n".includes(ch);
   
   // handle "a" → "an" if necessary:
   const articleCorrection = (originalArticle, nextWord) => {
@@ -3549,19 +3546,19 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let left_word = arr[0];  // ?.toString() ?? "";
+  let left_word = arr[0];
   let str       = left_word;
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    // if (str.includes(`,,`))
-    //   throw new Error("STOP");
-    
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
     let next_char_is_escaped = null;
     let next_char            = null;
 
+    if (str.includes('.)'))
+      throw new Error("stop");
+    
     const add_a_space = () => {
       if (log_level__smart_join >= 2)
         lm.log(`SPACE!`);
@@ -3728,16 +3725,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (log_level__smart_join >= 2)
       lm.log(`CONSUME ${inspect_fun(right_word)}!`);
 
-    left_word  = right_word;
-    str       += left_word;
+    str += right_word;
   }
 
   if (log_level__smart_join >= 1)
     lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
 
-  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
-
-  return str;
+   return str;
 }
 // -------------------------------------------------------------------------------------------------
 function stop() {
@@ -11013,8 +11007,8 @@ async function main() {
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join;
-    log_level__expand_and_walk = 2;
-    log_level__smart_join = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
