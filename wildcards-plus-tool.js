@@ -3691,6 +3691,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         continue;
       }
 
+      if (false) { // just for reference
+        const linking_chars                  = "_-";      
+        const punctuation_chars              = ",.;:?!";
+        const left_collapsible_punctuation   = ",.;!?";
+        const right_collapsible_punctuation  = ",.;:!?)";
+      }
+      
       if (!chomped &&
           !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
           !right_word.startsWith('\\n') &&
