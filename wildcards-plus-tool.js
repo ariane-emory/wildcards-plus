@@ -3632,7 +3632,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const left_collapsible_punctuation   = ",.;!?";
-    const right_collapsible_punctuation  = ",.;!?)";
+    const right_collapsible_punctuation  = ",.;:!?)";
     
     const collapse_punctuation = () => {
       while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
