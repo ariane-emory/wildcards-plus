@@ -3628,7 +3628,19 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
                `next_char_is_escaped = ${next_char_is_escaped}`, true);
     };
-    
+
+    const left_collapsible_punctuation   = ",.;!?";
+    const right_collapsible_puunctuation = ",.;!?";
+    const collapse_punctuation = () => {
+      while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
+        move_chars_left(3);
+      
+      while (left_collapsible_punctuation.includes(prev_char) &&
+             next_char &&
+             right_collapsible_puunctuation.includes(next_char))
+        move_chars_left(1);
+    }
+
     update_pos_vars();
     
     if (right_word === '') {
@@ -3643,12 +3655,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
-      move_chars_left(3);
+    collapse_punctuation();
     
-    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
-      move_chars_left(1);
-
     // Normalize article if needed:
     if (correct_articles) {
       const article_match = str.match(/(?:^|\s)([Aa])$/);
