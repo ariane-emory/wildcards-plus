@@ -3529,8 +3529,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let str                                    = arr[0];
-  let left_word                              = str;  
+  let   str                                  = arr[0];
+  let   left_word                            = str;  
   const linking_chars                        = "_-";      
   const left_collapsible_punctuation_chars   = ",.;!?";
   const right_collapsible_punctuation_chars  = ",.;!?:])";
