@@ -3614,11 +3614,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                    `next_char_is_escaped = ${next_char_is_escaped}`, true));
       };
 
-      const punctuation_chars              = ",.?!;:";
-      const linking_chars                  = "_-";      
-      const left_collapsible_punctuation   = ",.;!?";
-      const right_collapsible_punctuation  = ",.;:!?)";
-      
       const collapse_punctuation = () => {
         while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
           move_chars_left(3);
@@ -3652,6 +3647,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         continue;
       }
 
+      const linking_chars                  = "_-";      
+      const punctuation_chars              = ",.;:?!";
+      const left_collapsible_punctuation   = ",.;!?";
+      const right_collapsible_punctuation  = ",.;:!?)";
+      
       collapse_punctuation();
       
       // Normalize article if needed:
