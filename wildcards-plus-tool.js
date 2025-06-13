@@ -3542,7 +3542,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let str = arr[0];
+  let str        = arr[0];
   let left_word  = str;  
 
   for (let ix = 1; ix < arr.length; ix++)  {
