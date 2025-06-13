@@ -3629,81 +3629,83 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
             move_chars_left(1);
           }
         }
-        else if (log_level__smart_join >= 2)
-          lm.log(`not collapsing`);
+        else {
+          if (log_level__smart_join >= 2)
+            lm.log(`not collapsing`);
+        }
       }
 
-    update_pos_vars();
-    
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY!`, true);
-
-      continue;
-    }
-
-    if (right_word === '<') {
-      str += '<';
-      continue;
-    }
-
-    const linking_chars                       = "_-";      
-    const left_collapsible_punctuation_chars  = ",.;!?";
-    const right_collapsible_punctuation_chars = ",.;!?:])";
-    
-    collapse_punctuation();
-    
-    // Normalize article if needed:
-    if (correct_articles) {
-      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      update_pos_vars();
       
-      if (article_match) {
-        const originalArticle = article_match[1];
-        const updatedArticle = articleCorrection(originalArticle, right_word);
+      if (right_word === '') {
+        if (log_level__smart_join >= 2)
+          lm.log(`JUMP EMPTY!`, true);
 
-        if (updatedArticle !== originalArticle) 
-          str = str.slice(0, -originalArticle.length) + updatedArticle;
+        continue;
       }
-    }
 
-    let chomped = false;
+      if (right_word === '<') {
+        str += '<';
+        continue;
+      }
 
-    if (!prev_char_is_escaped && prev_char === '<') {
-      chomp_left_side();
-      chomped = true;
-    }
-    
-    if (str.endsWith('<')) {
-      chomp_left_side();
-      chomped = true;
-    }
+      const linking_chars                       = "_-";      
+      const left_collapsible_punctuation_chars  = ",.;!?";
+      const right_collapsible_punctuation_chars = ",.;!?:])";
+      
+      collapse_punctuation();
+      
+      // Normalize article if needed:
+      if (correct_articles) {
+        const article_match = str.match(/(?:^|\s)([Aa])$/);
+        
+        if (article_match) {
+          const originalArticle = article_match[1];
+          const updatedArticle = articleCorrection(originalArticle, right_word);
 
-    if (right_word.startsWith('<')) {
-      chomp_right_side();
-      chomped = true;
-    }
+          if (updatedArticle !== originalArticle) 
+            str = str.slice(0, -originalArticle.length) + updatedArticle;
+        }
+      }
 
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
+      let chomped = false;
 
-      continue;
-    }
+      if (!prev_char_is_escaped && prev_char === '<') {
+        chomp_left_side();
+        chomped = true;
+      }
+      
+      if (str.endsWith('<')) {
+        chomp_left_side();
+        chomped = true;
+      }
 
-    if (false) { // just for reference
-      const linking_chars                        = "_-";      
-      const left_collapsible_punctuation_chars   = ",.;!?";
-      const right_collapsible_punctuation_chars  = ",.;!?:])";
-    }
-    
-    if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
-        !right_word.startsWith('\\n')                             &&
-        !right_word.startsWith('\\ ')                             && 
-        !right_collapsible_punctuation_chars.includes (next_char) && 
-        !linking_chars.includes                       (prev_char) &&
-        !linking_chars.includes                       (next_char) &&
-        !'(['.includes(prev_char))
+      if (right_word.startsWith('<')) {
+        chomp_right_side();
+        chomped = true;
+      }
+
+      if (right_word === '') {
+        if (log_level__smart_join >= 2)
+          lm.log(`JUMP EMPTY (LATE)!`, true);
+
+        continue;
+      }
+
+      if (false) { // just for reference
+        const linking_chars                        = "_-";      
+        const left_collapsible_punctuation_chars   = ",.;!?";
+        const right_collapsible_punctuation_chars  = ",.;!?:])";
+      }
+      
+      if (!chomped &&
+          !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
+          !right_word.startsWith('\\n')                             &&
+          !right_word.startsWith('\\ ')                             && 
+          !right_collapsible_punctuation_chars.includes (next_char) && 
+          !linking_chars.includes                       (prev_char) &&
+          !linking_chars.includes                       (next_char) &&
+          !'(['.includes(prev_char))
       add_a_space();
 
     // collapse_punctuation();
