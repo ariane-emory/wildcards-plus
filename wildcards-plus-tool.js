@@ -3610,7 +3610,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           lm.log(`collapsing ${prev_char} =- ${next_char}`);
           move_chars_left(1);
         } while (test());
-      else 
+      else if (log_level__expand_and_walk >= 2)
         lm.log(`not collapsing`);
     }
 
@@ -4613,7 +4613,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 576;  %oh   = 768; 
+  %ow   = 768;  %oh   = 576;
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -10974,8 +10974,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
 
-    log_level__expand_and_walk = 2;
-    log_level__smart_join = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
