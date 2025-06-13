@@ -3502,14 +3502,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
   const maybe_trap = ()  => {
-    if (smart_join_trap_counter === smart_join_trap_target) {
+    if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-      
-      throw stop(); 
-    }
   }
-
-  smart_join_trap_counter += 1;
 
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
@@ -3704,24 +3699,24 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !linking_chars.includes                       (prev_char) &&
         !linking_chars.includes                       (next_char) &&
         !'(['.includes(prev_char))
-        add_a_space();
+      add_a_space();
 
-      collapse_punctuation();
+    collapse_punctuation();
 
-      // const consume_right_word = () =>
-      {
-        if (log_level__smart_join >= 2)
-          lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+    // const consume_right_word = () =>
+    {
+      if (log_level__smart_join >= 2)
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
 
-        // if (right_word === '""' || right_word === "''")
-        //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-        str       += right_word;
-        left_word  = right_word;
-      }
-
-      // consume_right_word();
-
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
+      str       += right_word;
+      left_word  = right_word;
     }
+
+    // consume_right_word();
+
+  }
   
   if (log_level__smart_join >= 1)
     lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
