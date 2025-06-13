@@ -1710,7 +1710,7 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, normalize_newlines = true, len = 100) {
+function abbreviate(str, normalize_newlines = true, length = 100) {
   if (typeof str !== 'string')
     throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
 
@@ -1720,7 +1720,7 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   // str = compress(str);
   
-  if (str.length < len)
+  if (str.length < length)
     return str;
 
   const bracing_pairs = [
@@ -1736,12 +1736,12 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   for (const [left, right] of bracing_pairs) {
     if (str.startsWith(left) && str.endsWith(right)) {
-      const inner = str.substring(left.length, len - 3 - right.length);
+      const inner = str.substring(left.length, length - 3 - right.length);
       return `${left}${inner.trim()}...${right}`;
     }
   }
 
-  return `${str.substring(0, len - 3).trim()}...`;
+  return `${str.substring(0, length - 3).trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
@@ -3230,61 +3230,36 @@ let smart_join_trap_target;
 // smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
-  if (correct_articles === undefined)
+  if (!Array.isArray(arr) ||
+      typeof correct_articles !== 'boolean')
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
-  const maybe_trap = ()  => {
-    if (smart_join_trap_counter === smart_join_trap_target) {
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+    lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
+
+  const maybe_trap = () => {
+    if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-      
-      throw stop(); 
-    }
   }
 
-  smart_join_trap_counter += 1;
-
-  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
-
-  if (typeof arr == 'string')
-    throw new Error(`got string`);
-  
   maybe_trap();
   
-  if (! arr || typeof arr === 'string')
-    return arr;
-
-  arr = [...arr.flat(Infinity).filter(x=> x)];
-
-  // if (arr.includes("''") || arr.includes('""'))
-  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+  arr = arr.flat(Infinity).filter(x => x);
 
   if (arr.length === 0) 
     return '';
   else if (arr.length === 1)
     return arr[0];
 
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => "_-".includes(ch);
-  // const whitep       = (ch)  => " \n".includes(ch);
-  
-  // handle "a" → "an" if necessary:
-  const articleCorrection = (originalArticle, nextWord) => {
-    const expected = choose_indefinite_article(nextWord);
-    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-      return originalArticle === 'A' ? 'An' : 'an';
-    }
-    return originalArticle;
-  };
-  
-  let left_word = arr[0];  // ?.toString() ?? "";
-  let str       = left_word;
+  const linking_chars                        = "_-";      
+  const left_collapsible_punctuation_chars   = "_-,.;!?";
+  const right_collapsible_punctuation_chars  = "_-,.;!?:])";
 
+  let   str                                  = arr[0];
+  let   left_word                            = str;  
+  
   for (let ix = 1; ix < arr.length; ix++)  {
-    // if (str.includes(`,,`))
-    //   throw new Error("STOP");
-    
     let right_word           = null;
     let prev_char            = null;
     let prev_char_is_escaped = null;
@@ -3303,10 +3278,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`CHOMP LEFT!`);
       
-      str      = str.slice(0, -1);
+      str       = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
       
       update_pos_vars();
+      chomped = true;
     };
     
     const chomp_right_side = () => {
@@ -3316,29 +3292,19 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       arr[ix] = arr[ix].slice(1);
 
       update_pos_vars();
-    }
-
-    const consume_right_word = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-      // if (right_word === '""' || right_word === "''")
-      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-
-      left_word  = right_word;
-      str       += left_word;
+      chomped = true;
     }
 
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
-      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str = right_word.substring(0, n);
+      const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str    = right_word.substring(0, n);
 
       arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      str       = str.substring(0, str.length - overcut_length) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
       
       update_pos_vars();
     };
@@ -3351,91 +3317,105 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_level__smart_join >= 2)
-        lm.log(`ix = ${inspect_fun(ix)}, ` +
-               `str = ${inspect_fun(str)}, ` +
+        //lm.indent(() => 
+        lm.log(`ix = ${inspect_fun(ix)}, \n` +
+               `str = ${inspect_fun(str)}, \n` +
                `left_word = ${inspect_fun(left_word)}, ` +         
-               `right_word = ${inspect_fun(right_word)}, ` +       
+               `right_word = ${inspect_fun(right_word)}, \n` + 
                `prev_char = ${inspect_fun(prev_char)}, ` +         
-               `next_char = ${inspect_fun(next_char)}, ` + 
+               `next_char = ${inspect_fun(next_char)}, \n` + 
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`, true);
+               `next_char_is_escaped = ${next_char_is_escaped}`, true)
+      //);
     };
-    
+
+    const collapse_punctuation = () => {
+      while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
+        move_chars_left(3);
+
+      const test = () =>
+            left_collapsible_punctuation_chars.includes(prev_char) &&
+            right_collapsible_punctuation_chars.includes(next_char);
+
+      if (test()) 
+        do {
+          lm.log(`collapsing ${prev_char} =- ${next_char}`);
+          move_chars_left(1);
+        } while (test());
+      else 
+        lm.log(`not collapsing`);
+    }
+
     update_pos_vars();
     
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY!`, true);
+    // if (right_word === '<') {
+    //   str       += '<';
+    //   left_word += '<';
+    //   continue;
+    // }
 
-      continue;
-    }
+    // collapse_punctuation();
 
-    if (right_word === '<') {
-      str += '<';
-      continue;
-    }
-
-    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
-      move_chars_left(3);
-    
-    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
-      move_chars_left(1);
-
-    // Normalize article if needed:
+    // correct article if needed:
     if (correct_articles) {
-      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
-        const originalArticle = article_match[1];
-        const updatedArticle = articleCorrection(originalArticle, right_word);
+        const original_article = article_match[1];
+        const chose            = choose_indefinite_article(right_word);
+        const lower_original   = original_article.toLowerCase();
+        let   updated_article; 
 
-        if (updatedArticle !== originalArticle) 
-          str = str.slice(0, -originalArticle.length) + updatedArticle;
+        if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose)
+          updated_article = original_article[0] === original_article[0].toUpperCase()
+          ? chose[0].toUpperCase() + chose.slice(1)
+          : chose;
+        else 
+          updated_article = original_article;
+
+        if (updated_article !== original_article) 
+          str = str.slice(0, -original_article.length) + updated_article;
       }
     }
 
     let chomped = false;
 
-    if (!prev_char_is_escaped && prev_char === '<') {
+    while (!prev_char_is_escaped && prev_char === '<')
       chomp_left_side();
-      chomped = true;
-    }
     
-    if (str.endsWith('<')) {
-      chomp_left_side();
-      chomped = true;
-    }
-
-    if (right_word.startsWith('<')) {
+    while (right_word.startsWith('<'))
       chomp_right_side();
-      chomped = true;
-    }
 
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
+    // this case may be impossible now?
+    // if (right_word === '') {
+    //   if (log_level__smart_join >= 2)
+    //     lm.log(`JUMP EMPTY (LATE)!`, true);
 
-      continue;
-    }
+    //   continue;
+    // }
 
+    collapse_punctuation();
+    
     if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-        !right_word.startsWith('\\n') &&
-        !right_word.startsWith('\\ ') && 
-        !punctuationp (next_char)     && 
-        !linkingp     (prev_char)     &&
-        !linkingp     (next_char)     &&
-        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-        !'([])'.substring(2,4).includes(next_char))
+        !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
+        !right_word.startsWith('\\n')                             &&
+        !right_word.startsWith('\\ ')                             && 
+        !right_collapsible_punctuation_chars.includes (next_char) && 
+        !linking_chars.includes                       (prev_char) &&
+        !linking_chars.includes                       (next_char) &&
+        !'(['.includes(prev_char))
       add_a_space();
 
-    consume_right_word();
+    if (log_level__smart_join >= 2)
+      lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+    str       += right_word;
+    left_word  = right_word;
   }
-
+  
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
-
-  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+    lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
 
   return str;
 }
@@ -3584,6 +3564,11 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
                                  always_include_type_str = false } = {}) {
+  // lm.log(`length: ${inspect_fun(length)}`);
+
+  // if (length === 100)
+  //   throw new Error("stop");
+  
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3602,7 +3587,9 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
       type_str  = '';
   }
   else if (Array.isArray(thing)) {
-    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
+    thing_str =
+      abbreviate(compress(thing.map(x => thing_str_repr(x, { length: length })).toString()),
+                 true, length);
   }
   else if (typeof thing === 'string') {
     return thing.length === 0
@@ -3611,7 +3598,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
   }
   else if (typeof thing === 'object') {
     try {
-      thing_str = abbreviate(compress(inspect_fun(thing)));
+      thing_str = abbreviate(compress(inspect_fun(thing)), true, length);
     } catch {
       thing_str = thing.toString(); // fallback
     }
@@ -3619,8 +3606,10 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
   else {
     thing_str = String(thing);
   }
-  
-  const str = `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; 
+
+  const compressed_thing_str = compress(thing_str);
+  const str_tail = abbreviate(compressed_thing_str, true, length);
+  const str = `${type_str}${str_tail}`; 
   return str;
 }
 thing_str_repr.abbrev_length = 100;
@@ -4353,7 +4342,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
+  %ow   = 576;  %oh   = 768; 
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -4422,7 +4411,7 @@ const prelude_text = `
 
 @xl_magic_small_3_to_2_os6 =
 { %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 6;   
+  %ow   = 768;  %oh   = 576;   
   %tw   = 1536; %th   = 1152;  
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
@@ -4445,9 +4434,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1024; %th   = 768;   
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 768;  %th   = 1024;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4468,9 +4457,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3_os6 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4537,9 +4526,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4 =
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768; %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4560,9 +4549,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4_os6 = 
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4629,9 +4618,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768;  %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4651,9 +4640,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16_os6 = 
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4722,9 +4711,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4744,9 +4733,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3_os6 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4813,9 +4802,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4882,9 +4871,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4_os6 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4905,9 +4894,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16 =
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4928,9 +4917,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16_os6 = 
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -9992,10 +9981,10 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // plain_text terminal variants:
 // =================================================================================================
 const pseudo_structural_chars = raw`<\(\)\[\]`;
-const syntax_chars            = raw`@#$%;`;
+const syntax_chars            = raw`@#$%`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
+const make_plain_text_char_Regexp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
@@ -10008,6 +9997,8 @@ const make_plain_text_rule = additional_excluded_chars =>
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
+const plain_text_no_semis  = make_plain_text_rule(';')
+      .abbreviate_str_repr('plain_text_no_semis');
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
@@ -10455,7 +10446,7 @@ const ScalarAssignment        =
                         lws(choice(
                           () => rjsonc_string, // [1][1]
                           () => LimitedContent,
-                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
+                          // () => hwst_plus(choice(LimitedContent, discarded_comment)),
                         )),
                         optional(SpecialFunctionTail))))
       .abbreviate_str_repr('ScalarAssignment');
@@ -10474,7 +10465,7 @@ const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
@@ -10487,7 +10478,7 @@ const make_malformed_token_rule = rule =>
                                               index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
 const make_Content_rule       = ({ before_plain_text_rules = [],
-                                   after_plain_text_rules  = [] } = {}) =>
+                                   after_plain_text_rules  = [] } = {}) => 
       choice(
         ...before_plain_text_rules,
         plain_text,

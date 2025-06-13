@@ -3513,7 +3513,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   maybe_trap();
   
-  arr = arr.flat(Infinity).filter(x=> x);
+  arr = arr.flat(Infinity).filter(x => x);
 
   if (arr.length === 0) 
     return '';
@@ -3624,16 +3624,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     // collapse_punctuation();
 
-    let chomped = false;
-
-    while (!prev_char_is_escaped && prev_char === '<')
-      chomp_left_side();
-    
-    while (right_word.startsWith('<'))
-      chomp_right_side();
-
     // correct article if needed:
-    if (correct_articles && !chomped) {
+    if (correct_articles) {
       const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
@@ -3653,6 +3645,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
+
+    let chomped = false;
+
+    while (!prev_char_is_escaped && prev_char === '<')
+      chomp_left_side();
+    
+    while (right_word.startsWith('<'))
+      chomp_right_side();
 
     // this case may be impossible now?
     // if (right_word === '') {
@@ -4578,6 +4578,9 @@ const prelude_text = `
 @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
 @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
 
+@colors = { brown  | red    | orange | yellow | green  | blue
+          | indigo | violet | black  | white  | silver | gold }
+
 @pony_scores =
 {0
 |@pony score_4_up
@@ -4610,7 +4613,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
+  %ow   = 576;  %oh   = 768; 
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -4679,7 +4682,7 @@ const prelude_text = `
 
 @xl_magic_small_3_to_2_os6 =
 { %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 6;   
+  %ow   = 768;  %oh   = 576;   
   %tw   = 1536; %th   = 1152;  
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
@@ -4702,9 +4705,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1024; %th   = 768;   
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 768;  %th   = 1024;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4725,9 +4728,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3_os6 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4794,9 +4797,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4 =
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768; %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4817,9 +4820,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4_os6 = 
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4886,9 +4889,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768;  %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4908,9 +4911,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16_os6 = 
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4979,9 +4982,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5001,9 +5004,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3_os6 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5070,9 +5073,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5139,9 +5142,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4_os6 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5162,9 +5165,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16 =
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5185,9 +5188,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16_os6 = 
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
