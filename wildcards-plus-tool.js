@@ -3594,7 +3594,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_level__smart_join >= 2)
-        lm.indent(() => 
+        //lm.indent(() => 
           lm.log(`ix = ${inspect_fun(ix)}, \n` +
                  `str = ${inspect_fun(str)}, \n` +
                  `left_word = ${inspect_fun(left_word)}, ` +         
@@ -3602,8 +3602,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                  `prev_char = ${inspect_fun(prev_char)}, ` +         
                  `next_char = ${inspect_fun(next_char)}, \n` + 
                  `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                 `next_char_is_escaped = ${next_char_is_escaped}`, true));
-    };
+                 `next_char_is_escaped = ${next_char_is_escaped}`, true)
+          //);
+        };
 
     const collapse_punctuation = () => {
       while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
@@ -3634,13 +3635,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     
     // correct article if needed:
     if (correct_articles) {
-      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
       
       if (article_match) {
+        lm.log(`ARTICLE_MATCH: ${inspect_fun(article_match)}`);
         const original_article = article_match[1];
         const updated_article  = article_correction(original_article, right_word);
 
-        if (update_aArticle !== original_article) 
+        if (updated_article !== original_article) 
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
