@@ -10986,7 +10986,7 @@ async function main() {
     context.munge_configuration(); // for good measure...
 
     log_level__expand_and_walk = old_log_level__expand_and_walk;
-    log_level__smart_join      = old_log_level__expand_and_walk;
+    log_level__smart_join      = old_log_level__smart_join;
     
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
