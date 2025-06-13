@@ -3627,9 +3627,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     // handle "a" → "an" if necessary:
     const article_correction = (original_article, next_word) => {
       const chose = choose_indefinite_article(next_word);
-
-      lm.log(`original: ${original_article}, chose: ${chose}`);
-      
       const lower_original = original_article.toLowerCase();
 
       if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose) {
@@ -3646,12 +3643,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
       
       if (article_match) {
-        lm.log(`ARTICLE_MATCH:   ${inspect_fun(article_match)}`);
+        // lm.log(`ARTICLE_MATCH:   ${inspect_fun(article_match)}`);
 
         const original_article = article_match[1];
         const updated_article  = article_correction(original_article, right_word);
 
-        lm.log(`UPDATED_ARTICLE: ${inspect_fun(updated_article)}`);
+        // lm.log(`UPDATED_ARTICLE: ${inspect_fun(updated_article)}`);
         
         if (updated_article !== original_article) 
           str = str.slice(0, -original_article.length) + updated_article;
