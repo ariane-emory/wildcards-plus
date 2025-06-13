@@ -3896,7 +3896,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
     thing_str = String(thing);
   }
   
-  const str = `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; 
+  const str = `${type_str}${abbreviate(compress(thing_str), true, length)}`; 
   return str;
 }
 thing_str_repr.abbrev_length = 100;
