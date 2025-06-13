@@ -3529,11 +3529,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return original_article;
   };
   
-  let   str                                  = arr[0];
-  let   left_word                            = str;  
   const linking_chars                        = "_-";      
   const left_collapsible_punctuation_chars   = ",.;!?";
   const right_collapsible_punctuation_chars  = ",.;!?:])";
+
+  let   str                                  = arr[0];
+  let   left_word                            = str;  
   
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
