@@ -3534,7 +3534,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   
-  const collapsible_punctuation =   ",.;:!?";
+  const left_collapsible_punctuation  =   ",.;:!?";
+  const right_collapsible_punctuation =   ",.;:!?)";
   const spaceless_punctuationp    = (ch) => "_-,.;:!?".includes(ch);
   const linkingp        = (ch) => "_-".includes(ch);
   // const whitep       = (ch)  => " \n".includes(ch);
@@ -3630,17 +3631,20 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
                `next_char_is_escaped = ${next_char_is_escaped}`, true);
     };
-    
-    update_pos_vars();
 
     // new:
-    lm.log(`enter, nc = ${inspect_fun(next_char)}`);
-    while (next_char === ' ') {
-      lm.log(`MUNCH!`);
-      chomp_right_side();
+    const munch_whitespace = () => {
+      lm.log(`enter, nc = ${inspect_fun(next_char)}`);
+      while (next_char === ' ') {
+        lm.log(`MUNCH!`);
+        chomp_right_side();
+      }
+      lm.log(`leave, nc = ${inspect_fun(next_char)}`);
     }
-    lm.log(`leave, nc = ${inspect_fun(next_char)}`);
     
+    update_pos_vars();
+    munch_whitespace();
+
     if (
       str.includes("  ")
       // left_word.startsWith(' ') ||
@@ -3662,14 +3666,17 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    while  (collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
+    while  (left_collapsible_punctuation.includes(prev_char) &&
+            right_word.startsWith('...'))
       move_chars_left(3);
     
-    while (collapsible_punctuation.includes(prev_char) &&
+    while (left_collapsible_punctuation.includes(prev_char) &&
            next_char &&
-           collapsible_punctuation.includes(next_char))
+           right_collapsible_punctuation.includes(next_char))
       move_chars_left(1);
 
+    munch_whitespace();
+    
     // Normalize article if needed:
     if (correct_articles) {
       const article_match = str.match(/(?:^|\s)([Aa])$/);
