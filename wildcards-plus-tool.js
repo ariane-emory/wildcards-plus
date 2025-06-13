@@ -305,7 +305,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = true;
+let print_ast_before_includes_enabled  = false;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -3634,12 +3634,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     // new:
     const munch_whitespace = () => {
-      lm.log(`enter, nc = ${inspect_fun(next_char)}`);
-      while (next_char === ' ') {
-        lm.log(`MUNCH!`);
-        chomp_right_side();
+      if (next_char === ' ') {
+        lm.log(`enter, nc = ${inspect_fun(next_char)}`);
+        while (next_char === ' ') {
+          lm.log(`MUNCH!`);
+          chomp_right_side();
+        }
+        lm.log(`leave, nc = ${inspect_fun(next_char)}`);
       }
-      lm.log(`leave, nc = ${inspect_fun(next_char)}`);
     }
     
     update_pos_vars();
@@ -3690,40 +3692,40 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       }
     }
 
-    let chomped = false;
+      let chomped = false;
 
-    if (!prev_char_is_escaped && prev_char === '<') {
-      chomp_left_side();
-      chomped = true;
-    }
+      if (!prev_char_is_escaped && prev_char === '<') {
+        chomp_left_side();
+        chomped = true;
+      }
 
-    // excessive?
-    // if (str.endsWith('<')) {
-    //   chomp_left_side();
-    //   chomped = true;
-    // }
+      // excessive?
+      // if (str.endsWith('<')) {
+      //   chomp_left_side();
+      //   chomped = true;
+      // }
 
-    if (right_word.startsWith('<')) {
-      chomp_right_side();
-      chomped = true;
-    }
+      if (right_word.startsWith('<')) {
+        chomp_right_side();
+        chomped = true;
+      }
 
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
+      if (right_word === '') {
+        if (log_level__smart_join >= 2)
+          lm.log(`JUMP EMPTY (LATE)!`, true);
 
-      continue;
-    }
+        continue;
+      }
 
-    if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-        !right_word.startsWith('\\n')       &&
-        !right_word.startsWith('\\ ')       && 
-        !spaceless_punctuationp (next_char) && 
-        !linkingp     (prev_char)           &&
-        !linkingp     (next_char)           &&
-        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-        !'([])'.substring(2,4).includes(next_char))
+      if (!chomped &&
+          !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+          !right_word.startsWith('\\n')       &&
+          !right_word.startsWith('\\ ')       && 
+          !spaceless_punctuationp (next_char) && 
+          !linkingp     (prev_char)           &&
+          !linkingp     (next_char)           &&
+          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+          !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
     consume_right_word();
