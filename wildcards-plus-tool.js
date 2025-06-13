@@ -10255,7 +10255,7 @@ const pseudo_structural_chars = raw`<\(\)\[\]`;
 const syntax_chars            = raw`@#$%`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = (additional_excluded_chars = '') =>
+const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
       raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
@@ -10264,10 +10264,11 @@ const make_plain_text_char_Regexp_source_str = (additional_excluded_chars = '') 
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
+      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
+lm.log(make_plain_text_char_RegExp_source_str(';'));
 const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
 const plain_text           = make_plain_text_rule()
@@ -10335,7 +10336,7 @@ const CheckFlagWithSetConsequent =
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const CheckFlagWithOrAlternatives = // last check alternative
+const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
       xform(cutting_seq(question,                     // [0]
                         plus(flag_ident, comma),      // [1]
                         structural_word_break_ahead), // [2]
@@ -10344,7 +10345,7 @@ const CheckFlagWithOrAlternatives = // last check alternative
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-const NotFlagWithSetConsequent = // last not alternative
+const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
@@ -10416,7 +10417,7 @@ const make_ASTAnonWildcardAlternative = arr => {
   if (weight == 0)
     return DISCARD;
   
-  const flags = ([ ...arr[0], ...arr[2] ]);
+  const flags = [ ...arr[0], ...arr[2] ];
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
@@ -10445,13 +10446,15 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 };
 // -------------------------------------------------------------------------------------------------
+const AnonWildcardHeaderItems =
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      .abbreviate_str_repr('AnonWildcardHeaderItems');
+// -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+            seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
-                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+                AnonWildcardHeaderItems,
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
@@ -11076,17 +11079,17 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-  main().catch(err => {
-    lm.error(`Unhandled error:\n${err.stack}`);
-    // process.exit(1);
-  });
-// =================================================================================================
-// END OF MAIN SECTION.
-// =================================================================================================
-// lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
+                                                 main().catch(err => {
+                                                   lm.error(`Unhandled error:\n${err.stack}`);
+                                                   // process.exit(1);
+                                                 });
+                                               // =================================================================================================
+                                               // END OF MAIN SECTION.
+                                               // =================================================================================================
+                                               // lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
 
-// lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
-//                       { length: Infinity }));
+                                               // lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
+                                               //                       { length: Infinity }));
 
-// lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
+                                               // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
