@@ -3602,12 +3602,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         move_chars_left(3);
 
       const test = () =>
-            left_collapsible_punctuation_chars.includes(prev_char) &&
-            right_collapsible_punctuation_chars.includes(next_char);
+            prev_char !== '' && left_collapsible_punctuation_chars.includes(prev_char) &&
+            next_char !== '' && right_collapsible_punctuation_chars.includes(next_char);
 
       if (test()) 
         do {
-          lm.log(`collapsing ${prev_char} =- ${next_char}`);
+          lm.log(`collapsing ${inspect_fun(prev_char)} <= ${inspect_fun(next_char)}`);
           move_chars_left(1);
         } while (test());
       else if (log_level__expand_and_walk >= 2)
@@ -10976,8 +10976,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
 
-    log_level__expand_and_walk = 2;
-    log_level__smart_join      = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
