@@ -3631,7 +3631,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    collapse_punctuation();
+    // collapse_punctuation();
     
     // Normalize article if needed:
     if (correct_articles) {
