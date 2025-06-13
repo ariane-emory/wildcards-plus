@@ -3634,10 +3634,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     update_pos_vars();
 
     // new:
+    lm.log(`enter, nc = ${inspect_fun(next_char)}`);
     while (next_char === ' ') {
       lm.log(`MUNCH!`);
       chomp_right_side();
     }
+    lm.log(`leave, nc = ${inspect_fun(next_char)}`);
     
     if (
       str.includes("  ")
