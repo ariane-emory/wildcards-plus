@@ -1,10 +1,27 @@
-@nwc = unsafe { ?fred unsafe { fred | waldo } | quux }
-@nwc!
+// %ui-prompt...
 
-@test  = unsafe { unsafe {?female #gender.female // just to make forcing an option a little terser.
-                         |?male   #gender.male
-                         |?neuter #gender.neuter}
-                  {3 !gender.#female #female
-                  |2 !gender.#male   #male
-                  |1 !gender.#neuter #neuter}}
+@name_bit = { foo | bar | baz | qux | quux | corge | grault };
 
+@name = {
+ %single-pick = true_randomness;
+ $name = { @^name_bit <@name_bit };
+ %revert-single-pick;
+ $name, $name!
+}; \n
+
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+// @name \n
+@name? \n

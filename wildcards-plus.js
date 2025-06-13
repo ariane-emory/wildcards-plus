@@ -20,30 +20,32 @@
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled       = true;
-let fire_and_forget_post_enabled      = false;
-let inspect_depth                     = 50;
-let log_configuration_enabled         = true;
-let log_finalize_enabled              = false;
-let log_flags_enabled                 = false;
-let log_loading_prelude               = true;
-let log_match_enabled                 = false;
-let log_name_lookups_enabled          = false;
-let log_picker_enabled                = false;
-let log_post_enabled                  = true;
-let log_level__expand_and_walk        = 0;
-let log_level__smart_join             = 0;
-let prelude_disabled                  = false;
-let print_ast_then_die                = false;
-let print_ast_before_includes_enabled = false;
-let print_ast_after_includes_enabled  = false;
-let print_ast_json_enabled            = false;
-let save_post_requests_enable         = true;
-let unnecessary_choice_is_an_error    = false;
-let double_latching_is_an_error       = false;
-let double_unlatching_is_an_error     = false;
-// -------------------------------------------------------------------------------------------------
-const stop = () => new Error(`STOP`);
+let abbreviate_str_repr_enabled        = true;
+let fire_and_forget_post_enabled       = false;
+let inspect_depth                      = 50;
+let log_configuration_enabled          = true;
+let log_loading_prelude                = true;
+let log_post_enabled                   = true;
+let log_finalize_enabled               = false;
+let log_flags_enabled                  = false;
+let log_match_enabled                  = false;
+let log_name_lookups_enabled           = false;
+let log_picker_enabled                 = false;
+let log_level__audit                   = 0;
+let log_level__expand_and_walk         = 0;
+let log_level__smart_join              = 0;
+let prelude_disabled                   = false;
+let print_ast_then_die                 = false;
+let print_ast_before_includes_enabled  = false;
+let print_ast_after_includes_enabled   = false;
+let print_ast_json_enabled             = false;
+let print_packrat_cache_counts_enabled = false;
+let packrat_enabled                    = false;
+let save_post_requests_enabled         = true;
+let unnecessary_choice_is_an_error     = false;
+let double_latching_is_an_error        = false;
+let double_unlatching_is_an_error      = false;
+let rule_match_counter_enabled         = false;
 // =================================================================================================
 
 
@@ -65,33 +67,38 @@ class Logger {
     this.indent_str = indent_str;
   }
   // -----------------------------------------------------------------------------------------------
-  error(thing = '', with_indent = true) {
-    console.error(this.indent_thing(thing, with_indent));
+  error(...args) {
+    this.#write(console.error, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  log(thing = '', with_indent = true) {
-    const full_output = this.indent_thing(thing, with_indent);
-    for (const line of full_output.split('\n'))
-      console.log(line);
+  log(...args) {
+    this.#write(console.log, ...args);
   }
   // -----------------------------------------------------------------------------------------------
-  indent_lines(str) {
-    if (typeof str !== 'string')
-      throw new Error(`not a string: ${inspect.fun(str)}`);
+  #write(destination, str, with_indent = true) {    
+    if ((typeof destination !== 'function') ||
+        (typeof str         !== 'string'))
+      throw new Error(`bad __write args: ${inspect_fun(arguments)}`);
+
+    const lines = with_indent
+          ? this.#indent_lines(str)
+          : [ str ];
+    
+    for (const line of lines)
+      destination(line);
+  }
+  // -----------------------------------------------------------------------------------------------
+  #indent_lines(str) {
+    // type testing here is likely overkill:
+    // if (typeof str !== 'string')
+    //   throw new Error(`not a string: ${inspect_fun(str)}`);
     
     const indent_string = this.indent_str.repeat(this.indent);
     const indented_str  = str
           .split("\n")
-          .map(line => `${indent_string}${line}`)
-          .join("\n");
+          .map(line => `${indent_string}${line}`);
 
     return indented_str;
-  }
-  // -----------------------------------------------------------------------------------------------
-  indent_thing(thing, with_indent = true) {
-    return with_indent
-      ? `${this.indent_lines(thing.toString())}`
-      : thing.toString();
   }
   // -----------------------------------------------------------------------------------------------
   nest(indent_addend = 1) {
@@ -99,16 +106,16 @@ class Logger {
   }
 }
 // -------------------------------------------------------------------------------------------------
-const lm = { // logger manager
-  stack: [],
+const lm = { // logger manager object
+  logger_stack: [],
   // -----------------------------------------------------------------------------------------------
   get logger() {
-    if (this.stack.length == 0) {
+    if (this.logger_stack.length == 0) {
       const new_logger = new Logger(0);
-      this.stack.push(new_logger);
+      this.logger_stack.push(new_logger);
       return new_logger;
     }
-    return this.stack[this.stack.length - 1];
+    return this.logger_stack[this.logger_stack.length - 1];
   },
   // -----------------------------------------------------------------------------------------------
   error(...args) {
@@ -128,22 +135,19 @@ const lm = { // logger manager
   },
   // -----------------------------------------------------------------------------------------------
   __indent(fn, indent_addend) {
-    if (typeof indent_addend !== 'number')
+    if (typeof fn            !== 'function' ||
+        typeof indent_addend !== 'number')
       throw new Error(`not a number: ${inspect_fun(indent_addend)}`);
     
-    this.stack.push(this.logger.nest(indent_addend));
+    this.logger_stack.push(this.logger.nest(indent_addend));
 
     try {
       return fn();
     }
     finally {
-      this.stack.pop();
+      this.logger_stack.pop();
     }
   },
-  // -----------------------------------------------------------------------------------------------
-  indent_and_log(...args) {
-    this.indent(() => this.log(...args));
-  }
 }
 // -------------------------------------------------------------------------------------------------
 if (false) {
@@ -181,6 +185,7 @@ if (false) {
 //         |
 //         |-- Choice
 //         |-- Enclosed ------- CuttingEnclosed
+//         |-- Lookahead
 //         |-- Optional
 //         |-- Sequence ------- CuttingSequence
 //         |-- Xform
@@ -203,11 +208,7 @@ if (false) {
 //         |-- Elem
 //         |-- Label
 //         |
-//         | Rules that make sense only when input is an Array of Tokens:
-//         |
-//         |-- TokenLabel
-//         |
-//         | Rules that make sense only when input is a string:
+//         | Rules for terminals:
 //         |
 //         |-- Literal
 //         |-- Regex
@@ -217,7 +218,8 @@ if (false) {
 // MatchResult
 //
 // -------------------------------------------------------------------------------------------------
-const DISCARD = Symbol('DISCARD');
+const DISCARD              = Symbol('DISCARD');
+const END_QUANTIFIED_MATCH = Symbol('END_QUANTIFIED_MATCH');
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
@@ -264,15 +266,17 @@ class FatalParseError extends Error {
 // Rule class
 // -------------------------------------------------------------------------------------------------
 class Rule {
+  static match_counter = 0;
   // -----------------------------------------------------------------------------------------------
   constructor() {
-    // this.memoize     = false;
+    this.memoize = packrat_enabled;
     // this.abbreviated = false;
   }
   // -----------------------------------------------------------------------------------------------
   abbreviate_str_repr(str) {
     if (this.abbreviated)
-      throw new Error(`${inspect_fun(this)} is already abbreviated, this likely a programmer error`);
+      throw new Error(`${inspect_fun(this)} is already abbreviated, ` +
+                      `this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
       return;
@@ -360,8 +364,11 @@ class Rule {
   }
   // -----------------------------------------------------------------------------------------------
   match(input, index = 0, cache = new Map()) {
+    if (rule_match_counter_enabled)
+      Rule.match_counter += 1;
+    
     if (! (cache instanceof Map))
-      throw new Error("bad args");
+      throw new Error(`bad match args: ${inspect_fun(arguments)}`);
     
     if (typeof input !== 'string') 
       throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
@@ -542,14 +549,17 @@ class Quantified extends Rule {
     let match_result = lm.indent(() => this.rule.match(input, index, cache));
 
     if (match_result === undefined)
-      throw new Error("match_result === undefined, this likely indicated a programmer error");
+      throw new Error("match_result === undefined, this likely indicates a programmer error");
     
     if (match_result === false)
-      throw new Error("math_result === false, this likely indicated a programmer error");
+      throw new Error("math_result === false, this likely indicates a programmer error");
     
     if (match_result === null)
       return new MatchResult([], input, index); // empty array happens here
 
+    if (match_result.value === END_QUANTIFIED_MATCH)
+      return new MatchResult([], input, match_result.index);
+    
     // if (match_result.value === '' || match_result.value)
     if (match_result.value !== DISCARD)
       values.push(match_result.value);
@@ -598,6 +608,9 @@ class Quantified extends Rule {
         break;
       }
 
+      if (match_result.value === END_QUANTIFIED_MATCH)
+        return new MatchResult(values, input, index);
+      
       if (match_result.value !== DISCARD)
         values.push(match_result.value);
       
@@ -738,7 +751,7 @@ class Choice extends Rule  {
 // -------------------------------------------------------------------------------------------------
 function choice(...options) { // convenience constructor
   if (options.length == 1) {
-    console.log("WARNING: unnecessary use of choice!");
+    lm.log("WARNING: unnecessary use of choice!");
 
     if (unnecessary_choice_is_an_error)
       throw new Error("unnecessary use of choice");
@@ -820,11 +833,6 @@ class Element extends Rule {
 
     if (! rule_match_result)
       return null;
-
-    // if (log_match_enabled) {
-    //   log(indent, `taking elem ${this.index} from ` +
-    //       `${inspect_fun(rule_match_result)}'s value.`);
-    // }
 
     const ret = rule_match_result.value[this.index] === undefined
           ? DISCARD // <- I forget why I did this? Could be a bad idea?
@@ -1086,6 +1094,47 @@ const never_match = new NeverMatch();
 // -------------------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
+// Lookahead class
+// -------------------------------------------------------------------------------------------------
+class Lookahead extends Rule {
+  // -----------------------------------------------------------------------------------------------
+  constructor(rule) {
+    super();
+    this.rule          = make_rule_func(rule);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __direct_children() {
+    return [ this.rule ];
+  }
+  // -----------------------------------------------------------------------------------------------
+  __match(input, index, cache) {
+    const match_result = lm.indent(() => this.rule.match(input, index, cache));
+
+    if (match_result === null)
+      return null;
+    
+    match_result.index = index;
+
+    return match_result;
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_finalize(visited) {
+    this.rule = this.__vivify(this.rule);
+    
+    lm.indent(() => this.rule.__finalize(visited));
+  }
+  // -----------------------------------------------------------------------------------------------
+  __impl_toString(visited, next_id, ref_counts) {
+    return `(?=${this.__vivify(this.rule).__toString(visited, next_id, ref_counts)})`;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function lookahead(rule) { // convenience constructor
+  return new Lookahead(rule);
+}
+// -------------------------------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------------------------------
 // Optional class
 // -------------------------------------------------------------------------------------------------
 class Optional extends Rule {
@@ -1167,11 +1216,11 @@ class Sequence extends Rule {
     const start_rule = input[0];
 
     if (log_match_enabled)
-      lm.indent_and_log(`matching first sequence element #1 out of ` +
-                        `${this.elements.length}: ` +
-                        `${abbreviate(compress(this.elements[0].toString()))} ` +
-                        `at char #${index} ` +
-                        `at '${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(`matching first sequence element #1 out of ` +
+                             `${this.elements.length}: ` +
+                             `${abbreviate(compress(this.elements[0].toString()))} ` +
+                             `at char #${index} ` +
+                             `at '${abbreviate(input.substring(index))}'`));
     
     const start_rule_match_result =
           lm.indent2(() => this.elements[0].match(input, index, cache));
@@ -1192,18 +1241,18 @@ class Sequence extends Rule {
     index        = last_match_result.index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`matched first sequence element #1: ` +
-                        `${compress(inspect_fun(last_match_result))}, ` +
-                        `now at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(`matched first sequence element #1: ` +
+                             `${compress(inspect_fun(last_match_result))}, ` +
+                             `now at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     // if (log_match_enabled)
     //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
 
     if (last_match_result.value !== DISCARD) {
       if (log_match_enabled)
-        lm.indent_and_log(`seq pushing first item ` +
-                          `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+        lm.indent(() => lm.log(`seq pushing first item ` +
+                               `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
       values.push(last_match_result.value);
 
@@ -1211,15 +1260,15 @@ class Sequence extends Rule {
       //   throw new Error("STOP @ PUSH 1");
     }
     else if (log_match_enabled)
-      lm.indent(() => lm.log( `discarding ${inspect_fun(last_match_result)}!`));
+      lm.indent(() => lm.log(`discarding ${inspect_fun(last_match_result)}!`));
 
     for (let ix = 1; ix < this.elements.length; ix++) {
       if (log_match_enabled)
-        lm.indent_and_log(`matching sequence element #${ix + 1} out of ` +
-                          `${this.elements.length}: ` +
-                          `${abbreviate(compress(this.elements[ix].toString()))} ` +
-                          `at char #${index}: ` +
-                          `'${abbreviate(input.substring(index))}'`);
+        lm.indent(() => lm.log(`matching sequence element #${ix + 1} out of ` +
+                               `${this.elements.length}: ` +
+                               `${abbreviate(compress(this.elements[ix].toString()))} ` +
+                               `at char #${index}: ` +
+                               `'${abbreviate(input.substring(index))}'`));
       
       const element = this.elements[ix];
 
@@ -1227,7 +1276,7 @@ class Sequence extends Rule {
 
       if (! last_match_result) {
         if (log_match_enabled)
-          lm.indent_and_log(`did not match sequence item #${ix}.`);
+          lm.indent(() => lm.log(`did not match sequence item #${ix}.`));
         
         return this.__fail_or_throw_error(start_rule_match_result,
                                           last_match_result,
@@ -1235,15 +1284,15 @@ class Sequence extends Rule {
       }
 
       if (log_match_enabled)
-        lm.indent_and_log(`matched sequence element #${ix+1}: ` +
-                          `${compress(inspect_fun(last_match_result))}, ` +
-                          `now at char #${last_match_result.index}: ` +
-                          `'${abbreviate(input.substring(last_match_result.index))}'`);
+        lm.indent(() => lm.log(`matched sequence element #${ix+1}: ` +
+                               `${compress(inspect_fun(last_match_result))}, ` +
+                               `now at char #${last_match_result.index}: ` +
+                               `'${abbreviate(input.substring(last_match_result.index))}'`));
 
       if (last_match_result.value !== DISCARD) {
         if (log_match_enabled)
-          lm.indent_and_log(`seq pushing ` +
-                            `${abbreviate(compress(inspect_fun(last_match_result.value)))}`);
+          lm.indent(() => lm.log(`seq pushing ` +
+                                 `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
 
         values.push(last_match_result.value);
 
@@ -1491,96 +1540,6 @@ function fail(error_func = null) { // convenience constructor
 }
 // -------------------------------------------------------------------------------------------------
 
-// // -------------------------------------------------------------------------------------------------
-// // Tail class
-// // -------------------------------------------------------------------------------------------------
-// class Tail extends Rule {
-//   // -----------------------------------------------------------------------------------------------
-//   constructor(index, rule) {
-//     super();
-//     this.rule  = make_rule_func(rule);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __direct_children() {
-//     return [ this.rule ];
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_finalize(indent, visited) {
-//     this.rule = this.__vivify(this.rule);
-//     this.rule.__finalize(indent + 1, visited);
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __match(input, index, cache) {
-//     const rule_match_result = this.rule.match(input, index, indent + 1, cache);
-
-//     if (! rule_match_result)
-//       return null;
-
-//     // I forget why I did this? Could be a bad idea?
-//     const ret = rule_match_result.value.slice(1);
-
-//     if (log_match_enabled)
-//       log(indent, `GET TAIL FROM ${inspect_fun(rule_match_result.value)} = ` +
-//           `${inspect_fun(ret)}`);
-
-//     rule_match_result.value = ret;
-
-//     return rule_match_result
-//   }
-//   // -----------------------------------------------------------------------------------------------
-//   __impl_toString(visited, next_id, ref_counts) {
-//     const rule_str = this.rule.__toString(visited, next_id, ref_counts);
-//     return `CDR(${rule_str})`;
-//   }
-// }
-// // -------------------------------------------------------------------------------------------------
-// function tail(rule) { // convenience constructor
-//   return new Tail(rule);
-// }
-// // =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-// TokenLabel class, this can probably be deleted soon?
-// -------------------------------------------------------------------------------------------------
-class TokenLabel extends Rule {
-  // -----------------------------------------------------------------------------------------------
-  constructor(label) {
-    super();
-    this.label  = label;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [];
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
-    // do nothing.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __match(input, index, cache) {
-    if (index_is_at_end_of_input(index, input))
-      return null;
-
-    let the_token = input[index];
-
-    if (the_token?.label != this.label)
-      return null;
-
-    return new MatchResult(the_token,
-                           input,
-                           index + 1) // always matches just 1 token.
-  }
-  // -----------------------------------------------------------------------------------------------
-  __impl_toString(visited, next_id, ref_counts) {
-    return `'${this.label}'`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-function tok(label) { // convenience constructor
-  return new TokenLabel(label);
-}
-// -------------------------------------------------------------------------------------------------
-
 // -------------------------------------------------------------------------------------------------
 // Literal class
 // -------------------------------------------------------------------------------------------------
@@ -1631,6 +1590,10 @@ class Regex extends Rule {
   // -----------------------------------------------------------------------------------------------
   constructor(regexp) {
     super();
+    regexp = typeof regexp === 'string'
+      ? new RegExp(regexp)
+      : regexp;
+    
     this.regexp  = this.#ensure_RegExp_sticky_flag(regexp);
   }
   // -----------------------------------------------------------------------------------------------
@@ -1654,14 +1617,14 @@ class Regex extends Rule {
     this.regexp.lastIndex = index;
 
     if (log_match_enabled)
-      lm.indent_and_log(`testing /${this.regexp.source}/ at char #${index}: ` +
-                        `'${abbreviate(input.substring(index))}'`);
+      lm.indent(() => lm.log(`testing /${this.regexp.source}/ at char #${index}: ` +
+                             `'${abbreviate(input.substring(index))}'`));
 
     const re_match = this.regexp.exec(input);
     
     if (! re_match) {
       if (log_match_enabled)
-        lm.indent_and_log(`regex did not match`);
+        lm.indent(() => lm.log(`regex did not match`));
       return null;
     }
 
@@ -1790,7 +1753,7 @@ function compress(str) {
 function index_is_at_end_of_input(index, input) {
   return index == input.length
 }
-// // -------------------------------------------------------------------------------------------------
+// // ----------------------------------------------------------------------------------------------
 // function log(indent, str = "", indent_str = "| ") {
 //   if (! log_enabled)
 //     return;
@@ -1917,7 +1880,6 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     if (noisy)
       throw new Error('noisy bomb');
     
-    // const log = noisy ? lm.log : () => {};
     rule = make_rule_func(rule);
 
     let stringified_rule = null;
@@ -1936,26 +1898,31 @@ function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
     }
 
     if (!rule) {
-      lm.log(`return original null rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(`return original null rule ${stringified_rule}`);
       return rule;
     }
 
     if (typeof rule === 'function') {
-      lm.log(`return klassed function ${stringified_rule}`);
+      if (noisy)
+        lm.log(`return klassed function ${stringified_rule}`);
       return new klass(rule);
     }
     
     if (rule instanceof klass) {
-      lm.log(`return original klassed rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(`return original klassed rule ${stringified_rule}`);
       return rule;
     }
     
     if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      lm.log(`return original rule ${stringified_rule}`);
+      if (noisy)
+        lm.log(`return original rule ${stringified_rule}`);
       return rule;
     }
 
-    lm.log(`return klassed ${stringified_rule}`);
+    if (noisy)
+      lm.log(`return klassed ${stringified_rule}`);
     
     return new klass(rule);
   }
@@ -2112,8 +2079,8 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 // =================================================================================================
 // Convenient Rules/combinators for common terminals and constructs:
 // =================================================================================================
-const STOP = expect(never_match);
-STOP.abbreviate_str_repr("STOP");
+const ABORT = expect(never_match);
+ABORT.abbreviate_str_repr("ABORT");
 // -------------------------------------------------------------------------------------------------
 // whitespace:
 const whites_star        = r(/\s*/);
@@ -2127,10 +2094,10 @@ whites_plus.abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws = make_whitespace_decorator2("LWS", 1, whites_star);
-const tws = make_whitespace_decorator2("TWS", 0, whites_star);
-const lhws = make_whitespace_decorator2("LWS", 1, hwhites_star);
-const thws = make_whitespace_decorator2("TWS", 0, hwhites_star);
+const lws  = make_whitespace_decorator2("LWS",  1, whites_star);
+const tws  = make_whitespace_decorator2("TWS",  0, whites_star);
+const lhws = make_whitespace_decorator2("LHWS", 1, hwhites_star);
+const thws = make_whitespace_decorator2("THWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
@@ -2410,15 +2377,21 @@ const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep 
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const head          = (...rules) => first(seq(...rules));
-const cadr          = (...rules) => second(seq(...rules));
-const wst_cadr      = (...rules) => second(wst_seq(...rules));
-const cutting_cadr  = (...rules) => second(cutting_seq(...rules));
-const cutting_head  = (...rules) => first(cutting_seq(...rules));
-const push          = ((value, rule) =>
-  xform(rule, arr => [value, ...arr]));
-const enclosing     = (left, enclosed, right) =>
-      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right)); 
+const end_quantified_match_if = rule => xform(rule, () => END_QUANTIFIED_MATCH);
+const push                    = (value, rule) => xform(rule, arr => [value, ...arr]);
+const enclosing               = (left, enclosed, right) =>
+      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right));
+const head                    = (...rules) => first (seq            (...rules));
+const cadr                    = (...rules) => second(seq            (...rules));
+const wst_head                = (...rules) => first (wst_seq        (...rules));
+const wst_cadr                = (...rules) => second(wst_seq        (...rules));
+const cutting_head            = (...rules) => first (cutting_seq    (...rules));
+const cutting_cadr            = (...rules) => second(cutting_seq    (...rules));
+const wst_cutting_head        = (...rules) => first (wst_cutting_seq(...rules));
+const wst_cutting_cadr        = (...rules) => second(wst_cutting_seq(...rules));
+const flat1                   = rule => flat(rule, 1); 
+const flat                    = (rule, depth = Infinity) =>
+      xform(rule, arr => arr.flat(depth));
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
@@ -2635,13 +2608,13 @@ RjsoncObject.abbreviate_str_repr('RjsoncObject');
 // =================================================================================================
 const always = () => true;
 const never  = () => false;
+const id     = x  => x;
 const picker_priority = Object.freeze({
   avoid_repetition_short:        'Avoiding repetition (short term only)',
   avoid_repetition_long:         'Avoiding repetition', 
   ensure_weighted_distribution:  'Ensuring a weighted distribution',
   true_randomness:               'Just plain old randomness',
 });
-const id = (x) => x;
 const picker_priority_names        = Object.entries(picker_priority).map(([k, v]) => k);
 const picker_priority_descriptions = Object.entries(picker_priority).map(([k, v]) => v);
 // const picker_priority_descriptions_to_names = new Map(
@@ -2867,7 +2840,8 @@ class WeightedPicker {
     }
 
     if (log_picker_enabled)
-      lm.log(`pick from ${legal_option_indices.length} legal options ${inspect_fun(legal_option_indices)}`);
+      lm.log(`pick from ${legal_option_indices.length} legal options ` +
+             `${inspect_fun(legal_option_indices)}`);
 
     let total_weight = 0;
 
@@ -2879,7 +2853,8 @@ class WeightedPicker {
 
       if (log_picker_enabled) {
         lm.log(`effective weight of option #${legal_option_ix} = ${adjusted_weight}`);
-        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ${adjusted_weight}`);
+        lm.log(`COUNTING ${compress(inspect_fun(this.options[legal_option_ix]))} = ` +
+               `${adjusted_weight}`);
         lm.log(`ADJUSTED BY ${adjusted_weight}, ${priority}`);
       }
       
@@ -2991,53 +2966,56 @@ function benchmark(thunk, {
     }
     else if (((oix + 1) % print_div) == 0) {
       process.stdout.write('\n');
-      console.log();
-      console.log(`${ordinal_string(oix + 1)} batch of ` +
-                  `${format_pretty_number(reps_per_batch)} ` +
-                  `(out of ${format_pretty_number(batch_count)}): `);
-      console.log(`result:                 ${rjson_stringify(result)}`);
-      console.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
+      lm.log('');
+      lm.log(`${ordinal_string(oix + 1)} batch of ` +
+             `${format_pretty_number(reps_per_batch)} ` +
+             `(out of ${format_pretty_number(batch_count)}): `);
+      lm.log(`result:                 ${rjson_stringify(result)}`);
+      lm.log(`mem at start:           ${format_pretty_bytes(start_mem)}`);
       const now = process.memoryUsage().heapUsed;
-      console.log(`mem now:                ${format_pretty_bytes(now)}`);
-      console.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
-      console.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
-      console.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
-      console.log(`total runtime:          ` +
-                  `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-                  `seconds`);
-      console.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
-      console.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
-      console.log(`EST. TIME PER MILLION:  ` +
-                  `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
+      lm.log(`mem now:                ${format_pretty_bytes(now)}`);
+      lm.log(`mem diff:               ${format_pretty_bytes(now - start_mem)}`);
+      lm.log(`time/batch              ${format_pretty_number(time.toFixed(3))} ms`);
+      lm.log(`time/each (est):        ${(time/reps_per_batch).toFixed(3)} ms`);
+      lm.log(`total runtime:          ` +
+             `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+             `seconds`);
+      lm.log(`rounded avg ms/batch:   ${Math.round(running_avg)} ms`);
+      lm.log(`est. runs/second:       ${Math.round(runs_per_second_est)}`);
+      lm.log(`EST. TIME PER MILLION:  ` +
+             `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ms`);
       process.stdout.write('\n');
     }
   }
   
-  console.log();
-  console.log(`batch_count:            ${batch_count}`);
-  console.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
-  console.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
-  console.log(`last result:            ${rjson_stringify(result)}`);
+  lm.log('');
+  lm.log(`batch_count:            ${batch_count}`);
+  lm.log(`reps_per_batch:         ${format_pretty_number(reps_per_batch)}`);
+  lm.log(`total reps:             ${format_pretty_number(batch_count * reps_per_batch)}`);
+  lm.log(`last result:            ${rjson_stringify(result)}`);
   const now = process.memoryUsage().heapUsed;
-  console.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
-  console.log(`total runtime:          ` +
-              `${((performance.now() - start_time)/1000).toFixed(2)} ` +
-              `seconds`);
-  console.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
+  lm.log(`final mem diff:         ${format_pretty_bytes(now - start_mem)}`);
+  lm.log(`total runtime:          ` +
+         `${((performance.now() - start_time)/1000).toFixed(2)} ` +
+         `seconds`);
+  lm.log(`rounded avg time/batch: ${format_pretty_number(Math.round(running_avg))} ms`);
   const single_run_est = running_avg / reps_per_batch;
   const runs_per_second_est = 1_000_000 / running_avg;
-  console.log(`est. runs/second:       ` +
-              `${format_pretty_number(Math.round(runs_per_second_est))}`);
-  console.log(`EST. TIME PER MILLION:  ` +
-              `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
-              `ms`);
-  console.log();
+  lm.log(`est. runs/second:       ` +
+         `${format_pretty_number(Math.round(runs_per_second_est))}`);
+  lm.log(`EST. TIME PER MILLION:  ` +
+         `${format_pretty_number(Math.round((1_000_000 / reps_per_batch) * running_avg))} ` +
+         `ms`);
+  lm.log('');
   return running_avg;
 }
 // -------------------------------------------------------------------------------------------------
-function capitalize(string) {
-  // console.log(`Capitalizing ${typeof string} ${inspect_fun(string)}`);
-  return string.charAt(0).toUpperCase() + string.slice(1);
+function capitalize(str) {
+  // lm.log(`Capitalizing ${typeof str} ${inspect_fun(str)}`);
+  if (str === '')
+    return str;
+  
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 // -------------------------------------------------------------------------------------------------
 function choose_indefinite_article(word) {
@@ -3076,20 +3054,28 @@ function choose_indefinite_article(word) {
   return 'a';
 }
 // -------------------------------------------------------------------------------------------------
+function count_occurrences(arr) {
+  const counts = new Map();
+
+  for (const item of arr) 
+    counts.set(item, (counts.get(item) || 0) + 1);
+
+  return counts;
+}
+// -------------------------------------------------------------------------------------------------
 function format_pretty_bytes(bytes) {
   const units = ['bytes', 'KB', 'MB', 'GB'];
   const base = 1024;
-
   const sign = Math.sign(bytes);
-  let absBytes = Math.abs(bytes);
+  let   abs_bytes = Math.abs(bytes);
 
   let i = 0;
-  while (absBytes >= base && i < units.length - 1) {
-    absBytes /= base;
+  while (abs_bytes >= base && i < units.length - 1) {
+    abs_bytes /= base;
     i++;
   }
 
-  const value = absBytes.toFixed(2).replace(/\.?0+$/, '');
+  const value = abs_bytes.toFixed(2).replace(/\.?0+$/, '');
   return `${sign < 0 ? '-' : ''}${value} ${units[i]}`;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3233,11 +3219,33 @@ function rjson_stringify(obj) {
 }
 // -------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
+let smart_join_trap_target;
+// smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (correct_articles === undefined)
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
+  const maybe_trap = ()  => {
+    if (smart_join_trap_counter === smart_join_trap_target) {
+      throw new Error(`SMART_JOIN TRAPPED`);
+      
+      throw stop(); 
+    }
+  }
+
+  smart_join_trap_counter += 1;
+
+
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
+           log_level__expand_and_walk);
+
+  if (typeof arr == 'string')
+    throw new Error(`got string`);
+  
+  maybe_trap();
+  
   if (! arr || typeof arr === 'string')
     return arr;
 
@@ -3250,15 +3258,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return '';
   else if (arr.length === 1)
     return arr[0];
-
-  smart_join_trap_counter += 1;
-
-  // if (smart_join_trap_counter === 3)
-  //   throw stop();
-  
-  if (log_level__smart_join >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
 
   // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
   const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
@@ -3437,6 +3436,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   return str;
 }
 // -------------------------------------------------------------------------------------------------
+function stop() {
+  new Error(`STOP`);
+}
+// -------------------------------------------------------------------------------------------------
 // DT's JavaScriptCore env doesn't seem to have structuredClone, so we'll define our own version:
 // -------------------------------------------------------------------------------------------------
 function structured_clone(value, {
@@ -3575,11 +3578,12 @@ function suggest_closest(name, candidates) {
     : '';
 }
 // -------------------------------------------------------------------------------------------------
-function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
+function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
+                                 always_include_type_str = false } = {}) {
   let type_str =
       typeof thing === 'object'
       ? (thing === null
-         ? 'null'
+         ? 'null '
          : `${thing.constructor.name} ` ?? 'Object ')
       : `${typeof thing} `;
 
@@ -3590,13 +3594,16 @@ function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
 
   if (thing instanceof ASTNode) {
     thing_str = thing.toString();
-    type_str  = '';
+    if (! always_include_type_str)
+      type_str  = '';
   }
   else if (Array.isArray(thing)) {
     thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
   }
   else if (typeof thing === 'string') {
-    thing_str = inspect_fun(thing);
+    return thing.length === 0
+      ? `ε`
+      : inspect_fun(thing, true);
   }
   else if (typeof thing === 'object') {
     try {
@@ -3608,8 +3615,9 @@ function thing_str_repr(thing, length = thing_str_repr.abbrev_length) {
   else {
     thing_str = String(thing);
   }
-
-  return `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; // thing_str_repr.abbrev_length);
+  
+  const str = `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; 
+  return str;
 }
 thing_str_repr.abbrev_length = 100;
 // -------------------------------------------------------------------------------------------------
@@ -3633,7 +3641,7 @@ function unescape(str) {
 // these are used by the context.munge_configuration() method and some walk cases.
 // var values adapted from the file config.fbs in
 // https://github.com/drawthingsai/draw-things-community.git circa 7aef74d:
-// ----------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 const dt_samplers = [   // order is significant, do not rearrange!
   'DPM++ 2M Karras',    // 0
   'Euler a',            // 1
@@ -3660,188 +3668,277 @@ const configuration_key_names = [
   // -----------------------------------------------------------------------------------------------
   // identical keys:
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'controls',                          automatic1111_name: 'controls'                                   },
-  { dt_name: 'fps',                               automatic1111_name: 'fps'                                        },
-  { dt_name: 'loras',                             automatic1111_name: 'loras'                                      },
-  { dt_name: 'model',                             automatic1111_name: 'model'                                      },
-  { dt_name: 'prompt',                            automatic1111_name: 'prompt'                                     },
+  { dt_name: 'controls',                          automatic1111_name: 'controls',
+    expected_type: 'object' },
+  { dt_name: 'fps',                               automatic1111_name: 'fps',
+    expected_type: 'number' },
+  { dt_name: 'loras',                             automatic1111_name: 'loras',
+    expected_type: 'object' },
+  { dt_name: 'model',                             automatic1111_name: 'model',
+    expected_type: 'string' },
+  { dt_name: 'prompt',                            automatic1111_name: 'prompt',
+    expected_type: 'string' },
   { dt_name: 'sampler',                           automatic1111_name: 'sampler',
-    shorthands: ['sampler_index', 'sampler_name',                                                                ] },
-  { dt_name: 'seed',                              automatic1111_name: 'seed'                                       },
-  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness'                                  },
-  { dt_name: 'shift',                             automatic1111_name: 'shift'                                      },
-  { dt_name: 'strength',                          automatic1111_name: 'strength'                                   },
-  { dt_name: 'steps',                             automatic1111_name: 'steps'                                      },
-  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler'                                   },
-
+    expected_type: [ 'string', 'number' ],
+    shorthands: ['sampler_index', 'sampler_name', ] },
+  { dt_name: 'seed',                              automatic1111_name: 'seed',
+    expected_type: 'number' },
+  { dt_name: 'sharpness',                         automatic1111_name: 'sharpness',
+    expected_type: 'number' },
+  { dt_name: 'shift',                             automatic1111_name: 'shift',
+    expected_type: 'number' },
+  { dt_name: 'strength',                          automatic1111_name: 'strength',
+    expected_type: 'number' },
+  { dt_name: 'steps',                             automatic1111_name: 'steps',
+    expected_type: 'number' },
+  { dt_name: 'upscaler',                          automatic1111_name: 'upscaler',
+    expected_type: 'string' },
   { dt_name: 'height',                            automatic1111_name: 'height',
-    shorthands: [ 'h', 'ih', ] },
+    shorthands: [ 'h', 'ih', ],
+    expected_type: 'number', },
   { dt_name: 'width',                             automatic1111_name: 'width',
-    shorthands: [ 'w', 'iw', ] },
+    shorthands: [ 'w', 'iw', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageHeight',       automatic1111_name: 'negative_original_height',
-    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ] },
+    shorthands: [ 'noih', 'noh', 'nih', 'nh', 'negativeOriginalHeight', 'negativeImageHeight', ],
+    expected_type: 'number', },
   { dt_name: 'negativeOriginalImageWidth',        automatic1111_name: 'negative_original_width',
-    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ] },
+    shorthands: [ 'noiw', 'now', 'niw', 'nw', 'negativeOriginalWidth', 'negativeImageWidth',  ],
+    expected_type: 'number', },
   { dt_name: 'originalImageHeight',               automatic1111_name: 'original_height',
-    shorthands: [ 'oih', 'oh', 'originalHeight', ] },
+    shorthands: [ 'oih', 'oh', 'originalHeight', ],
+    expected_type: 'number', },
   { dt_name: 'originalImageWidth',                automatic1111_name: 'original_width',
-    shorthands: [ 'oiw', 'ow', 'originalWidth'   ] },
+    shorthands: [ 'oiw', 'ow', 'originalWidth'   ],
+    expected_type: 'number', },
   { dt_name: 'targetImageHeight',                 automatic1111_name: 'target_height',
-    shorthands: [ 'tih', 'th', 'targetHeight', ] },
+    shorthands: [ 'tih', 'th', 'targetHeight', ],
+    expected_type: 'number', },
   { dt_name: 'targetImageWidth',                  automatic1111_name: 'target_width',
-    shorthands: [ 'tiw', 'tw', 'targetWidth',  ] },
+    shorthands: [ 'tiw', 'tw', 'targetWidth',  ],
+    expected_type: 'number', },
   // -----------------------------------------------------------------------------------------------
   // differing keys:
   // -----------------------------------------------------------------------------------------------
-  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score'                            },
-  { dt_name: 'batchCount',                        automatic1111_name: 'batch_count'                                },
-  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter'                                     },
-  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size'                                 },
+  { dt_name: 'aestheticScore',                    automatic1111_name: 'aesthetic_score',
+    expected_type: 'number', },
+  // { dt_name: 'batchCount',                        automatic1111_name: 'batch_count',
+  //   expected_type: 'number', },
+  { dt_name: 'batchCount',                        automatic1111_name: 'n_iter',
+    expected_type: 'number',
+    shorthands: [ 'batch_count' ], },
+  { dt_name: 'batchSize',                         automatic1111_name: 'batch_size',
+    expected_type: 'number', },
   { dt_name: 'clipLText',                         automatic1111_name: 'clip_l_text',
-    shorthands: [ 'clip_l', 'clipl' ] },
-  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip'                                  },
-  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight'                                },
-  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left'                                  },
-  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top'                                   },
-  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height' /* _explanation' */   },
-  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap' /* _explanation' */  },
-  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width' /* _explanation' */    },
-  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height' /* _explanation' */  },
-  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap' /* _explanation' */ },
-  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width' /* _explanation' */   },
-  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed'                             },
+    expected_type: 'string',
+    shorthands: [ 'clip_l', 'clipl' ], },
+  { dt_name: 'clipSkip',                          automatic1111_name: 'clip_skip',
+    expected_type: 'number' },
+  { dt_name: 'clipWeight',                        automatic1111_name: 'clip_weight',
+    expected_type: 'number', },
+  { dt_name: 'cropLeft',                          automatic1111_name: 'crop_left',
+    expected_type: 'number', },
+  { dt_name: 'cropTop',                           automatic1111_name: 'crop_top',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileHeight',                automatic1111_name: 'decoding_tile_height',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileOverlap',               automatic1111_name: 'decoding_tile_overlap',
+    expected_type: 'number', },
+  { dt_name: 'decodingTileWidth',                 automatic1111_name: 'decoding_tile_width',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileHeight',               automatic1111_name: 'diffusion_tile_height',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileOverlap',              automatic1111_name: 'diffusion_tile_overlap',
+    expected_type: 'number', },
+  { dt_name: 'diffusionTileWidth',                automatic1111_name: 'diffusion_tile_width',
+    expected_type: 'number', },
+  { dt_name: 'guidanceEmbed',                     automatic1111_name: 'guidance_embed', },
   { dt_name: 'guidanceScale',                     automatic1111_name: 'cfg_scale',
-    shorthands: [ 'guidance',                                                                                    ] },
-  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug'                                   },
+    expected_type: 'number',
+    shorthands: [ 'guidance', ], },
+  { dt_name: 'guidingFrameNoise',                 automatic1111_name: 'cond_aug',
+    expected_type: 'number' },
   { dt_name: 'hiresFix',                          automatic1111_name: 'high_resolution_fix',
-    shorthands: [ 'enable_hr', 'hrf' ]                                                                             },
-  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height', /*_explanation', */
-    shorthands: [ 'firstphase_height', 'hrfh', ] },
+    expected_type: 'boolean',
+    shorthands: [ 'enable_hr', 'hrf' ], },
+  { dt_name: 'hiresFixHeight',                    automatic1111_name: 'hires_first_pass_height',
+    expected_type: 'number',
+    shorthands: [ 'firstphase_height', 'hrfh', ], },
   { dt_name: 'hiresFixStrength',                  automatic1111_name: 'hires_second_pass_strength_detail',
+    expected_type: 'number',
     shorthands: [ 'hrf_strength', ] },
-  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width', /*_explanation', */
-    shorthands: [ 'firstphase_width', 'hrfw', ] },
-  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance'                             },
-  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps'                          },
-  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur'                                  },
-  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset'                           },
-  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale'                               },
-  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score'                   },
+  { dt_name: 'hiresFixWidth',                     automatic1111_name: 'hires_first_pass_width',
+    expected_type: 'number',
+    shorthands: [ 'firstphase_width', 'hrfw', ], },
+  { dt_name: 'imageGuidanceScale',                automatic1111_name: 'image_guidance',
+    expected_type: 'number', },
+  { dt_name: 'imagePriorSteps',                   automatic1111_name: 'image_prior_steps',
+    expected_type: 'number', },
+  { dt_name: 'maskBlur',                          automatic1111_name: 'mask_blur',
+    expected_type: 'number', },
+  { dt_name: 'maskBlurOutset',                    automatic1111_name: 'mask_blur_outset',
+    expected_type: 'number', },
+  { dt_name: 'motionScale',                       automatic1111_name: 'motion_scale',
+    expected_type: 'number', },
+  { dt_name: 'negativeAestheticScore',            automatic1111_name: 'negative_aesthetic_score',
+    expected_type: 'number', },
   { dt_name: 'negativePrompt',                    automatic1111_name: 'negative_prompt',
-    shorthands: ['neg', 'negative' ] },
-  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior'            },
+    expected_type: 'string',
+    shorthands: ['neg', 'negative' ], },
+  { dt_name: 'negativePromptForImagePrior',       automatic1111_name: 'negative_prompt_for_image_prior',
+    expected_type: 'boolean', }, 
+  { dt_name: 'numFrames',                         automatic1111_name: 'num_frames',
+    expected_type: 'number', },
   { dt_name: 'openClipGText',                     automatic1111_name: 'open_clip_g_text',
-    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg',                                                  ] },
-  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint'            },
-  { dt_name: 'refinerModel',                      automatic1111_name: 'num_frames'                                 },
-  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start'                              },
-  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift'                 },
-  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode'                                  },
+    expected_type: 'string',
+    shorthands: ['clipgtext', 'clip_g_text', 'clip_g', 'clipg', ] },
+  { dt_name: 'preserveOriginalAfterInpaint',      automatic1111_name: 'preserve_original_after_inpaint',
+    expected_type: 'boolean', },
+  { dt_name: 'refinerModel',                      automatic1111_name: 'refiner_model',
+    expected_type: 'string', },
+  { dt_name: 'refinerStart',                      automatic1111_name: 'refiner_start',
+    expected_type: 'number', },
+  { dt_name: 'resolutionDependentShift',          automatic1111_name: 'resolution_dependent_shift',
+    expected_type: 'boolean', },
+  { dt_name: 'seedMode',                          automatic1111_name: 'seed_mode',
+    expected_type: 'number', }, 
   { dt_name: 'separateClipL',                     automatic1111_name: 'separate_clip_l',
-    shorthands: [ 'separate_clipl',                                                                              ] },  
+    expected_type: 'boolean', 
+    shorthands: [ 'separate_clipl', ] },  
   { dt_name: 'separateOpenClipG',                 automatic1111_name: 'separate_open_clip_g',
-    shorthands: [ 'separate_clipg', 'separate_clip_g',                                                           ] },
-  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5'                                },
-  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed'               },
-  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg'                                },
-  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift'                              },
-  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps'                              },
-  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance'                       },
-  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling'              },
-  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength'                         },
+    expected_type: 'boolean',
+    shorthands: [ 'separate_clipg', 'separate_clip_g', ] },
+  { dt_name: 'separateT5',                        automatic1111_name: 'separate_t5',
+    expected_type: 'boolean', },
+  { dt_name: 'speedUpWithGuidanceEmbedParameter', automatic1111_name: 'speed_up_with_guidance_embed',
+    expected_type: 'boolean', },
+  { dt_name: 'stage2Cfg',                         automatic1111_name: 'stage_2_cfg',
+    expected_type: 'number', },
+  { dt_name: 'stage2Shift',                       automatic1111_name: 'stage_2_shift',
+    expected_type: 'number', },
+  { dt_name: 'stage2Steps',                       automatic1111_name: 'stage_2_steps',
+    expected_type: 'number', },
+  { dt_name: 'startFrameGuidance',                automatic1111_name: 'start_frame_guidance',
+    expected_type: 'number', },
+  { dt_name: 'stochasticSamplingGamma',           automatic1111_name: 'strategic_stochastic_sampling',
+    expected_type: 'number', },
+  { dt_name: 'strength',                          automatic1111_name: 'denoising_strength',
+    expected_type: 'number', },
   { dt_name: 't5Text',                            automatic1111_name: 't5_text',
-    shorthands: [ 't5' ] },
-  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder'                            },
-  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache'                                  },
-  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end'                              },
-  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps'                   },
-  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start'                            },
-  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold'                        },
-  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding'                             },
-  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion'                            },
-  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor'                      },
+    expected_type: 'string',
+    shorthands: [ 't5' ], },
+  { dt_name: 't5TextEncoder',                     automatic1111_name: 't5_text_encoder',
+    expected_type: 'boolean', },
+  { dt_name: 'teaCache',                          automatic1111_name: 'tea_cache',
+    expected_type: 'boolean', },
+  { dt_name: 'teaCacheEnd',                       automatic1111_name: 'tea_cache_end',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheMaxSkipSteps',              automatic1111_name: 'tea_cache_max_skip_steps',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheStart',                     automatic1111_name: 'tea_cache_start',
+    expected_type: 'number', },
+  { dt_name: 'teaCacheThreshold',                 automatic1111_name: 'tea_cache_threshold',
+    expected_type: 'number', },
+  { dt_name: 'tiledDecoding',                     automatic1111_name: 'tiled_decoding',
+    expected_type: 'boolean', },
+  { dt_name: 'tiledDiffusion',                    automatic1111_name: 'tiled_diffusion',
+    expected_type: 'boolean', },
+  { dt_name: 'upscalerScaleFactor',               automatic1111_name: 'upscaler_scale_factor',
+    expected_type: 'number', },
   { dt_name: 'zeroNegativePrompt',                automatic1111_name: 'zero_negative_prompt',
+    expected_type: 'boolean',
     shorthands: [ "znp" ] },
 ];
 // -------------------------------------------------------------------------------------------------
-function get_other_name(return_key, find_key, find_value) {
+function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
-    lm.log(`\nLOOKING UP ${return_key} FOR ` +
-           `${inspect_fun(find_key)} ` +
-           `${inspect_fun(find_value)}`);
+    lm.log(`\nLOOKING UP ${preferred_needle_key} FOR ` +
+           `${inspect_fun(alternate_needle_key)} ` +
+           `${inspect_fun(needle_value)}`);
 
-  let find_value_lc = find_value.toLowerCase();
+  needle_value = needle_value.toLowerCase(); // normalize
 
   // -----------------------------------------------------------------------------------------------
-  // is find_value a shorthand?
+  // is needle_value a shorthand?
   // -----------------------------------------------------------------------------------------------
-  let got     = configuration_key_names.find(obj => 
-    obj?.shorthands?.includes(find_value_lc))
+  let entry = configuration_key_names.find(obj => 
+    obj.shorthands?.includes(needle_value))
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURN FROM SHORTHAND ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURN FROM SHORTHAND ` +
+             `${inspect_fun(entry)}\n`);
 
-    return got[return_key];
+    return entry;
   }
 
   // -----------------------------------------------------------------------------------------------
-  // is it just miscapitalized?
+  // is it just a miscapitalized preferred_needle_key?
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => {
-    if (log_name_lookups_enabled)
-      lm.log(`test ${inspect_fun(obj[return_key].toLowerCase())} === ` +
-             `${inspect_fun(find_value_lc)} = ` +
-             `${obj[return_key].toLowerCase() === find_value_lc}`);
-    return obj[return_key].toLowerCase() === find_value_lc;
-  });
+  entry = configuration_key_names.find(obj => obj[preferred_needle_key].toLowerCase() === needle_value);
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`RETURNING CASE-CORRECTED ${return_key} ${inspect_fun(got[return_key])}\n`);
+      lm.log(`RETURNING CASE-CORRECTED ${preferred_needle_key} ` +
+             `${inspect_fun(entry[preferred_needle_key])}`);
     
-    return got[return_key];
+    return entry;
   } 
 
   // -----------------------------------------------------------------------------------------------
-  // look up the alternate key:
+  // look up the needle_key:
   // -----------------------------------------------------------------------------------------------
-  got = configuration_key_names.find(obj => obj[find_key].toLowerCase() === find_value_lc);
+  entry = configuration_key_names.find(obj => obj[alternate_needle_key].toLowerCase() === needle_value);
 
-  if (got) {
+  if (entry) {
     if (log_name_lookups_enabled)
-      lm.log(`GOT ${return_key} FOR ` +
-             `${inspect_fun(find_key)} ${inspect_fun(find_value)}`);
+      lm.log(`ENTRY ${preferred_needle_key} FOR ` +
+             `${inspect_fun(alternate_needle_key)} ${inspect_fun(needle_value)}`);
     
-    return got[return_key];
+    return entry;
   }
 
   // -----------------------------------------------------------------------------------------------
-  // didn't find it on either sise, just return the argument:
+  // didn't find it on either side, return null.
   // -----------------------------------------------------------------------------------------------
   if (log_name_lookups_enabled) 
-    lm.log(`RETURNING ARGUMENT ${inspect_fun(find_value)}\n`);
+    lm.log(`RETURNING NULL FROM LOOKUP FOR ` +
+           `${inspect_fun(needle_value)}\n`);
 
   // possibly an error? maybe not always.
-  return find_value;
+  return null;
 }
 // -------------------------------------------------------------------------------------------------
-function get_dt_name(name) {
-  return get_other_name('dt_name',            'automatic1111_name', name);
+function get_configuration_key_entry_prefer_dt_configuration_key_name(key_name) {
+  return get_configuration_key_entry('dt_name', 'automatic1111_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_automatic1111_name(name) {
-  return get_other_name('automatic1111_name', 'dt_name',            name);
+function get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name) {
+  return get_configuration_key_entry('automatic1111_name', 'dt_name', key_name);
 }
 // -------------------------------------------------------------------------------------------------
-function get_our_name(name) {
-  const res = (dt_hosted
-               ? get_dt_name
-               : get_automatic1111_name)(name);
+function get_our_configuration_key_entry(key_name) {
+  return (dt_hosted
+          ? get_configuration_key_entry_prefer_dt_configuration_key_name(key_name)
+          : get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name));
+}
+// // -------------------------------------------------------------------------------------------------
+// function get_dt_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_dt_configuration_key_name(key_name);
+//   return entry ? entry['dt_name'] : key_name;
+// }
+// // -------------------------------------------------------------------------------------------------
+// function get_automatic1111_configuration_key_name(key_name) {
+//   const entry = get_configuration_key_entry_prefer_automatic1111_configuration_key_name(key_name);
+//   return entry ? entry['automatic1111_name'] : key_name;
+// }
+// -------------------------------------------------------------------------------------------------
+function get_our_configuration_key_name(key_name) {
+  const entry = get_our_configuration_key_entry(key_name); 
 
-  // lm.log(`got our name for ${name}: ${res}`);
-  
-  return res;
+  return (entry
+          ? entry[dt_hosted ? 'dt_name' : 'automatic1111_name']
+          : key_name);
 }
 // =================================================================================================
 // END OF HELPER FUNCTIONS/VARS FOR DEALING WITH DIFFERING KEY NAMES BETWEEN DT AND A1111.
@@ -4050,19 +4147,15 @@ class Context {
     }
   }
   // -------------------------------------------------------------------------------------------------
-  munge_configuration({ indent = 0, replace = true, is_dt_hosted = dt_hosted } = {}) {
-    // const log = msg => lm.log(`${' '.repeat(indent*2)}${msg}`);
-
-    // lm.log(`MUNGING (with ${configuration?.loras?.length} loras) ${inspect_fun(configuration)}`);
-
+  munge_configuration() {
     const munged_configuration = structured_clone(this.configuration);
 
     if (is_empty_object(munged_configuration))
       return munged_configuration;
 
     if (munged_configuration.model === '') {
-      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This probably isn't ` +
-             `what you meant to do, your prompt template may contain an error!`,
+      lm.log(`WARNING: munged_configuration.model is an empty string, deleting key! This ` +
+             `probably isn't what you meant to do, your prompt template may contain an error!`,
              log_level__expand_and_walk);
       delete munged_configuration.model;
     }
@@ -4081,75 +4174,86 @@ class Context {
       else if (munged_configuration.model.endsWith('_f16')) 
         munged_configuration.model = `${munged_configuration.model}.ckpt`;
       else 
-        munged_configuration.model= `${munged_configuration.model}_f16.ckpt`;
+        munged_configuration.model = `${munged_configuration.model}_f16.ckpt`;
     }
     
+    if (munged_configuration.sampler === '') {
+      lm.log(`WARNING: munged_configuration.sampler is an empty string, deleting key! This ` +
+             `probably isn't what you meant to do, your prompt template may contain an error!`,
+             log_level__expand_and_walk);
+      delete munged_configuration.sampler;
+    }
     // I always mistype 'Euler a' as 'Euler A', so lets fix dumb errors like that:
-    if (munged_configuration.sampler && typeof munged_configuration.sampler === 'string') {
+    else if (munged_configuration.sampler &&
+             typeof munged_configuration.sampler === 'string') {
       const lc  = munged_configuration.sampler.toLowerCase();
       const got = dt_samplers_caps_correction.get(lc);
 
       if (got)
         munged_configuration.sampler = got;
       else
-        lm.log(`WARNING: did not find samples '${munged_configuration.sampler}', ` +
+        lm.log(`WARNING: did not find sampler ` +
+               `'${munged_configuration.sampler}', ` +
                `we're probably going to crash in a moment`);
     }
-    
-    if (is_dt_hosted) { // when running in DT, sampler needs to be an index:
-      if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler === 'string') {
-        lm.log(`correcting munged_configuration.sampler = ${inspect_fun(munged_configuration.sampler)} to ` +
-               `munged_configuration.sampler = ${dt_samplers.indexOf(munged_configuration.sampler)}.`,
-               log_level__expand_and_walk);
-        const index = dt_samplers.indexOf(munged_configuration.sampler);
 
-        if (index === -1) {
-          lm.log(`WARNING: could not find index of sampler '${munged_configuration.sampler}'. `+
-                 `Are you sure you used the ` +
-                 `correct name? deleting sampler from configuration.`);
+    // when running in DT, sampler needs to be an index:
+    if (dt_hosted && typeof munged_configuration.sampler === 'string') { 
+      lm.log(`correcting munged_configuration.sampler = ` +
+             `${inspect_fun(munged_configuration.sampler)} to ` +
+             `munged_configuration.sampler = ` +
+             `${dt_samplers.indexOf(munged_configuration.sampler)}.`,
+             log_level__expand_and_walk);
 
-          delete munged_configuration.sampler;
-        }
-        else {
-          munged_configuration.sampler = index;
-        }
+      const index = dt_samplers.indexOf(munged_configuration.sampler);
+
+      if (index === -1) {
+        lm.log(`WARNING: could not find index of sampler ` +
+               `'${munged_configuration.sampler}'. `+
+               `Are you sure you used the correct name? ` +
+               `deleting sampler from configuration`);
+
+        delete munged_configuration.sampler;
+      }
+      else {
+        munged_configuration.sampler = index;
       }
     }
-    // when running in Node.js, sampler needs to be a string::
-    else if (munged_configuration.sampler !== undefined && typeof munged_configuration.sampler ===  'number') {
-      lm.log(`correcting munged_configuration.sampler = ${munged_configuration.sampler} to ` +
-             `munged_configuration.sampler = ${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
+    // when running in Node.js, sampler needs to be a string:
+    else if (!dt_hosted && typeof munged_configuration.sampler === 'number') {
+      lm.log(`correcting munged_configuration.sampler = ` +
+             `${munged_configuration.sampler} to ` +
+             `munged_configuration.sampler = ` +
+             `${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
              log_level__expand_and_walk);
       munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
     }
 
     // 'fix' seed if n_iter > 1, doing this seems convenient?
-    if (! munged_configuration.seed ||
-        (munged_configuration?.n_iter >1 && munged_configuration.seed !== -1)) {
-      const n_iter_key = get_our_name('n_iter');
+    const n_iter_key = get_our_configuration_key_name('n_iter');
+    const n_iter_val = munged_configuration[n_iter_key];
 
-      if (munged_configuration[n_iter_key] && (typeof munged_configuration[n_iter_key] === 'number') && munged_configuration[n_iter_key] > 1) {
-        if (log_configuration_enabled)
-          lm.log(`%seed = -1 due to n_iter > 1`,
-                 log_level__expand_and_walk);
+    if (n_iter_val > 1 && munged_configuration.seed !== -1) {
+      if (log_configuration_enabled)
+        lm.log(`%seed = -1 due to n_iter > 1`,
+               log_level__expand_and_walk);
 
-        munged_configuration.seed = -1;
-      }
-      else if (typeof munged_configuration.seed !== 'number') {
-        const random = Math.floor(Math.random() * (2 ** 32));
-        
-        if (log_configuration_enabled)
-          lm.log(`%seed = ${random} due to no seed`,
-                 log_level__expand_and_walk);
-
-        munged_configuration.seed = random;
-      }
+      munged_configuration.seed = -1;
     }
+    else if (typeof munged_configuration.seed !== 'number') {
+      const random = Math.floor(Math.random() * (2 ** 32));
+      
+      if (log_configuration_enabled)
+        lm.log(`%seed = ${random} due to no seed`,
+               log_level__expand_and_walk);
+
+      munged_configuration.seed = random;
+    }    
 
     // if (log_configuration_enabled)
     //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
-    this.configuration =  munged_configuration;
+    this.configuration = munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -4165,10 +4269,10 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = unsafe_guards
-                          { {?female #gender.female // just to make forcing an option a little terser.
+@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
+                            {?female #gender.female 
                             |?male   #gender.male
-                            |?neuter #gender.neuter }
+                            |?neuter #gender.neuter    }
                             {3 !gender.#female #female
                             |2 !gender.#male   #male
                             |1 !gender.#neuter #neuter } } 
@@ -4616,7 +4720,7 @@ const prelude_text = `
 { %w   = 832;   %h    = 1216;   
   %ow  = 768;   %oh   = 576;    
   %tw  = 1024;  %th   = 768;    
-  %nw  = 179,;  %nh   = 1344;   
+  %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -5395,6 +5499,7 @@ const prelude_text = `
 | !wizards_artist.#gilbert_garcin
 | !wizards_artist.#michael_and_inessa_garmash
 | !wizards_artist.#antoni_gaudi
+| !wizards_artist.#jack_gaughan
 | !wizards_artist.#paul_gauguin
 | !wizards_artist.#giovanni_battista_gaulli
 | !wizards_artist.#anne_geddes
@@ -6472,7 +6577,7 @@ const prelude_text = `
 | ?wizards_artist.gilbert_garcin Gilbert Garcin
 | ?wizards_artist.michael_and_inessa_garmash Michael and Inessa Garmash
 | ?wizards_artist.antoni_gaudi Antoni Gaudi
-| 3 ?wizards_artist.jack_gaughan Jack Gaughan
+| ?wizards_artist.jack_gaughan Jack Gaughan
 | ?wizards_artist.paul_gauguin Paul Gauguin
 | ?wizards_artist.giovanni_battista_gaulli Giovanni Battista Gaulli
 | ?wizards_artist.anne_geddes Anne Geddes
@@ -8317,9 +8422,12 @@ function load_prelude(into_context = new Context()) {
     // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
   
-  if (log_loading_prelude)
+  if (log_loading_prelude) {
     lm.log(`loading prelude took ${elapsed.toFixed(3)} ms`);
-
+    if (rule_match_counter_enabled)
+      lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
+  }
+  
   return into_context;
 }
 // =================================================================================================
@@ -8332,15 +8440,15 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = undefined } = {}) {
-  if (thing == undefined ||
-      context === undefined ||
+function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
+  if (thing            === undefined ||
+      context          === undefined ||
       correct_articles === undefined)
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)}, returning as is`);
+      lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
@@ -8370,35 +8478,36 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
   };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
-    const ret = lm.indent(() =>
-      expand_wildcards(pick?.body ?? '', context,
-                       { correct_articles: correct_articles }));
+    // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
+    return lm.indent(() => {
+      const ret = walk(pick?.body ?? '', { correct_articles: correct_articles });
 
-    if (log_level__expand_and_walk >= 2)
-      lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
-             `<${thing_str_repr(pick)}> => ` + 
-             `${thing_str_repr(ret)}`, false)
+      // if (log_level__expand_and_walk >= 2)
+      //   lm.log(`picker_each: ${abbreviate(compress(inspect_fun(pick)))} ` +
+      //          `<${thing_str_repr(pick)}> => ` + 
+      //          `${thing_str_repr(ret)}`, true)
 
-    return ret;
+      return ret;
+    });
   }
   // -----------------------------------------------------------------------------------------------
   function warning_str(str) {
-    return `[WARNING: ${str}!]`;
+    return `\\<WARNING: ${str}!>`;
   }
   // -----------------------------------------------------------------------------------------------
-  const log = (guard_bool, msg, with_indentation = true) => { 
-    if (! msg && msg !== '') throw new Error("bomb 1");
-    if (guard_bool) lm.log(msg, with_indentation);
-  };
+  // const log = (guard_bool, msg, with_indentation = true) => { 
+  //   if (! msg && msg !== '') throw new Error("bomb 1");
+  //   if (guard_bool) lm.log(msg, with_indentation);
+  // };
   // -----------------------------------------------------------------------------------------------
   function walk(thing, { correct_articles = undefined } = {}) {
     if (correct_articles === undefined)
       throw new Error(`bad walk args: ${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    const log = (guard_bool, msg, with_indentation = true) => {
-      if (! msg && msg !== '') throw new Error("bomb 1");
-      if (guard_bool) lm.log(msg, with_indentation);
-    };
+    // const log = (guard_bool, msg, with_indentation = true) => {
+    //   if (! msg && msg !== '') throw new Error("bomb 1");
+    //   if (guard_bool) lm.log(msg, with_indentation);
+    // };
 
     class ThrownReturn {
       constructor(value, quiet = false) {
@@ -8409,12 +8518,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
     if (typeof thing === 'string') {
       if (log_level__expand_and_walk)
-        lm.log(`nothing to walk in ${thing_str_repr(thing)}, returning as is`);
+        lm.log(`nothing to walk in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
       return thing;
     }
 
-    log(log_level__expand_and_walk,
-        `Walking ${thing_str_repr(thing)}`);
+    if (log_level__expand_and_walk)
+      lm.log(`Walking ${thing_str_repr(thing,
+                                       { always_include_type_str: true, length: 200 })}`);
 
     try {
       // -------------------------------------------------------------------------------------------
@@ -8425,11 +8535,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         lm.indent(() => {
           for (let ix = 0; ix < thing.length; ix++) {
-            log(log_level__expand_and_walk,
-                `Walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} `
-               );
+            if (log_level__expand_and_walk)
+              lm.log(`Walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix],
+                                       { always_include_type_str: true, length: 200 })} `
+                    );
 
             const elem_ret =
                   lm.indent(() => walk(thing[ix], { correct_articles: correct_articles }));
@@ -8437,23 +8548,25 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
             if (elem_ret)
               ret.push(elem_ret);
 
-            log(log_level__expand_and_walk,
-                `walking array element #${ix + 1} `+
-                `of ${thing.length} ` +
-                `${thing_str_repr(thing[ix])} ` +
-                `returned ${thing_str_repr(elem_ret)}`
-               );
+            if (log_level__expand_and_walk)
+              lm.log(`walking array element #${ix + 1} `+
+                     `of ${thing.length} ` +
+                     `${thing_str_repr(thing[ix])} ` +
+                     `=> ${thing_str_repr(elem_ret,
+                                          { always_include_type_str: true, length: 200 })}`
+                    );
           }
-        });
 
-        throw new ThrownReturn(ret);
+          const str = smart_join(ret, { correct_articles: correct_articles });
+          throw new ThrownReturn(str);
+        });
       }
       // -------------------------------------------------------------------------------------------
       // flags:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        log(log_flags_enabled >= 2,
-            `setting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(`setting flag '${thing.flag}'.`);
 
         context.set_flag(thing.flag);
 
@@ -8461,8 +8574,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        log(log_flags_enabled >= 2,
-            `unsetting flag '${thing.flag}'.`);
+        if (log_flags_enabled >= 2)
+          lm.log(`unsetting flag '${thing.flag}'.`);
 
         context.unset_flag(thing.flag);
         
@@ -8472,12 +8585,17 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
+        // let str = smart_join(thing.pick(1, 1,
+        //                                 picker_allow, picker_forbid, picker_each, 
+        //                                 context.pick_one_priority)[0],
+        //                      { correct_articles: correct_articles })
+        
         let str = thing.pick(1, 1,
                              picker_allow, picker_forbid, picker_each, 
                              context.pick_one_priority)[0];
-        
+
         if (log_level__expand_and_walk)
-          lm.indent_and_log(`picked item = ${thing_str_repr(str)}`);
+          lm.indent(() => lm.log(`picked item = ${thing_str_repr(str)}`));
         
         if (thing.trailer && str.length > 0)
           str = smart_join([str, thing.trailer],
@@ -8491,7 +8609,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // NamedWildcardReferences;
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = context.named_wildcards.get(thing.name); // an ASTAnonWildcard or an ASTLatchedNamedWildcard 
+        const got = context.named_wildcards.get(thing.name);
+        // ^ an ASTAnonWildcard or an ASTLatchedNamedWildcard 
         
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
@@ -8500,19 +8619,18 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let anon_wildcard;
         
-        if (got instanceof ASTLatchedNamedWildcard) {
-          anon_wildcard = anon_wildcard.original_value;
+        if (got instanceof ASTLatchedNamedWildcard) {          
+          anon_wildcard = got.original_value;
           
-          for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-            const expanded = lm.indent(() => expand_wildcards(got.latched_value, context,
-                                                              { correct_articles: correct_articles})); //  not walk!
-            // ^ I forget why I chose to use expand_wildcards instead of walk here and left the
-            //   note on the prior line - it seems like using walk instead would be fine but I
-            //   must have had some reason, review this later.
-            
-            if (expanded)
-              res.push(expanded);
-          }
+          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
+          //   const expanded = lm.indent(() => walk(got.latched_value, 
+          //                                         { correct_articles: correct_articles})); 
+          //   // ^ not quite sure whether to use walk or expand_wildcards here.
+          
+          //   if (expanded)
+          //     res.push(expanded);
+          ///}
+          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
@@ -8526,7 +8644,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
                                    picker_priority).filter(s => s !== '');
           
           if (log_level__expand_and_walk)
-            lm.indent_and_log(`picked items ${thing_str_repr(res)}`);
+            lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
         }
         
         if (thing.capitalize && res.length > 0) 
@@ -8534,11 +8652,14 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
         let effective_joiner;
         let intercalate_options = {}
-        
         let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
 
-        // lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-        // lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+        if (log_level__expand_and_walk >= 2)
+          lm.indent(() => {
+            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
+            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
+            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
+          });
 
         if (thing.joiner === '&') {
           effective_joiner = ',';
@@ -8573,14 +8694,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let got = context.scalar_variables.get(thing.name) ??
             warning_str(`scalar '${thing.name}' not found`);
 
-        log(false, `scalar ref $${thing.name} = ${inspect_fun(got)}`);
-
         if (thing.capitalize)
           got = capitalize(got);
 
         if (thing.trailer && got.length > 0)
-          got = smart_join([got, thing.trailer],
-                           { correct_articles: false });
+          lm.indent(() => got = smart_join([got, thing.trailer],
+                                           { correct_articles: false }));
         // ^ never need to correct articles for trailers since punctuation couldn't trigger correction
         
         throw new ThrownReturn(got);
@@ -8603,17 +8722,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
           else 
             throw new ThrownReturn(''); // produce nothing
         }
-        
 
         lm.indent(() => {
           const latched =
                 new ASTLatchedNamedWildcard(
-                  walk(got, { correct_articles: false }), got);
+                  walk(got, { correct_articles: correct_articles }), got);
 
-          log(context.noisy,
-              `latched @${thing.target.name} to value: ` +
-              `${typeof latched.latched_value} ` +
-              `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
+          if (log_level__expand_and_walk)
+            lm.log(`latched @${thing.target.name} to value: ` +
+                   `${typeof latched.latched_value} ` +
+                   `${abbreviate(compress(inspect_fun(latched.latched_value)))}`);
 
           context.named_wildcards.set(thing.target.name, latched);
         });
@@ -8636,19 +8754,20 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         }
         
         context.named_wildcards.set(thing.name, got.original_value);
-        
-        lm.indent(() =>
-          log(context.noisy,
-              `unlatched ${thing.name} back to ${thing_str_repr(got.original_value)}`));
+
+        if (context.noisy)
+          lm.indent(() => lm.log(`unlatched ${thing.name} back to ` +
+                                 `${thing_str_repr(got.original_value)}`));
 
         throw new ThrownReturn(''); // produce no text.
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          log(true, `WARNING: redefining named wildcard @${thing.name}, ` +
-              `you may not have intended to do this, check your template!`,
-              log_level__expand_and_walk);
+          if (true)
+            lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
+                   `you may not have intended to do this, check your template!`,
+                   log_level__expand_and_walk);
 
         context.named_wildcards.set(thing.name, thing.wildcard);
 
@@ -8666,164 +8785,223 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
       // scalar assignment:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        log(log_level__expand_and_walk >= 2, '');
-        log(log_level__expand_and_walk >= 2,
-            `assigning ${inspect_fun(thing.source)} ` +
-            `to '${thing.destination.name}'`);
-        
-        let   new_val = lm.indent(() => expand_wildcards(thing.source, context,
-                                                         { correct_articles: correct_articles }));
+        lm.indent(() =>  {
+          // if (log_level__expand_and_walk >= 2)
+          //   lm.log(`assigning ${thing_str_repr(thing.source)} ` +
+          //          `to '${thing.destination.name}'`);
+          
+          let new_val = walk(thing.source,
+                             { correct_articles: correct_articles });
 
-        if (! thing.assign) {
-          const old_val = context.scalar_variables.get(thing.destination.name)??'';
-          new_val = smart_join([old_val, new_val],
-                               { correct_articles: true }); // always correct articles here?
-        }
-        
-        context.scalar_variables.set(thing.destination.name, new_val);
+          if (! thing.assign) {
+            const old_val = context.scalar_variables.get(thing.destination.name)??'';
+            new_val = smart_join([old_val, new_val],
+                                 { correct_articles: correct_articles }); 
+          }
+          
+          context.scalar_variables.set(thing.destination.name, new_val);
 
-        log(true, `$${thing.destination.name} = ${inspect_fun(new_val)}`,
-            log_level__expand_and_walk);
-        
-        throw new ThrownReturn(''); // produce nothing
+          if (true)
+            lm.log(`$${thing.destination.name} = ${inspect_fun(new_val)}`,
+                   log_level__expand_and_walk);
+          
+          throw new ThrownReturn(''); // produce nothing
+        });
       }
       // -------------------------------------------------------------------------------------------
       // UpdateConfigurations:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationUnary ||
                thing instanceof ASTUpdateConfigurationBinary) {
-        let value = thing.value;
-        
-        if (value instanceof ASTNode) {
-          const expanded_value = lm.indent(() =>
-            // don't correct articles in config values so that we don't mess up, e.g.,
-            // %sampled = { Euler A AYS };
-            expand_wildcards(thing.value, context, // not walk!
-                             { correct_articles: false })); 
+        try {
+          const type_is_okay = (val, type_or_types) =>
+                (!type_or_types
+                 ? true
+                 : (Array.isArray(type_or_types)
+                    ? type_or_types.includes(typeof val)
+                    : typeof val === type_or_types));
+          const fatal_errors = false;
+          const error_fun = fatal_errors
+                ? msg => { throw new Error(msg); }
+                : msg => { throw new ThrownReturn(warning_str(msg)); };
 
-          const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
-                                                ? RjsoncObject
-                                                : Rjsonc).match(expanded_value);
-
-          if (thing instanceof ASTUpdateConfigurationBinary) {
-            value = jsconc_parsed_expanded_value?.is_finished
-              ? jsconc_parsed_expanded_value.value
-              : expanded_value;
-          }
-          else { // ASTUpdateConfigurationUnary
-            throw new Error(`${thing.constructor.name}.value must expand to produce a valid ` +
-                            `rJSONC object, Rjsonc.match(...) result was ` +
-                            inspect_fun(jsconc_parsed_expanded_value));
-          }
-        }
-        else {
-          value = structured_clone(value); // do we need to do this? I forget.
-        }
-
-        if (thing instanceof ASTUpdateConfigurationUnary) { 
-          let new_obj = value;
-
-          for (const key of Object.keys(value)) 
-            new_obj[get_our_name(key)??key] = value[key]
+          let value = thing.value;
           
-          context.configuration = thing.assign
-            ? new_obj
-            : { ...context.configuration, ...new_obj };
+          if (value instanceof ASTNode) {
+            const expanded_value = lm.indent(() =>
+              // don't correct articles in config values so that we don't mess up, e.g.,
+              // %sampled = { Euler A AYS };
+              expand_wildcards(thing.value, context, 
+                               { correct_articles: false })); 
+            // ^ not walk because we're going to parse it as JSON
+            
+            const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
+                                                  ? RjsoncObject
+                                                  : Rjsonc).match(expanded_value);
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%config ${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(new_obj, true)}`,
-                              log_level__expand_and_walk));
-        }
-        else { // ASTUpdateConfigurationBinary
-          const our_name = get_our_name(thing.key); 
-          
-          if (thing.assign) {
-            context.configuration[our_name] = value;
-          }
-          else { // increment
-            if (Array.isArray(value)) {
-              const tmp_arr = context.configuration[our_name]??[];
-
-              if (! Array.isArray(tmp_arr))
-                throw new Error(`can't add array ${inspect_fun(value)} ` +
-                                `to non-array ${inspect_fun(tmp_arr)}`);
-              
-              const new_arr = [ ...tmp_arr, ...value ];
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by array ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_arr)}`);
-              
-              context.configuration[our_name] = new_arr;
+            if (thing instanceof ASTUpdateConfigurationBinary) {
+              value = jsconc_parsed_expanded_value?.is_finished
+                ? jsconc_parsed_expanded_value.value
+                : expanded_value;
             }
-            else if (typeof value === 'object') {
-              const tmp_obj = context.configuration[our_name]??{};
-
-              if (typeof tmp_obj !== 'object')
-                throw new Error(`can't add object ${inspect_fun(value)} `+
-                                `to non-object ${inspect_fun(tmp_obj)}`);
-
-              const new_obj = { ...tmp_obj, ...value };
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by object ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(new_obj)}`);
-
-              context.configuration[our_name] = new_obj;
-            }
-            else if (typeof value === 'number') {
-              const tmp_num = context.configuration[our_name]??0;
-              
-              if (typeof tmp_num !== 'number')
-                throw new Error(`can't add number ${inspect_fun(value)} `+
-                                `to non-number ${inspect_fun(tmp_num)}`);
-
-              log(log_expand_and_walk_enabled >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by number ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
-              
-              context.configuration[our_name] = tmp_num + value;
-            }
-            else if (typeof value === 'string') {
-              const tmp_str = context.configuration[our_name]??'';
-
-              if (typeof tmp_str !== 'string')
-                throw new Error(`can't add string ${inspect_fun(value)} `+
-                                `to non-string ${inspect_fun(tmp_str)}`);
-
-              log(log_level__expand_and_walk >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by string ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
-
-              context.configuration[our_name] =
-                lm.indent(() => smart_join([tmp_str, value],
-                                           { correct_articles: false })); // never correct here?
-            }
-            else {
-              // probly won't work most of the time, but let's try anyhow, I guess.
-
-              log(log_level__expand_and_walk >= 2,
-                  `current value ${inspect_fun(context.configuration[our_name])}, ` +
-                  `increment by unknown ${inspect_fun(value)}, ` +
-                  `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
-
-              context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+            else { // ASTUpdateConfigurationUnary
+              error_fun(`${thing.constructor.name}.value st expand to produce a valid ` +
+                        `rJSONC object, Rjsonc.match(...) result was ` +
+                        inspect_fun(jsconc_parsed_expanded_value));
             }
           }
+          else {
+            value = structured_clone(value); // do we need to clone this? I forget.
+          }
 
-          lm.indent(() => log(log_configuration_enabled,
-                              `%${our_name} ` +
-                              `${thing.assign ? '=' : '+='} ` +
-                              `${inspect_fun(value, true)}`,
-                              log_level__expand_and_walk));
+          if (thing instanceof ASTUpdateConfigurationUnary) { 
+            const new_obj  = {};
+            const warnings = [];
+            
+            for (const key_name of Object.keys(value)) {
+              const our_entry = get_our_configuration_key_entry(key_name);
+              const our_name  = our_entry
+                    ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                    : key_name;
+
+              if (!type_is_okay(value[key_name], our_entry?.expected_type)) {
+                warnings.push(warning_str(`not assigning ${typeof value[key_name]} ` +
+                                          `${inspect_fun(value[key_name])} ` + 
+                                          `to configuration key '${our_name}', ` +
+                                          `expected ${our_entry.expected_type}`));
+                continue;
+              }
+
+              // lm.log(`set key ${our_name} to ${inspect_fun(value[key_name])} in new_obj`);
+              
+              new_obj[our_name] = value[key_name];
+            }
+
+            context.configuration = thing.assign
+              ? new_obj
+              : { ...context.configuration, ...new_obj };
+
+            if (log_configuration_enabled)
+              lm.indent(() => lm.log(`%config ${thing.assign ? '=' : '+='} ` +
+                                     `${inspect_fun(new_obj, true)}`,
+                                     log_level__expand_and_walk));
+            if (warnings.length > 0)
+              throw new ThrownReturn(warnings.join(' '));          
+          }
+          else { // ASTUpdateConfigurationBinary
+            const our_entry = get_our_configuration_key_entry(thing.key);
+            const our_name  = our_entry
+                  ? our_entry[dt_hosted? 'dt_name' : 'automatic1111_name']
+                  : thing.key;
+
+            // lm.log(`FOUND ENTRY: ${abbreviate(compress(inspect_fun(our_entry)), false)}`);
+
+            if (!type_is_okay(value, our_entry?.expected_type))
+              throw new ThrownReturn(warning_str(`not assigning ${typeof value} ` +
+                                                 `${inspect_fun(value)} ` + 
+                                                 `to configuration key '${our_name}', ` +
+                                                 `expected ${our_entry.expected_type}`));
+            
+            if (thing.assign) {
+              context.configuration[our_name] = value;
+            }
+            else { // increment
+              if (Array.isArray(value)) {
+                const tmp_arr = context.configuration[our_name]??[];
+
+                if (! Array.isArray(tmp_arr))
+                  error_fun(`can't add array ${inspect_fun(value)} ` +
+                            `to non-array ${inspect_fun(tmp_arr)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+                
+                const new_arr = [ ...tmp_arr, ...value ];
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +      
+                         `increment by array ${inspect_fun(value)}, ` +             
+                         `total ${inspect_fun(new_arr)}`); 
+                
+                context.configuration[our_name] = new_arr;
+              }
+              else if (typeof value === 'object') {
+                const tmp_obj = context.configuration[our_name]??{};
+
+                if (typeof tmp_obj !== 'object')
+                  error_fun(`can't add object ${inspect_fun(value)} `+
+                            `to non-object ${inspect_fun(tmp_obj)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                const new_obj = { ...tmp_obj, ...value };
+
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +      
+                         `increment by object ${inspect_fun(value)}, ` +             
+                         `total ${inspect_fun(new_obj)}`); 
+
+                context.configuration[our_name] = new_obj;
+              }
+              else if (typeof value === 'number') {
+                const tmp_num = context.configuration[our_name]??0;
+                
+                if (typeof tmp_num !== 'number')
+                  error_fun(`can't add number ${inspect_fun(value)} `+
+                            `to non-number ${inspect_fun(tmp_num)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                if (log_expand_and_walk_enabled >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +
+                         `increment by number ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun((context.configuration[our_name]??0) + value)}`);
+                
+                context.configuration[our_name] = tmp_num + value;
+              }
+              else if (typeof value === 'string') {
+                const tmp_str = context.configuration[our_name]??'';
+
+                if (typeof tmp_str !== 'string')
+                  error_fun(`can't add string ${inspect_fun(value)} `+
+                            `to non-string ${inspect_fun(tmp_str)} ` +
+                            `in key ${inspect_fun(our_name)}`);
+
+                if (log_level__expand_and_walk >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` +
+                         `increment by string ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun((context.configuration[our_name]??'') + value)}`);
+
+                context.configuration[our_name] =
+                  lm.indent(() => smart_join([tmp_str, value],
+                                             { correct_articles: false })); // never correct here?
+              }
+              else {
+                // probly won't work most of the time, but let's try anyhow, I guess:
+
+                if (log_level__expand_and_walk >= 2)
+                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                         `${inspect_fun(context.configuration[our_name])}, ` 
+                         `incrementing by unknown type value ${inspect_fun(value)}, ` +
+                         `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+
+                context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+              }
+            }
+
+            if (log_configuration_enabled)
+              lm.indent(() => lm.log(`%${our_name} ` +
+                                     `${thing.assign ? '=' : '+='} ` +
+                                     `${inspect_fun(value, true)}`,
+                                     log_level__expand_and_walk));
+          }
+
+          throw new ThrownReturn(''); // produce nothing
         }
-        
-        throw new ThrownReturn(''); // produce nothing
+        finally {
+          context.munge_configuration();
+        }
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetPickSingle || 
                thing instanceof ASTSetPickMultiple) {
         const cur_key = thing instanceof ASTSetPickSingle
@@ -8834,8 +9012,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
               : 'prior_pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
-        const walked    = picker_priority[lm.indent(() => expand_wildcards(thing.limited_content,
-                                                                           context)).toLowerCase()];
+        const walked    = picker_priority[lm.indent(() =>
+          expand_wildcards(thing.limited_content,
+                           context,
+                           { correct_articles: false })).toLowerCase()];
 
         if (! picker_priority_descriptions.includes(walked))
           throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
@@ -8843,13 +9023,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        log(log_configuration_enabled,
-            `Updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(walked)}.`);
+        if (log_configuration_enabled)
+          lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                 `${inspect_fun(walked)}.`));
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
         const sub_prompt = thing instanceof ASTUIPrompt
               ? { desc: 'UI prompt', text: ui_prompt }
@@ -8861,7 +9041,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let res = null;
 
         try {
-          res = Prompt.match(sub_prompt.text);
+          res = Prompt.match(sub_prompt.text, 0, new Map());
         }
         catch(err) {
           if (err instanceof FatalParseError)
@@ -8873,7 +9053,13 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         if (!res || !res.is_finished)
           throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        throw new ThrownReturn(lm.indent(() => expand_wildcards(res.value, context, )));
+        let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
+        
+        if (thing.trailer && str.length > 0)
+          str = smart_join([str, thing.trailer],
+                           { correct_articles: false });
+        
+        throw new ThrownReturn(str);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTRevertPickSingle || 
@@ -8887,9 +9073,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
-        log(log_configuration_enabled,
-            `Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-            `${inspect_fun(prior_val)}.`);
+        if (log_configuration_enabled)
+          lm.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                 `${inspect_fun(prior_val)}.`);
         
         context[cur_key]   = prior_val;
         context[prior_key] = cur_val;
@@ -8908,32 +9094,40 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         let walked_file = null;
 
         lm.indent(() => {
-          log(log_level__expand_and_walk,
-              `expanding file ${compress(inspect_fun(thing.file))}`);
+          if (log_level__expand_and_walk)
+            lm.log(`Expanding LoRA file ` +
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
-                                                         { correct_articles: correct_articles })); // not walk!
+                                                         { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
-              `expanded file is ${typeof walked_file} ` +
-              `${walked_file.constructor.name} ` +
-              `${inspect_fun(walked_file)} `);
+          if (log_level__expand_and_walk)
+            lm.log(`expanded LoRa file `+
+                   `${thing_str_repr(thing.file,
+                                     { always_include_type_str: true, length: 200 })}`+
+                   `is ` +
+                   `${thing_str_repr(walked_file,
+                                     { always_include_type_str: true, length: 200 })} `);
         });
         
         let walked_weight = null;
         
         lm.indent(() => {
-          log(log_level__expand_and_walk,
-              `expanding weight ${compress(inspect_fun(thing.weight))}`);
+          if (log_level__expand_and_walk)
+            lm.log(`Expanding LoRA weight  ` +
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })}`);
           
           walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
-                                                           { correct_articles: correct_articles })); // not walk!
+                                                           { correct_articles: false })); // not walk!
 
-          log(log_level__expand_and_walk,
-              `expanded weight is ${typeof walked_weight} ` +
-              `${walked_weight.constructor.name} ` +
-              `${compress(inspect_fun(walked_weight))}, ` +
-              `Array.isArray(${Array.isArray(walked_weight)})`);
+          if (log_level__expand_and_walk)
+            lm.log(`expanded LoRA weight ` +
+                   `${thing_str_repr(thing.weight,
+                                     { always_include_type_str: true, length: 200 })} is ` +
+                   `${thing_str_repr(walked_weight,
+                                     { always_include_type_str: true, length: 200 })}`);
         });
 
         const weight_match_result = json_number.match(walked_weight);
@@ -8966,9 +9160,9 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         
         throw new ThrownReturn(''); // produce nothing
       }
-      // ---------------------------------------------------------------------------------------------
+      // ------------------------ -------------------------------------------------------------------
       // uncrecognized type:
-      // ---------------------------------------------------------------------------------------------
+      // -------------------------------------------------------------------------------------------
       else {
         throw new Error(`confusing thing: ` +
                         (typeof thing === 'object'
@@ -8983,38 +9177,33 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
         throw obj;
 
       if (! obj.quiet)
-        log(log_level__expand_and_walk,
-            `walking ` +
-            `${thing_str_repr(thing)} ` + 
-            //`in ${context} ` +
-            `returned ` +
-            `${thing_str_repr(obj.value)}`);
+        if (log_level__expand_and_walk)
+          lm.log(`walking ` +
+                 `${thing_str_repr(thing, { always_include_type_str: true, length: 200})} ` + 
+                 //`in ${context} ` +
+                 `=> ` +
+                 `${thing_str_repr(obj.value, { always_include_type_str: true, length: 200 })}`);
 
       return obj.value;
     }
   }
 
-  log(log_level__expand_and_walk,
-      `Expanding wildcards in ` +
-      `${thing_str_repr(thing)} `);
+  if (log_level__expand_and_walk)
+    lm.log(`Expanding wildcards in ` +
+           `${thing_str_repr(thing, { always_include_type_str: true, length: 200 })} `);
 
   let ret;
 
   lm.indent(() => {
-    ret = unescape(smart_join(walk(thing,
-                                   { correct_articles: correct_articles }),
-                              { correct_articles: correct_articles })).replace(/^</, '');
-    // ^ this .replace call might need to only happen on outermost expand_wildcards call, maybe?
-    //   unescape probably should too.
-
-    context.munge_configuration();
+    const walked = walk(thing, { correct_articles: correct_articles })
+    ret = unescape(walked.replace(/^[<]+/, ''));
   });
-  
-  log(log_level__expand_and_walk,
-      `expanded wildcards in ` +
-      `${thing_str_repr(thing)} in ` + 
-      `returned ` +
-      `${thing_str_repr(ret)}`);
+
+  if (log_level__expand_and_walk)
+    lm.log(`expanding wildcards in ` +
+           `${thing_str_repr(thing)} ` + 
+           `=> ` +
+           `${thing_str_repr(ret, { always_include_type_str: true, length: 200 })}`);
 
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
@@ -9027,96 +9216,90 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = u
 
 
 // =================================================================================================
-// FLAG AUDITING FUNCTION.
+// SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  error:                'error',
-  warning:              'warning', 
-  allow_unsafe_guards:  'allow_unsafe_guards',
+  throw_error:       'error',
+  collect_warnings:  'warning', 
+  unsafe:            'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, noisy = false,
-                           audit_semantics_mode = audit_semantics_modes.warning } = {}) {
+                         { base_context = null, 
+                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
-    throw new Error(`bad audit_semantics args: ${abbreviate(compress(inspect_fun(arguments)))}, ` +
+    throw new Error(`bad audit_semantics args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
   const visited = new Set();
-  const already_warned_msgs = new Set();
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode) {    
-    if (typeof local_audit_semantics_mode !== 'string')
-      throw new Error(`bad walk local_audit_semantics_mode: ` +
-                      `${abbreviate(compress(inspect_fun(local_audit_semantics_mode)))}`);
+  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
+    if (typeof local_audit_semantics_mode !== 'string' ||
+        !Array.isArray(warnings_arr))
+      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
-    const log = (msg_thunk, indent = true) => {
-      if (noisy)
-        lm.log(`${local_audit_semantics_mode[0]} ${msg_thunk()}`, indent);
-    };
-    function walk_children(thing, mode) {
+    function walk_children(thing, mode, warnings_arr) {
       if (typeof mode !== 'string')
         throw new Error(`bad walk_children mode: ` +
                         `${abbreviate(compress(inspect_fun(mode)))}`);
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0) {
-        log(() => `children: ${children.map(thing_str_repr)}`);
-
-        lm.indent(() => {
-          walk(children, mode);
-        }); // propagate arg
-      }
+      if (children?.length > 0)
+        walk(children, mode, warnings_arr);      
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg) {
+    function warn_or_throw(msg, warnings_arr) {
       if (local_audit_semantics_mode instanceof Context)
         throw new Error("got Context");
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.error) {
+      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
         throw new Error(msg);
-      }
-      else if (local_audit_semantics_mode == audit_semantics_modes.warning &&
-               ! already_warned_msgs.has(msg)) {
-        lm.log(msg, false); // false arg for no indentation and not local log function
-        // already_warned_msgs.add(msg);
-      }
+      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
+        warnings_arr.push(msg);
     }
     // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag) {
+    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.allow_unsafe_guards)
+          local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set, ` +
-                    `this suggests that you may have a typo or other error in your template. ` +
-                    `${suggestion}`);
+      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+                    `Maybe this was intentional, but it could suggest that you may made have ` +
+                    `a typo or other error in your template.` +
+                    (suggestion
+                     ? ` ${suggestion}`
+                     : ''),
+                    warnings_arr);
     }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
       return;
 
     if (visited.has(thing)) {
-      log(() => `already audited ${thing.constructor.name} '${thing.toString()}'`);
+      if (log_level__audit >= 2)
+        lm.log(`already audited ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
     
     visited.add(thing);
 
-    log(() => `audit semantics in ${thing.constructor.name} ` +
-        `'${abbreviate(compress(thing.toString()), 200)}', ` +
-        `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+    if (log_level__audit >= 2)
+      lm.log(`audit semantics in ` +
+             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
+             `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
       // -------------------------------------------------------------------------------------------
@@ -9125,44 +9308,52 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode) // propagate local_audit_semantics_mode
+            walk(elem, local_audit_semantics_mode, warnings_arr)
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                        `you may not have intended to do this, check your template!`);
+                        `you may not have intended to do this, check your template!`,
+                        warnings_arr);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
       else if (thing instanceof ASTNamedWildcardReference) {
-        if (!dummy_context.named_wildcards.has(thing.name)) {
-          const known_names = Array.from(dummy_context.named_wildcards.keys());
-          const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
-        }
-        
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        lm.indent(() => walk(got, audit_semantics_mode)); // don't propagate local_audit_semantics_mode
+        if (!got) {
+          const known_names = Array.from(dummy_context.named_wildcards.keys());
+          const suggestion  = suggest_closest(thing.name, known_names);
+          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a typo or other error in your template. ` +
+                        `${suggestion}`,
+                        warnings_arr);
+        }
+        
+        // lm.indent(() =>
+        walk(got, audit_semantics_mode, warnings_arr)
+        // ); // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`);
+          warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
+                        `this suggests that you may have a made typo or other error in your ` +
+                        `template. ${suggestion}`,
+                        warnings_arr);
         }
         
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        walk(got, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+        walk(got, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9171,7 +9362,7 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9182,26 +9373,29 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe_guards
-              ? audit_semantics_modes.allow_unsafe_guards
-              : local_audit_semantics_mode; // propagate local_audit_semantics_mode
+        const mode = thing.unsafe
+              ? audit_semantics_modes.unsafe
+              : local_audit_semantics_mode;
+        // ^ propagate local_audit_semantics_mode
         
-        walk_children(thing, mode);
+        walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode); // propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode); // don't propagate local_audit_semantics_mode
+        walk_children(thing, audit_semantics_mode, warnings_arr);
+        // ^ don't propagate local_audit_semantics_mode
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9209,10 +9403,17 @@ function audit_semantics(root_ast_node,
     });
   }
 
-  walk(root_ast_node, audit_semantics_mode);
+  const warnings =  [];
+  
+  walk(root_ast_node, audit_semantics_mode, warnings);
+
+  if (log_level__audit >= 1)
+    lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
+
+  return warnings;
 }
 // =================================================================================================
-// END OF THE FLAG AUDITING FUNCTION.
+// END OF THE SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 
 
@@ -9371,6 +9572,9 @@ class ASTNamedWildcardReference extends ASTLeafNode {
     }
 
     str += this.name;
+
+    if (this.trailer)
+      str += this.trailer;
     
     return str;
   };
@@ -9394,6 +9598,9 @@ class ASTScalarReference extends ASTLeafNode {
 
     str += this.name;
     
+    if (this.trailer)
+      str += this.trailer;
+    
     return str;
   }
 }
@@ -9413,7 +9620,7 @@ class ASTScalarAssignment extends ASTNode  {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `$${this.destination} ${this.assign? '=' : '+='} ${this.destination}`;
+    return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9484,16 +9691,16 @@ class ASTLatchedNamedWildcard extends ASTNode {
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcards:
+// ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe_guards = false } = {}) {
+  constructor(options, { trailer = null, unsafe = false } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe_guards  = unsafe_guards;
+    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9507,8 +9714,8 @@ class ASTAnonWildcard extends ASTNode {
   toString() {
     let str = '';
 
-    if (this.unsafe_guards)
-      str += "unsafe_guards ";
+    if (this.unsafe)
+      str += "unsafe ";
     
     str += '{';
 
@@ -9535,11 +9742,14 @@ class ASTAnonWildcard extends ASTNode {
     
     str += '}';
     
+    if (this.trailer)
+      str += this.trailer;
+    
     return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
-// AnonWildcardsAlternative:
+// ASTAnonWildcardsAlternative:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcardAlternative extends ASTNode {
   constructor(weight, check_flags, not_flags, body) {
@@ -9571,10 +9781,12 @@ class ASTAnonWildcardAlternative extends ASTNode {
     
     for (const not of this.not_flags)
       strs.push(not.toString());
-    
-    for (const thing of this.body) {
-      strs.push(thing.toString());
-    }
+
+    if (this.body.length >= 1)
+      for (const thing of this.body)
+        strs.push(thing.toString());
+    else
+      strs.push(`ε`);
 
     str += strs.join(' ');
     
@@ -9610,7 +9822,9 @@ class ASTUpdateConfigurationUnary extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     return `%config ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+         ? this.value
+         : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9629,8 +9843,10 @@ class ASTUpdateConfigurationBinary extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%${get_our_name(this.key)} ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value) ? this.value : inspect_fun(this.value)}`;
+    return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
+      `${this.value instanceof ASTNode || Array.isArray(this.value)
+           ? this.value
+           : inspect_fun(this.value)}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9647,7 +9863,7 @@ class ASTSetPickMultiple extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-multiple = ${this.limited_content}`;
+    return `%multi-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9664,7 +9880,7 @@ class ASTSetPickSingle extends ASTNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%set-pick-single = ${this.limited_content}`;
+    return `%single-pick = ${this.limited_content}`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9676,7 +9892,7 @@ class ASTRevertPickMultiple extends ASTLeafNode {
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%revert-pick-multiple`;
+    return `%revert-pick-multi`;
   }
 }
 // -------------------------------------------------------------------------------------------------
@@ -9695,24 +9911,36 @@ class ASTRevertPickSingle extends ASTLeafNode {
 // ASTUIPrompt:
 // -------------------------------------------------------------------------------------------------
 class ASTUIPrompt extends ASTLeafNode {
-  constructor() {
+  constructor(trailer) {
     super();
+    this.trailer = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-prompt`;
+    let str = `%ui-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;
   }
 }
 // -------------------------------------------------------------------------------------------------
 // ASTUINegPrompt:
 // -------------------------------------------------------------------------------------------------
 class ASTUINegPrompt extends ASTLeafNode {
-  constructor() {
+  constructor(trailer) {
     super();
+    this.trailer = trailer;
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
-    return `%ui-neg-prompt`;
+    let str = `%ui-neg-prompt`;
+    
+    if (this.trailer)
+      str += this.trailer;
+    
+    return str;
   }
 }
 // =================================================================================================
@@ -9725,11 +9953,14 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_word_break   = r(/(?=[\s|}]|$)/)
-      .abbreviate_str_repr('structural_word_break');
+const structural_chars              = '{|}';
+const structural_word_break_ahead   = r_raw`(?=[\s${structural_chars}]|$)`
+      .abbreviate_str_repr('structural_word_break_ahead');
+const structural_close_ahead        = r(/(?=\s*})/)
+      .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
-const with_swb                = rule => head(rule, structural_word_break);
-const cutting_with_swb        = rule => cutting_head(rule, structural_word_break);
+const with_swb                = rule => head(rule, structural_word_break_ahead);
+const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -9763,22 +9994,24 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const structural_chars        = '{|}';
+const pseudo_structural_chars = '<\(\)';
 const syntax_chars            = '@#$%;';
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = additional_excluded_chars => 
-      r_raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+`;
+      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
+        raw`(?=[\s{|}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule('')
+const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
 // const plain_text_no_semis  = make_plain_text_rule(';')
 //       .abbreviate_str_repr('plain_text_no_semis');
@@ -9822,8 +10055,7 @@ const ExposedRjsonc =
 //                            return arr;
 //                          });
 const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.',
-                                       choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => [arr[0], ...arr[1]]);
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
@@ -9856,7 +10088,7 @@ const CheckFlagWithSetConsequent =
 const CheckFlagWithOrAlternatives = // last check alternative
       xform(cutting_seq(question,                // [0]
                         plus(flag_ident, comma), // [1]
-                        structural_word_break),  // [2]
+                        structural_word_break_ahead),  // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
@@ -9867,7 +10099,7 @@ const NotFlagWithSetConsequent = // last not alternative
                         flag_ident,             // [1]
                         dot_hash,               // [2]
                         flag_ident,             // [3]
-                        structural_word_break), // - 
+                        structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
                             { consequently_set_flag_tail: arr[3]}]; 
@@ -9877,11 +10109,11 @@ const NotFlagWithSetConsequent = // last not alternative
 // -------------------------------------------------------------------------------------------------
 const SetFlag =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break))
+            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break))
+            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -9934,7 +10166,7 @@ const TestFlagInAlternativeContent =
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // console.log(`ARR: ${inspect_fun(arr)}`);
+  // lm.log(`ARR: ${inspect_fun(arr)}`);
   const weight = arr[1];
 
   if (weight == 0)
@@ -9977,18 +10209,20 @@ const make_AnonWildcardAlternative_rule = content_rule =>
                 lws(optional(swb_uint, 1)),                                 
                 wst_star(choice(TestFlagInGuardPosition, discarded_comment,
                                 SetFlag, UnsetFlag)),
-                lws(wst_star(choice(TestFlagInAlternativeContent, content_rule)))));
+                flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe_guards: arr[0] == 'unsafe_guards' }),
-            seq(
-              optional('unsafe_guards'),
-              lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
-              can_have_trailer
-                ? optional_punctuation_trailer
-                : unexpected_punctuation_trailer));
+      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
+                                                 unsafe: arr[0] == 'unsafe' }),
+            seq(optional('unsafe'),
+                discarded_comments,
+                lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer)));
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        = make_AnonWildcardAlternative_rule(() => Content)
+const AnonWildcardAlternative        =
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
       .abbreviate_str_repr('AnonWildcard');
@@ -9999,12 +10233,12 @@ const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAltern
 // =================================================================================================
 const SpecialFunctionTail =
       choice(seq(discarded_comments, lws(semicolon)),
-             structural_word_break)
+             structural_word_break_ahead)
       .abbreviate_str_repr('SpecialFunctionTail');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUIPrompt =
-      xform(seq('ui-prompt', SpecialFunctionTail),
-            () => new ASTUIPrompt())
+      xform(seq('ui-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUIPrompt(arr[1]))
       .abbreviate_str_repr('SpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUIPrompt =
@@ -10018,8 +10252,8 @@ const UnexpectedSpecialFunctionUIPrompt =
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUINegPrompt =
-      xform(seq('ui-neg-prompt', SpecialFunctionTail),
-            () => new ASTUINegPrompt())
+      xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUINegPrompt(arr[1]))
       .abbreviate_str_repr('SpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const UnexpectedSpecialFunctionUINegPrompt =
@@ -10096,9 +10330,9 @@ const SpecialFunctionUpdateConfigurationBinary =
                             discarded_comments,                                     // -
                             lws(any_assignment_operator),                           // [0][1]
                             discarded_comments),                                    // -
-                        lws(choice(ExposedRjsonc,                                    // [1]
+                        lws(choice(ExposedRjsonc,                                   // [1]
                                    head(() => LimitedContent,
-                                        optional(SpecialFunctionTail))))))           // [1][1]
+                                        optional(SpecialFunctionTail))))))          // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
@@ -10244,39 +10478,26 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       choice(
         NamedWildcardReference,
         anon_wildcard_rule,
-        ...(plain_text_rule ? [ plain_text_rule ] : []),
+        plain_text_rule,
         ScalarReference,
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
       .abbreviate_str_repr('LimitedContent');
-
 const LimitedContentNoAWCTrailers =
       make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
-
-// const LimitedContentNoSemis   = make_LimitedContent_rule(plain_text_no_semis)
-//       .abbreviate_str_repr('LimitedContentNoSemis');
 // -------------------------------------------------------------------------------------------------
-// lm.log(`THIS:  ${inspect_fun(plain_text)}`);
-// lm.log(`THIS2: ${inspect_fun(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`)}`);
-
-// const malformed_token =
-//       // tokens starting with % are actually usually caught before getting here.
-//       unexpected(r_raw`[${syntax_chars}](?:(?!${structural_chars})\S)+`,
-//                  (rule, input, index, match_result) => 
-//                  new FatalParseError(`encountered malformed token: ${inspect_fun(match_result)}`, input, index));
-
-
 const make_malformed_token_rule = rule => 
       unexpected(rule,
                  (rule, input, index, match_result) => {
                    // throw new Error('bomb');
                    return new FatalParseError(`encountered malformed token: ` +
-                                              `${inspect_fun(match_result.value)}`, input, index);
+                                              `${inspect_fun(match_result.value)}`,
+                                              input,
+                                              index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
-
 const make_Content_rule       = ({ before_plain_text_rules = [],
                                    after_plain_text_rules  = [] } = {}) =>
       choice(
@@ -10291,24 +10512,21 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         SetFlag,
         ScalarAssignment,
         ScalarReference,
-        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`), // reminder, structural_chars === '{|}'
+        make_malformed_token_rule(r_raw`(?![${structural_chars}])\S+`),
+        // ^ reminder, structural_chars === '{|}'
       );
-
 // -------------------------------------------------------------------------------------------------
-// const ContentNoLoras          = make_Content_rule({
-//   after_plain_text_rules: [
-//     AnonWildcardNoLoras,
-//   ],
-// });
-const Content                 = make_Content_rule({
+const ContentInAnonWildcardAlternative = make_Content_rule({
   before_plain_text_rules: [
+    end_quantified_match_if(structural_close_ahead),
     A1111StyleLora,
+    TestFlagInAlternativeContent,
     AnonWildcard,
   ],
   after_plain_text_rules:  [
   ],
 });
-const TopLevelContent         = make_Content_rule({
+const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
@@ -10320,10 +10538,8 @@ const TopLevelContent         = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-// const ContentNoLorasStar      = wst_star(ContentNoLoras);
-const ContentStar             = wst_star(Content);
-const TopLevelContentStar     = wst_star(TopLevelContent);
-const Prompt                  = tws(TopLevelContentStar);
+const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
 // =================================================================================================
@@ -10340,7 +10556,8 @@ Prompt.finalize();
 // MAIN SECTION: all of the Draw Things-specific code goes down here.
 // -------------------------------------------------------------------------------------------------
 // fallback prompt to be used if no wildcards are found in the UI prompt:
-const fallback_prompt     = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a {ball|?cat catnip toy|?dog bone}';
+const fallback_prompt     = 'A {2 #cat cat|#dog dog} in a {field|2 kitchen} playing with a ' +
+      '{ball|?cat catnip toy|?dog bone}';
 const ui_prompt           = pipeline.prompts.prompt;
 const ui_neg_prompt       = pipeline.prompts.negativePrompt;
 const ui_hint             = "";
@@ -10526,20 +10743,20 @@ try {
   }
 
   LOG_LINE();
-  lm.log('Job complete. Open the console to see the job report.');
+  lm.log(`Job complete. Open the console to see the job report.`);
 }
 catch(ex) {
   if (ex instanceof Error) {
     if (ex.message === 'cancelled')
-      lm.log(`Cancelled.`);
+      lm.error(`Cancelled.`);
     else
-      lm.log(`wildcards-plus caught a fatal exception, ` +
-             `click here to open the console for more details\n\n` + 
-             `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
+      lm.error(`wildcards-plus caught a fatal exception, ` +
+               `click here to open the console for more details\n\n` + 
+               `exception:\n${ex}\n\nstack trace:\n${ex.stack}`);
   } else {
-    lm.log(`wildcards-plus caught a fatal exception, ` +
-           `click here to open the console for more details\n` +
-           `exception:\n${inspect_fun(ex)}`);
+    lm.error(`wildcards-plus caught a fatal exception, ` +
+             `click here to open the console for more details\n` +
+             `exception:\n${inspect_fun(ex)}`);
   }
 }
 // =================================================================================================
