@@ -10270,7 +10270,6 @@ const make_plain_text_rule = (additional_excluded_initial_chars    = '',
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-lm.log(make_plain_text_char_RegExp_source_str(`${syntax_chars};`));
 const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`, `;`)
       .abbreviate_str_repr('plain_text_no_semis');
 const plain_text           = make_plain_text_rule(`${syntax_chars}`)
