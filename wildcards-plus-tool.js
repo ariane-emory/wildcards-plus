@@ -3631,15 +3631,25 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const left_collapsible_punctuation   = ",.;!?";
-    const right_collapsible_punctuation  = ",.;!?";
+    const right_collapsible_punctuation  = ",.;!?)";
     
     const collapse_punctuation = () => {
       while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
         move_chars_left(3);
-      
-      while (left_collapsible_punctuation.includes(prev_char) &&
-             right_collapsible_punctuation.includes(next_char))
-        move_chars_left(1);
+
+      const test = () =>
+            left_collapsible_punctuation.includes(prev_char) &&
+            right_collapsible_punctuation.includes(next_char);
+
+      if (test()) {
+        while (test()) {
+          lm.log(`collapsing ${prev_char} =- ${next_char}`);
+          move_chars_left(1);
+        }
+      }
+      else {
+        lm.log(`not collapsing`);
+      }
     }
 
     update_pos_vars();
