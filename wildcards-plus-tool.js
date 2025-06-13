@@ -3502,11 +3502,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       typeof correct_articles !== 'boolean')
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
   
-  const maybe_trap = ()  => {
-    if (smart_join_trap_counter === smart_join_trap_target)
+  const maybe_trap = () => {
+    if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-    else
-      smart_join_trap_counter += 1;
   }
   
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
@@ -3515,13 +3513,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   
   maybe_trap();
   
-  if (! arr || typeof arr === 'string')
-    return arr;
-
   arr = arr.flat(Infinity).filter(x=> x);
-
-  // if (arr.includes("''") || arr.includes('""'))
-  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
 
   if (arr.length === 0) 
     return '';
@@ -3559,7 +3551,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`CHOMP LEFT!`);
       
-      str      = str.slice(0, -1);
+      str       = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
       
       update_pos_vars();
@@ -3615,17 +3607,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
             left_collapsible_punctuation_chars.includes(prev_char) &&
             right_collapsible_punctuation_chars.includes(next_char);
 
-      if (test()) {
+      if (test()) 
         while (test()) {
           if (log_level__smart_join >= 2)
             lm.log(`collapsing ${prev_char} =- ${next_char}`);
           move_chars_left(1);
         }
-      }
-      else {
-        if (log_level__smart_join >= 2)
-          lm.log(`not collapsing`);
-      }
+      else if (log_level__smart_join >= 2)
+        lm.log(`not collapsing`);
     }
 
     update_pos_vars();
