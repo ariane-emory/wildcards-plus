@@ -10258,7 +10258,7 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${additional_excluded_chars}${structural_chars}]|` +
+      raw`[\s${additional_excluded_chars}${structural_chars}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
@@ -10268,10 +10268,10 @@ const make_plain_text_rule = additional_excluded_chars =>
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-lm.log(make_plain_text_char_RegExp_source_str(';'));
-const plain_text_no_semis  = make_plain_text_rule(';')
+lm.log(make_plain_text_char_RegExp_source_str(`${syntax_chars};`));
+const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`)
       .abbreviate_str_repr('plain_text_no_semis');
-const plain_text           = make_plain_text_rule()
+const plain_text           = make_plain_text_rule(`${syntax_chars}`)
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
