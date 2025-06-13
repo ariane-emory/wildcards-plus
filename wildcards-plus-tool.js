@@ -3700,12 +3700,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomped = true;
     }
 
-    // excessive?
-    // if (str.endsWith('<')) {
-    //   chomp_left_side();
-    //   chomped = true;
-    // }
-
     if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
@@ -3733,9 +3727,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (log_level__smart_join >= 2)
       lm.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-    // if (right_word === '""' || right_word === "''")
-    //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
 
     left_word  = right_word;
     str       += left_word;
