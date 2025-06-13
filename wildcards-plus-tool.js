@@ -3521,12 +3521,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return arr[0];
 
   // handle "a" → "an" if necessary:
-  const articleCorrection = (originalArticle, nextWord) => {
-    const expected = choose_indefinite_article(nextWord);
-    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-      return originalArticle === 'A' ? 'An' : 'an';
+  const article_correction = (original_article, next_word) => {
+    const expected = choose_indefinite_article(next_word);
+    if (original_article.toLowerCase() === 'a' && expected === 'an') {
+      return original_article === 'A' ? 'An' : 'an';
     }
-    return originalArticle;
+    return original_article;
   };
   
   let   str                                  = arr[0];
@@ -3575,12 +3575,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
-      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str = right_word.substring(0, n);
+      const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str    = right_word.substring(0, n);
 
       arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
+      str       = str.substring(0, str.length - overcut_length) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
       
       update_pos_vars();
     };
@@ -3625,11 +3625,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     update_pos_vars();
     
-    if (right_word === '<') {
-      str       += '<';
-      left_word += '<';
-      continue;
-    }
+    // if (right_word === '<') {
+    //   str       += '<';
+    //   left_word += '<';
+    //   continue;
+    // }
 
     // collapse_punctuation();
     
@@ -3638,11 +3638,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       const article_match = str.match(/(?:^|\s)([Aa])$/);
       
       if (article_match) {
-        const originalArticle = article_match[1];
-        const updatedArticle = articleCorrection(originalArticle, right_word);
+        const original_article = article_match[1];
+        const updated_article  = article_correction(original_article, right_word);
 
-        if (updatedArticle !== originalArticle) 
-          str = str.slice(0, -originalArticle.length) + updatedArticle;
+        if (update_aArticle !== original_article) 
+          str = str.slice(0, -original_article.length) + updated_article;
       }
     }
 
@@ -3654,6 +3654,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (right_word.startsWith('<'))
       chomp_right_side();
 
+    // this case may be impossible now?
     // if (right_word === '') {
     //   if (log_level__smart_join >= 2)
     //     lm.log(`JUMP EMPTY (LATE)!`, true);
@@ -3672,7 +3673,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !linking_chars.includes                       (next_char) &&
         !'(['.includes(prev_char))
       add_a_space();
-
 
     if (log_level__smart_join >= 2)
       lm.log(`CONSUME ${inspect_fun(right_word)}!`);
