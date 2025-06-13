@@ -3647,10 +3647,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         continue;
       }
 
-      const linking_chars                  = "_-";      
-      const left_collapsible_punctuation_chars   = ",.;!?";
-      const punctuation_chars              = ",.;!?:";
-      const right_collapsible_punctuation_chars  = ",.;!?:])";
+      const linking_chars                       = "_-";      
+      const left_collapsible_punctuation_chars  = ",.;!?";
+      const right_collapsible_punctuation_chars = ",.;!?:])";
       
       collapse_punctuation();
       
@@ -3693,13 +3692,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
       if (false) { // just for reference
         const linking_chars                        = "_-";      
-        const punctuation_chars                    = ",.;!?:";
         const left_collapsible_punctuation_chars   = ",.;!?";
         const right_collapsible_punctuation_chars  = ",.;!?:])";
       }
       
       if (!chomped &&
-          !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+          !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
           !right_word.startsWith('\\n')                             &&
           !right_word.startsWith('\\ ')                             && 
           !right_collapsible_punctuation_chars.includes (next_char) && 
@@ -3708,19 +3706,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           !'(['.includes(prev_char))
         add_a_space();
 
-      collapse_punctuation();
+      // collapse_punctuation();
 
-      // const consume_right_word = () =>
-      {
-        if (log_level__smart_join >= 2)
-          lm.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-        // if (right_word === '""' || right_word === "''")
-        //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-        str       += right_word;
-      }
-
-      // consume_right_word();
+      if (log_level__smart_join >= 2)
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+      
+      str       += right_word;
     }
     finally {
       left_word  = right_word;
