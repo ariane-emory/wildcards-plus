@@ -3566,8 +3566,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`SPACE!`);
 
-      prev_char  = ' ';
-      str       += ' ';
+      prev_char            = ' ';
+      prev_char_is_escaped = false;
+      str                 += ' ';
     }
 
     const chomp_left_side = () => {
@@ -3636,10 +3637,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     const munch_whitespace = () => {
       if (next_char === ' ') {
         lm.log(`enter, nc = ${inspect_fun(next_char)}`);
-        while (next_char === ' ') {
-          lm.log(`MUNCH!`);
-          chomp_right_side();
-        }
+        lm.indent(() => {
+          while (next_char === ' ') {
+            lm.log(`MUNCH!`);
+            chomp_right_side();
+          }
+        });
         lm.log(`leave, nc = ${inspect_fun(next_char)}`);
       }
     }
@@ -3648,25 +3651,21 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       while  (left_collapsible_punctuation.includes(prev_char) &&
               right_word.startsWith('...'))
         move_chars_left(3);
-      
-      while (left_collapsible_punctuation.includes(prev_char) &&
-             next_char &&
-             right_collapsible_punctuation.includes(next_char))
-        move_chars_left(1);
+
+      const test = () => (left_collapsible_punctuation.includes(prev_char) &&
+                          next_char &&
+                          right_collapsible_punctuation.includes(next_char));
+      if (test) 
+        while (test()) {
+          lm.log(`collapse punctuation!`);
+          move_chars_left(1);
+        }
+      else
+        lm.log(`not collapsing`);
     }
 
     update_pos_vars();
-    munch_whitespace();
 
-    if (
-      str.includes("  ")
-      // left_word.startsWith(' ') ||
-      //   left_word.endsWith(' ') ||
-      //   right_word.startsWith(' ') ||
-      //   right_word.endsWith(' ')
-    )
-      throw new Error("stop");
-    
     if (right_word === '') {
       if (log_level__smart_join >= 2)
         lm.log(`JUMP EMPTY!`, true);
@@ -3679,6 +3678,16 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
+    // if (
+    //   str.includes("  ")
+    //   // left_word.startsWith(' ') ||
+    //   //   left_word.endsWith(' ') ||
+    //   //   right_word.startsWith(' ') ||
+    //   //   right_word.endsWith(' ')
+    // )
+    //   throw new Error("stop");
+    
+    munch_whitespace();
     collapse_punctuation();
     munch_whitespace();
     
@@ -3720,6 +3729,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
+
+    collapse_punctuation();
+    
     if (!chomped &&
         !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
         !right_word.startsWith('\\n')       &&
