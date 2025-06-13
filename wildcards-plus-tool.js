@@ -3533,11 +3533,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => "_-".includes(ch);
-  // const whitep       = (ch)  => " \n".includes(ch);
-  
   // handle "a" → "an" if necessary:
   const articleCorrection = (originalArticle, nextWord) => {
     const expected = choose_indefinite_article(nextWord);
@@ -3619,6 +3614,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
                    `next_char_is_escaped = ${next_char_is_escaped}`, true));
       };
 
+      const punctuation_chars              = ",.?!;:";
+      const linking_chars                  = "_-";      
       const left_collapsible_punctuation   = ",.;!?";
       const right_collapsible_punctuation  = ",.;:!?)";
       
@@ -3698,10 +3695,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
           !right_word.startsWith('\\n') &&
           !right_word.startsWith('\\ ') && 
-          !punctuationp (next_char)     && 
-          !linkingp     (prev_char)     &&
-          !linkingp     (next_char)     &&
-          !'(['.includes(prev_char)     && 
+          !punctuation_chars.includes (next_char)     && 
+          !linking_chars.includes     (prev_char)     &&
+          !linking_chars.includes     (next_char)     &&
+          !'(['.includes(prev_char)                   && 
           !'])'.includes(next_char))
         add_a_space();
 
