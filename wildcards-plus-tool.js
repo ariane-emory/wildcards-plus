@@ -3643,7 +3643,18 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         lm.log(`leave, nc = ${inspect_fun(next_char)}`);
       }
     }
-    
+
+    const collapse_punctuation = () => {
+      while  (left_collapsible_punctuation.includes(prev_char) &&
+              right_word.startsWith('...'))
+        move_chars_left(3);
+      
+      while (left_collapsible_punctuation.includes(prev_char) &&
+             next_char &&
+             right_collapsible_punctuation.includes(next_char))
+        move_chars_left(1);
+    }
+
     update_pos_vars();
     munch_whitespace();
 
@@ -3668,15 +3679,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
     }
 
-    while  (left_collapsible_punctuation.includes(prev_char) &&
-            right_word.startsWith('...'))
-      move_chars_left(3);
-    
-    while (left_collapsible_punctuation.includes(prev_char) &&
-           next_char &&
-           right_collapsible_punctuation.includes(next_char))
-      move_chars_left(1);
-
+    collapse_punctuation();
     munch_whitespace();
     
     // Normalize article if needed:
@@ -3692,40 +3695,40 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       }
     }
 
-      let chomped = false;
+    let chomped = false;
 
-      if (!prev_char_is_escaped && prev_char === '<') {
-        chomp_left_side();
-        chomped = true;
-      }
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
 
-      // excessive?
-      // if (str.endsWith('<')) {
-      //   chomp_left_side();
-      //   chomped = true;
-      // }
+    // excessive?
+    // if (str.endsWith('<')) {
+    //   chomp_left_side();
+    //   chomped = true;
+    // }
 
-      if (right_word.startsWith('<')) {
-        chomp_right_side();
-        chomped = true;
-      }
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
+    }
 
-      if (right_word === '') {
-        if (log_level__smart_join >= 2)
-          lm.log(`JUMP EMPTY (LATE)!`, true);
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(`JUMP EMPTY (LATE)!`, true);
 
-        continue;
-      }
+      continue;
+    }
 
-      if (!chomped &&
-          !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !right_word.startsWith('\\n')       &&
-          !right_word.startsWith('\\ ')       && 
-          !spaceless_punctuationp (next_char) && 
-          !linkingp     (prev_char)           &&
-          !linkingp     (next_char)           &&
-          !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-          !'([])'.substring(2,4).includes(next_char))
+    if (!chomped &&
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n')       &&
+        !right_word.startsWith('\\ ')       && 
+        !spaceless_punctuationp (next_char) && 
+        !linkingp     (prev_char)           &&
+        !linkingp     (next_char)           &&
+        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
+        !'([])'.substring(2,4).includes(next_char))
       add_a_space();
 
     consume_right_word();
