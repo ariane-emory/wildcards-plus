@@ -3613,10 +3613,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
             right_collapsible_punctuation_chars.includes(next_char);
 
       if (test()) {
-        while (test()) {
+        do {
           lm.log(`collapsing ${prev_char} =- ${next_char}`);
           move_chars_left(1);
-        }
+        } while (test());
       }
       else {
         lm.log(`not collapsing`);
