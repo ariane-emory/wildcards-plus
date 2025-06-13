@@ -3574,7 +3574,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`CHOMP LEFT!`);
       
-      str      = str.slice(0, -1);
+      str       = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
       
       update_pos_vars();
@@ -3696,11 +3696,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomp_left_side();
       chomped = true;
     }
-    
-    if (str.endsWith('<')) {
-      chomp_left_side();
-      chomped = true;
-    }
+
+    // excessive?
+    // if (str.endsWith('<')) {
+    //   chomp_left_side();
+    //   chomped = true;
+    // }
 
     if (right_word.startsWith('<')) {
       chomp_right_side();
