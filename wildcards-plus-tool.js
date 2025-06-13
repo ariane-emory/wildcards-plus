@@ -3620,14 +3620,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_level__smart_join >= 2)
-        lm.log(`ix = ${inspect_fun(ix)}, ` +
-               `str = ${inspect_fun(str)}, ` +
-               `left_word = ${inspect_fun(left_word)}, ` +         
-               `right_word = ${inspect_fun(right_word)}, ` +       
-               `prev_char = ${inspect_fun(prev_char)}, ` +         
-               `next_char = ${inspect_fun(next_char)}, ` + 
-               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`, true);
+        lm.indent(() => 
+          lm.log(`ix = ${inspect_fun(ix)}, \n` +
+                 `str = ${inspect_fun(str)}, \n` +
+                 `left_word = ${inspect_fun(left_word)}, ` +         
+                 `right_word = ${inspect_fun(right_word)}, ` +       
+                 `prev_char = ${inspect_fun(prev_char)}, ` +         
+                 `next_char = ${inspect_fun(next_char)}, ` + 
+                 `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                 `next_char_is_escaped = ${next_char_is_escaped}`, true));
     };
 
     const left_collapsible_punctuation   = ",.;!?";
@@ -11111,7 +11112,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = true;
+let main_disabled = false;
 
 if (! main_disabled)
   main().catch(err => {
@@ -11123,8 +11124,8 @@ if (! main_disabled)
 // =================================================================================================
 // lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
 
-lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
-                      { length: Infinity }));
+// lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
+//                       { length: Infinity }));
 
 // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
