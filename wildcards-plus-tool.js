@@ -10258,7 +10258,7 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
+      raw`[\s${syntax_chars}${additional_excluded_chars}${structural_chars}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
