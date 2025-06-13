@@ -3654,19 +3654,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (right_word.startsWith('<'))
       chomp_right_side();
 
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
+    // if (right_word === '') {
+    //   if (log_level__smart_join >= 2)
+    //     lm.log(`JUMP EMPTY (LATE)!`, true);
 
-      continue;
-    }
+    //   continue;
+    // }
 
-    if (false) { // just for reference
-      const linking_chars                        = "_-";      
-      const punctuation_chars                    = ",.;!?:";
-      const left_collapsible_punctuation_chars   = ",.;!?";
-      const right_collapsible_punctuation_chars  = ",.;!?:])";
-    }
+    collapse_punctuation();
     
     if (!chomped &&
         !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
@@ -3678,7 +3673,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !'(['.includes(prev_char))
       add_a_space();
 
-    collapse_punctuation();
 
     if (log_level__smart_join >= 2)
       lm.log(`CONSUME ${inspect_fun(right_word)}!`);
