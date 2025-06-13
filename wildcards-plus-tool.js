@@ -3873,6 +3873,11 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
                                  always_include_type_str = false } = {}) {
+  // lm.log(`length: ${inspect_fun(length)}`);
+
+  // if (length === 100)
+  //   throw new Error("stop");
+  
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3891,7 +3896,9 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
       type_str  = '';
   }
   else if (Array.isArray(thing)) {
-    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
+    thing_str =
+      abbreviate(compress(thing.map(x => thing_str_repr(x, { length: length })).toString()),
+                 true, length);
   }
   else if (typeof thing === 'string') {
     return thing.length === 0
@@ -3900,7 +3907,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
   }
   else if (typeof thing === 'object') {
     try {
-      thing_str = abbreviate(compress(inspect_fun(thing)));
+      thing_str = abbreviate(compress(inspect_fun(thing)), true, length);
     } catch {
       thing_str = thing.toString(); // fallback
     }
@@ -11104,7 +11111,7 @@ async function main() {
   LOG_LINE('=');
 }
 // -------------------------------------------------------------------------------------------------
-let main_disabled = false;
+let main_disabled = true;
 
 if (! main_disabled)
   main().catch(err => {
@@ -11115,3 +11122,9 @@ if (! main_disabled)
 // END OF MAIN SECTION.
 // =================================================================================================
 // lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
+
+lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
+                      { length: Infinity }));
+
+// lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
+
