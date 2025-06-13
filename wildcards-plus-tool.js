@@ -10267,8 +10267,9 @@ const make_plain_text_rule = (additional_excluded_initial_chars    = '',
                               additional_excluded_subsequent_chars = '') => 
       r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
         raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
-        raw`(?=[\s{|}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
+        raw`(?=[\s${structural_chars}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`); 
+//      ^ sus, won't 1st/2nd part of regex have already eaten these?
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`, `;`)
       .abbreviate_str_repr('plain_text_no_semis');
