@@ -3520,15 +3520,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  // handle "a" → "an" if necessary:
-  const article_correction = (original_article, next_word) => {
-    const expected = choose_indefinite_article(next_word);
-    if (original_article.toLowerCase() === 'a' && expected === 'an') {
-      return original_article === 'A' ? 'An' : 'an';
-    }
-    return original_article;
-  };
-  
   const linking_chars                        = "_-";      
   const left_collapsible_punctuation_chars   = "_-,.;!?";
   const right_collapsible_punctuation_chars  = "_-,.;!?:])";
@@ -3632,16 +3623,36 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     // }
 
     // collapse_punctuation();
+
+    // handle "a" → "an" if necessary:
+    const article_correction = (original_article, next_word) => {
+      const chose = choose_indefinite_article(next_word);
+
+      lm.log(`original: ${original_article}, chose: ${chose}`);
+      
+      const lower_original = original_article.toLowerCase();
+
+      if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose) {
+        return original_article[0] === original_article[0].toUpperCase()
+          ? chose[0].toUpperCase() + chose.slice(1)
+          : chose;
+      }
+
+      return original_article;
+    };
     
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
       
       if (article_match) {
-        lm.log(`ARTICLE_MATCH: ${inspect_fun(article_match)}`);
+        lm.log(`ARTICLE_MATCH:   ${inspect_fun(article_match)}`);
+
         const original_article = article_match[1];
         const updated_article  = article_correction(original_article, right_word);
 
+        lm.log(`UPDATED_ARTICLE: ${inspect_fun(updated_article)}`);
+        
         if (updated_article !== original_article) 
           str = str.slice(0, -original_article.length) + updated_article;
       }
