@@ -3515,9 +3515,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   
   arr = arr.flat(Infinity).filter(x=> x);
 
-  // if (arr.includes("''") || arr.includes('""'))
-  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
-
   if (arr.length === 0) 
     return '';
   else if (arr.length === 1)
@@ -3532,9 +3529,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return originalArticle;
   };
   
-  let str        = arr[0];
-  let left_word  = str;  
-
+  let str                                    = arr[0];
+  let left_word                              = str;  
+  const linking_chars                        = "_-";      
+  const left_collapsible_punctuation_chars   = ",.;!?";
+  const right_collapsible_punctuation_chars  = ",.;!?:])";
+ 
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
     let prev_char            = null;
@@ -3623,23 +3623,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     update_pos_vars();
     
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY!`, true);
-
-      continue;
-    }
-
     if (right_word === '<') {
-      str += '<';
+      str       += '<';
+      left_word += '<';
       continue;
     }
 
-    const linking_chars                  = "_-";      
-    const left_collapsible_punctuation_chars   = ",.;!?";
-    const punctuation_chars              = ",.;!?:";
-    const right_collapsible_punctuation_chars  = ",.;!?:])";
-    
     collapse_punctuation();
     
     // Normalize article if needed:
@@ -3662,10 +3651,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomped = true;
     }
     
-    if (str.endsWith('<')) {
-      chomp_left_side();
-      chomped = true;
-    }
+    // if (str.endsWith('<')) {
+    //   chomp_left_side();
+    //   chomped = true;
+    // }
 
     if (right_word.startsWith('<')) {
       chomp_right_side();
