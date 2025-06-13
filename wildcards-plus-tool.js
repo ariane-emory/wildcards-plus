@@ -3624,6 +3624,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     // collapse_punctuation();
 
+    let chomped = false;
+
+    if (!prev_char_is_escaped && prev_char === '<')
+      chomp_left_side();
+    
+    if (right_word.startsWith('<'))
+      chomp_right_side();
+
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
@@ -3645,14 +3653,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
-
-    let chomped = false;
-
-    if (!prev_char_is_escaped && prev_char === '<')
-      chomp_left_side();
-    
-    if (right_word.startsWith('<'))
-      chomp_right_side();
 
     // this case may be impossible now?
     // if (right_word === '') {
