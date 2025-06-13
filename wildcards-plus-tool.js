@@ -3609,7 +3609,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
       if (log_level__smart_join >= 2)
-        lm.indent(() => 
+                                   lm.indent(() => 
           lm.log(`ix = ${inspect_fun(ix)}, \n` +
                  `str = ${inspect_fun(str)}, \n` +
                  `left_word = ${inspect_fun(left_word)}, ` +         
@@ -3648,12 +3648,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`JUMP EMPTY!`, true);
 
-      continue;
+      left_word = right_word; continue;
     }
 
     if (right_word === '<') {
       str += '<';
-      continue;
+      left_word = right_word; continue;
     }
 
     collapse_punctuation();
@@ -3692,7 +3692,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       if (log_level__smart_join >= 2)
         lm.log(`JUMP EMPTY (LATE)!`, true);
 
-      continue;
+      left_word = right_word; continue;
     }
 
     if (!chomped &&
