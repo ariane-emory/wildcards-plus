@@ -3630,14 +3630,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const left_collapsible_punctuation   = ",.;!?";
-    const right_collapsible_puunctuation = ",.;!?";
+    const right_collapsible_punctuation  = ",.;!?";
+    
     const collapse_punctuation = () => {
       while  (left_collapsible_punctuation.includes(prev_char) && right_word.startsWith('...'))
         move_chars_left(3);
       
       while (left_collapsible_punctuation.includes(prev_char) &&
-             next_char &&
-             right_collapsible_puunctuation.includes(next_char))
+             right_collapsible_punctuation.includes(next_char))
         move_chars_left(1);
     }
 
@@ -10988,7 +10988,10 @@ async function main() {
     context.reset_temporaries(); // probably unnecessary?
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
-    // log_level__expand_and_walk = 2;
+    const old_log_level__smart_join      = log_level__smart_join
+
+    log_level__expand_and_walk = 2;
+    log_level__smart_join = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
@@ -10996,6 +10999,7 @@ async function main() {
     context.munge_configuration(); // for good measure...
 
     log_level__expand_and_walk = old_log_level__expand_and_walk;
+    log_level__smart_join      = old_log_level__expand_and_walk;
     
     if (! is_empty_object(context.configuration)) {
       LOG_LINE();
