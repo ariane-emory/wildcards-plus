@@ -1978,7 +1978,7 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, normalize_newlines = true, len = 100) {
+function abbreviate(str, normalize_newlines = true, length = 100) {
   if (typeof str !== 'string')
     throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
 
@@ -1988,7 +1988,7 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   // str = compress(str);
   
-  if (str.length < len)
+  if (str.length < length)
     return str;
 
   const bracing_pairs = [
@@ -2004,12 +2004,12 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   for (const [left, right] of bracing_pairs) {
     if (str.startsWith(left) && str.endsWith(right)) {
-      const inner = str.substring(left.length, len - 3 - right.length);
+      const inner = str.substring(left.length, length - 3 - right.length);
       return `${left}${inner.trim()}...${right}`;
     }
   }
 
-  return `${str.substring(0, len - 3).trim()}...`;
+  return `${str.substring(0, length - 3).trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
