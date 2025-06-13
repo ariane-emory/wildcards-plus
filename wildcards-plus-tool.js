@@ -3739,7 +3739,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     left_word  = right_word;
     str       += left_word;
-
   }
 
   if (log_level__smart_join >= 1)
