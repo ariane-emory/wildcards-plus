@@ -3587,17 +3587,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       update_pos_vars();
     }
 
-    const consume_right_word = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-      // if (right_word === '""' || right_word === "''")
-      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-
-      left_word  = right_word;
-      str       += left_word;
-    }
-
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
@@ -3713,11 +3702,23 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !punctuationp (next_char)     && 
         !linkingp     (prev_char)     &&
         !linkingp     (next_char)     &&
-        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-        !'([])'.substring(2,4).includes(next_char))
+        !'(['.includes(prev_char)     && 
+        !'])'.includes(next_char))
       add_a_space();
 
     collapse_punctuation();
+
+    const consume_right_word = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+      // if (right_word === '""' || right_word === "''")
+      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
+
+      left_word  = right_word;
+      str       += left_word;
+    }
+
     consume_right_word();
   }
 
