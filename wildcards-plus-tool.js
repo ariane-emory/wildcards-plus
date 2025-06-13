@@ -3626,15 +3626,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     let chomped = false;
 
-    if (!prev_char_is_escaped && prev_char === '<')
+    while (!prev_char_is_escaped && prev_char === '<')
       chomp_left_side();
     
-    if (right_word.startsWith('<'))
+    while (right_word.startsWith('<'))
       chomp_right_side();
 
     // correct article if needed:
-    if (correct_articles) {
-      const article_match = left_word.match(/(?:^|\s)([Aa]n?)$/);
+    if (correct_articles && !chomped) {
+      const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
         const original_article = article_match[1];
