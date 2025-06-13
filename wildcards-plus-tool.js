@@ -3587,17 +3587,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       update_pos_vars();
     }
 
-    const consume_right_word = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
-
-      // if (right_word === '""' || right_word === "''")
-      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-
-      left_word  = right_word;
-      str       += left_word;
-    }
-
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
@@ -3648,9 +3637,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           move_chars_left(1);
         }
       }
-      else {
-        lm.log(`not collapsing`);
-      }
+      // else {
+      //   lm.log(`not collapsing`);
+      // }
     }
 
     update_pos_vars();
@@ -3718,7 +3707,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       add_a_space();
 
     collapse_punctuation();
-    consume_right_word();
+
+    if (log_level__smart_join >= 2)
+      lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+
+    str       += right_word;
   }
 
   if (log_level__smart_join >= 1)
