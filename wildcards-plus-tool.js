@@ -3543,169 +3543,167 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
   
   let str = arr[0];
+  let left_word  = str;  
 
   for (let ix = 1; ix < arr.length; ix++)  {
-    let left_word  = str;  
-    let right_word = null;
+    let right_word           = null;
+    let prev_char            = null;
+    let prev_char_is_escaped = null;
+    let next_char_is_escaped = null;
+    let next_char            = null;
 
-    try {
-      let prev_char            = null;
-      let prev_char_is_escaped = null;
-      let next_char_is_escaped = null;
-      let next_char            = null;
+    const add_a_space = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(`SPACE!`);
 
-      const add_a_space = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(`SPACE!`);
+      prev_char  = ' ';
+      str       += ' ';
+    }
 
-        prev_char  = ' ';
-        str       += ' ';
-      }
-
-      const chomp_left_side = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(`CHOMP LEFT!`);
-        
-        str      = str.slice(0, -1);
-        left_word = left_word.slice(0, -1);
-        
-        update_pos_vars();
-      };
+    const chomp_left_side = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(`CHOMP LEFT!`);
       
-      const chomp_right_side = () => {
-        if (log_level__smart_join >= 2)
-          lm.log(`CHOMP RIGHT!`);
-
-        arr[ix] = arr[ix].slice(1);
-
-        update_pos_vars();
-      }
-
-      const move_chars_left = (n) => {
-        if (log_level__smart_join >= 2)
-          lm.log(`SHIFT ${n} CHARACTERS!`, true);
-
-        const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-        const shifted_str = right_word.substring(0, n);
-
-        arr[ix]   = right_word.substring(n);
-        str       = str.substring(0, str.length - overcut) + shifted_str;
-        left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-        
-        update_pos_vars();
-      };
+      str      = str.slice(0, -1);
+      left_word = left_word.slice(0, -1);
       
-      const update_pos_vars = () => {
-        right_word           = arr[ix]; // ?.toString() ?? "";
-        prev_char            = left_word[left_word.length - 1] ?? "";
-        prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-        next_char_is_escaped = right_word[0] === '\\';
-        next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
+      update_pos_vars();
+    };
+    
+    const chomp_right_side = () => {
+      if (log_level__smart_join >= 2)
+        lm.log(`CHOMP RIGHT!`);
 
-        if (log_level__smart_join >= 2)
-          lm.indent(() => 
-            lm.log(`ix = ${inspect_fun(ix)}, \n` +
-                   `str = ${inspect_fun(str)}, \n` +
-                   `left_word = ${inspect_fun(left_word)}, ` +         
-                   `right_word = ${inspect_fun(right_word)}, \n` + 
-                   `prev_char = ${inspect_fun(prev_char)}, ` +         
-                   `next_char = ${inspect_fun(next_char)}, \n` + 
-                   `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-                   `next_char_is_escaped = ${next_char_is_escaped}`, true));
-      };
-
-      const collapse_punctuation = () => {
-        while  (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
-          move_chars_left(3);
-
-        const test = () =>
-              left_collapsible_punctuation_chars.includes(prev_char) &&
-              right_collapsible_punctuation_chars.includes(next_char);
-
-        if (test()) {
-          while (test()) {
-            lm.log(`collapsing ${prev_char} =- ${next_char}`);
-            move_chars_left(1);
-          }
-        }
-        else {
-          lm.log(`not collapsing`);
-        }
-      }
+      arr[ix] = arr[ix].slice(1);
 
       update_pos_vars();
+    }
+
+    const move_chars_left = (n) => {
+      if (log_level__smart_join >= 2)
+        lm.log(`SHIFT ${n} CHARACTERS!`, true);
+
+      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+      const shifted_str = right_word.substring(0, n);
+
+      arr[ix]   = right_word.substring(n);
+      str       = str.substring(0, str.length - overcut) + shifted_str;
+      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
       
-      if (right_word === '') {
-        if (log_level__smart_join >= 2)
-          lm.log(`JUMP EMPTY!`, true);
+      update_pos_vars();
+    };
+    
+    const update_pos_vars = () => {
+      right_word           = arr[ix]; // ?.toString() ?? "";
+      prev_char            = left_word[left_word.length - 1] ?? "";
+      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
+      next_char_is_escaped = right_word[0] === '\\';
+      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
 
-        continue;
-      }
+      if (log_level__smart_join >= 2)
+        lm.indent(() => 
+          lm.log(`ix = ${inspect_fun(ix)}, \n` +
+                 `str = ${inspect_fun(str)}, \n` +
+                 `left_word = ${inspect_fun(left_word)}, ` +         
+                 `right_word = ${inspect_fun(right_word)}, \n` + 
+                 `prev_char = ${inspect_fun(prev_char)}, ` +         
+                 `next_char = ${inspect_fun(next_char)}, \n` + 
+                 `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
+                 `next_char_is_escaped = ${next_char_is_escaped}`, true));
+    };
 
-      if (right_word === '<') {
-        str += '<';
-        continue;
-      }
+    const collapse_punctuation = () => {
+      while  (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
+        move_chars_left(3);
 
-      const linking_chars                  = "_-";      
-      const left_collapsible_punctuation_chars   = ",.;!?";
-      const punctuation_chars              = ",.;!?:";
-      const right_collapsible_punctuation_chars  = ",.;!?:])";
-      
-      collapse_punctuation();
-      
-      // Normalize article if needed:
-      if (correct_articles) {
-        const article_match = str.match(/(?:^|\s)([Aa])$/);
-        
-        if (article_match) {
-          const originalArticle = article_match[1];
-          const updatedArticle = articleCorrection(originalArticle, right_word);
+      const test = () =>
+            left_collapsible_punctuation_chars.includes(prev_char) &&
+            right_collapsible_punctuation_chars.includes(next_char);
 
-          if (updatedArticle !== originalArticle) 
-            str = str.slice(0, -originalArticle.length) + updatedArticle;
+      if (test()) {
+        while (test()) {
+          lm.log(`collapsing ${prev_char} =- ${next_char}`);
+          move_chars_left(1);
         }
       }
-
-      let chomped = false;
-
-      if (!prev_char_is_escaped && prev_char === '<') {
-        chomp_left_side();
-        chomped = true;
+      else {
+        lm.log(`not collapsing`);
       }
+    }
+
+    update_pos_vars();
+    
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(`JUMP EMPTY!`, true);
+
+      continue;
+    }
+
+    if (right_word === '<') {
+      str += '<';
+      continue;
+    }
+
+    const linking_chars                  = "_-";      
+    const left_collapsible_punctuation_chars   = ",.;!?";
+    const punctuation_chars              = ",.;!?:";
+    const right_collapsible_punctuation_chars  = ",.;!?:])";
+    
+    collapse_punctuation();
+    
+    // Normalize article if needed:
+    if (correct_articles) {
+      const article_match = str.match(/(?:^|\s)([Aa])$/);
       
-      if (str.endsWith('<')) {
-        chomp_left_side();
-        chomped = true;
-      }
+      if (article_match) {
+        const originalArticle = article_match[1];
+        const updatedArticle = articleCorrection(originalArticle, right_word);
 
-      if (right_word.startsWith('<')) {
-        chomp_right_side();
-        chomped = true;
+        if (updatedArticle !== originalArticle) 
+          str = str.slice(0, -originalArticle.length) + updatedArticle;
       }
+    }
 
-      if (right_word === '') {
-        if (log_level__smart_join >= 2)
-          lm.log(`JUMP EMPTY (LATE)!`, true);
+    let chomped = false;
 
-        continue;
-      }
+    if (!prev_char_is_escaped && prev_char === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    
+    if (str.endsWith('<')) {
+      chomp_left_side();
+      chomped = true;
+    }
 
-      if (false) { // just for reference
-        const linking_chars                        = "_-";      
-        const punctuation_chars                    = ",.;!?:";
-        const left_collapsible_punctuation_chars   = ",.;!?";
-        const right_collapsible_punctuation_chars  = ",.;!?:])";
-      }
-      
-      if (!chomped &&
-          !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-          !right_word.startsWith('\\n')                             &&
-          !right_word.startsWith('\\ ')                             && 
-          !right_collapsible_punctuation_chars.includes (next_char) && 
-          !linking_chars.includes                       (prev_char) &&
-          !linking_chars.includes                       (next_char) &&
-          !'(['.includes(prev_char))
+    if (right_word.startsWith('<')) {
+      chomp_right_side();
+      chomped = true;
+    }
+
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(`JUMP EMPTY (LATE)!`, true);
+
+      continue;
+    }
+
+    if (false) { // just for reference
+      const linking_chars                        = "_-";      
+      const punctuation_chars                    = ",.;!?:";
+      const left_collapsible_punctuation_chars   = ",.;!?";
+      const right_collapsible_punctuation_chars  = ",.;!?:])";
+    }
+    
+    if (!chomped &&
+        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !right_word.startsWith('\\n')                             &&
+        !right_word.startsWith('\\ ')                             && 
+        !right_collapsible_punctuation_chars.includes (next_char) && 
+        !linking_chars.includes                       (prev_char) &&
+        !linking_chars.includes                       (next_char) &&
+        !'(['.includes(prev_char))
         add_a_space();
 
       collapse_punctuation();
@@ -3718,14 +3716,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         // if (right_word === '""' || right_word === "''")
         //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
         str       += right_word;
+        left_word  = right_word;
       }
 
       // consume_right_word();
+
     }
-    finally {
-      left_word  = right_word;
-    }
-  }
   
   if (log_level__smart_join >= 1)
     lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
