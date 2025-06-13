@@ -10268,7 +10268,6 @@ const make_plain_text_rule = additional_excluded_chars =>
         raw`(?=[\s{|}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-lm.log(make_plain_text_char_RegExp_source_str(';'));
 const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
 const plain_text           = make_plain_text_rule()
@@ -10977,8 +10976,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
 
-    // log_level__expand_and_walk = 2;
-    // log_level__smart_join      = 2;
+    log_level__expand_and_walk = 2;
+    log_level__smart_join      = 2;
     // log_match_enabled          = true;
     // log_flags_enabled          = true;
 
