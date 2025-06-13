@@ -3512,7 +3512,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   smart_join_trap_counter += 1;
 
   if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`);
+    lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
 
   if (typeof arr == 'string')
     throw new Error(`got string`);
@@ -3710,7 +3711,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   }
 
   if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`);
+    lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
 
   // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
