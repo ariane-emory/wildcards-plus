@@ -3534,7 +3534,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const linking_chars                        = "_-";      
   const left_collapsible_punctuation_chars   = ",.;!?";
   const right_collapsible_punctuation_chars  = ",.;!?:])";
- 
+  
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
     let prev_char            = null;
@@ -3651,11 +3651,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomped = true;
     }
     
-    // if (str.endsWith('<')) {
-    //   chomp_left_side();
-    //   chomped = true;
-    // }
-
     if (right_word.startsWith('<')) {
       chomp_right_side();
       chomped = true;
@@ -3687,26 +3682,16 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     collapse_punctuation();
 
-    // const consume_right_word = () =>
-    {
-      if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+    if (log_level__smart_join >= 2)
+      lm.log(`CONSUME ${inspect_fun(right_word)}!`);
 
-      // if (right_word === '""' || right_word === "''")
-      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-      str       += right_word;
-      left_word  = right_word;
-    }
-
-    // consume_right_word();
-
+    str       += right_word;
+    left_word  = right_word;
   }
   
   if (log_level__smart_join >= 1)
     lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
            `(#${smart_join_trap_counter})`);
-
-  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
 
   return str;
 }
