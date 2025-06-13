@@ -3605,7 +3605,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const collapse_punctuation = () => {
-      while  (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
+      while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
         move_chars_left(3);
 
       const test = () =>
@@ -3631,7 +3631,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     // collapse_punctuation();
     
-    // Normalize article if needed:
+    // correct article if needed:
     if (correct_articles) {
       const article_match = str.match(/(?:^|\s)([Aa])$/);
       
@@ -3663,7 +3663,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     collapse_punctuation();
     
     if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
+        !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
         !right_word.startsWith('\\ ')                             && 
         !right_collapsible_punctuation_chars.includes (next_char) && 
