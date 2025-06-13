@@ -4579,7 +4579,7 @@ const prelude_text = `
 @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
 
 @colors = { brown  | red    | orange | yellow | green  | blue
-          | indigo | violet | black  | white  | silver | gold }
+          | indigo | violet | purple | black  | grey   | white  | silver | gold }
 
 @pony_scores =
 {0
