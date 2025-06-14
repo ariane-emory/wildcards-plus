@@ -366,3 +366,5 @@ A { ?artsy {masterpiece|piece|piece of art{|<work}} by @wizards_artists {which d
 {|8 @sky_sentence}
 
 {?artsy By @wizards_artists, @wizards_artist_styles. }
+
+A {frog|hog} {on a log|in a bog}.

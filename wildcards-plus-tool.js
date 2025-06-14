@@ -3682,7 +3682,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     let chomped = false;
 
-    if (right_word == '<') {
+    if (right_word === '<') {
       left_word += '<';
       str += '<'
       continue;
@@ -10300,7 +10300,8 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   const alternative_1 = re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
   // const alternative_2 = re_front_part +       raw`<`;
-  const alternative_3 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  // const alternative_3 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  const alternative_3 = re_front_part +       raw`(?=[\s${structural_chars}]|$)`;
 
   const re_src = alternative_1
   //+ `|`  + alternative_2
@@ -11135,4 +11136,4 @@ if (! main_disabled)
 
 // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
-lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
+// lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
