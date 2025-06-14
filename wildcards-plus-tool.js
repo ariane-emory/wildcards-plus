@@ -10295,7 +10295,10 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   // lm.log(`RE: ${re_src}`);
 
   return xform(r(re_src),
-               str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
+               str => str
+               .replace(/^<+/, '<')
+               .replace(/<+$/, '<')
+               .replace(/\\(\d)/g, '$1'));
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
@@ -10637,7 +10640,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             lws(any_assignment_operator),                   // [0][1]
                             discarded_comments),                            // -
                         lws(choice(ExposedRjsonc,                           // [1]
-                                   head(() => LimitedContentNoAWCArticleCorrection,
+                                   head(() => LimitedContentNoAwcSJMergerticleCorrection,
                                         optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
@@ -10788,9 +10791,9 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
 const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoAWCArticleCorrection =
+const LimitedContentNoAwcSJMergerticleCorrection =
       make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
-      .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergerticleCorrection');
 const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
       .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
@@ -11035,8 +11038,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
     
-    log_level__expand_and_walk = 2;
-    log_level__smart_join      = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
