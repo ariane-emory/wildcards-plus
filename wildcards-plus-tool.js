@@ -3680,10 +3680,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
         !right_word().startsWith('\\n')                             &&
         !right_word().startsWith('\\ ')                             && 
-        !right_collapsible_punctuation_chars.includes (next_char()) && 
-        !linking_chars.includes                       (prev_char()) &&
-        !linking_chars.includes                       (next_char()) &&
-        !'(['.includes(prev_char()))
+        !right_collapsible_punctuation_chars .includes(next_char()) && 
+        !linking_chars                       .includes(prev_char()) &&
+        !linking_chars                       .includes(next_char()) &&
+        !'(['                                .includes(prev_char()))
       add_a_space();
 
     if (log_level__smart_join >= 2)
