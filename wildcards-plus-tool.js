@@ -3598,9 +3598,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str    = right_word.substring(0, n);
+      const shifted_str    = right_word2().substring(0, n);
 
-      arr[ix]   = right_word.substring(n);
+      arr[ix]   = right_word2().substring(n);
       str       = str.substring(0, str.length - overcut_length) + shifted_str;
       left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
       
@@ -3608,12 +3608,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const prev_char            = () => left_word[left_word.length - 1] ?? "";
-    const next_char            = () => right_word[next_char_is_escaped() ? 1 : 0] ?? '';
+    const next_char            = () => right_word2()[next_char_is_escaped() ? 1 : 0] ?? '';
     const prev_char_is_escaped = () => left_word[left_word.length - 2] === '\\';
-    const next_char_is_escaped = () => right_word[0] === '\\';
-
+    const next_char_is_escaped = () => right_word2()[0] === '\\';
+    const right_word2          = () => arr[ix];
+    
     const update_pos_vars = () => {
-      right_word           = arr[ix]; // ?.toString() ?? "";
+      right_word = arr[ix];
       
       if (log_level__smart_join >= 2)
         //lm.indent(() => 
@@ -3650,6 +3651,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     update_pos_vars();
+
+    if (right_word !== right_word2()) throw new Error("stop");
     
     // if (right_word === '<') {
     //   str       += '<';
@@ -3681,6 +3684,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       }
     }
 
+    if (right_word !== right_word2()) throw new Error("stop");
+
     let chomped = false;
 
     // if (right_word === '<') {
@@ -3697,17 +3702,25 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         update_pos_vars();
       } while (next_char() === '<');
     }
-    
+
+    if (right_word !== right_word2()) throw new Error("stop");
+
     if (!right_word)
       continue;
+
+    if (right_word !== right_word2()) throw new Error("stop");
 
     while (!prev_char_is_escaped() && prev_char() === '<')
       chomp_left_side();
     
+    if (right_word !== right_word2()) throw new Error("stop");
+
     collapse_punctuation();
     
     if (!right_word)
       continue;
+
+    if (right_word !== right_word2()) throw new Error("stop");
 
     if (!chomped                                                    &&
         !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
