@@ -10492,7 +10492,7 @@ const AnonWildcardAlternative  =
 const AnonWildcardAlternativeNoSJMergeArticleCorrection =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
                                         { sj_merge_correct_articles: false })
-      .abbreviate_str_repr('AnonWildcardAlternative');
+      .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
