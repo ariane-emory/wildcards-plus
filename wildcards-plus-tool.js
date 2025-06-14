@@ -3604,8 +3604,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
              `right_word = ${inspect_fun(right_word())}, \n` + 
              `prev_char = ${inspect_fun(prev_char())}, ` +         
              `next_char = ${inspect_fun(next_char())}, \n` + 
-             `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
-             `next_char_is_escaped = ${next_char_is_escaped()}`, true)
+             `PCIE = ${prev_char_is_escaped()}. ` + 
+             `NCIE = ${next_char_is_escaped()}`, true)
   };
 
   const maybe_correct_articles = () => {
@@ -3633,13 +3633,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
   
   const shift_ltris_leftwards = () => {
-    if (next_char() === '<') {
+    const test = () => !next_char_is_escaped() && next_char() === '<';
+    
+    if (test()) {
       left_word += '<';
       str += '<';
       do {
         arr[ix] = arr[ix].slice(1);
         log_pos_vars();
-      } while (next_char() === '<');
+      } while (test());
     }
   }
 
