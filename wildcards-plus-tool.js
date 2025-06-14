@@ -3614,7 +3614,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
       if (test()) 
         do {
-          lm.log(`collapsing ${inspect_fun(prev_char)} <= ${inspect_fun(next_char)}`);
+          if (log_level__expand_and_walk >= 2)
+            lm.log(`collapsing ${inspect_fun(prev_char)} <= ${inspect_fun(next_char)}`);
           move_chars_left(1);
         } while (test());
       else if (log_level__expand_and_walk >= 2)
@@ -10280,7 +10281,8 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   lm.log(`RE: ${re_src}`);
 
-  return r(re_src)
+  return xform(str => str.replace(/^<+/, '<').replace(/<+$/, '<'),
+               r(re_src));
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
