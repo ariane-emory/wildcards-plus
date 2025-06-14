@@ -3656,8 +3656,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     collapse_punctuation();
     
-    if (right_word !== ''                                         &&
-        !chomped                                                  &&
+    if (!right_word)
+      continue;
+
+    if (!chomped                                                  &&
         !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
         !right_word.startsWith('\\ ')                             && 
