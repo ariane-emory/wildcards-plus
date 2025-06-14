@@ -3583,15 +3583,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomped = true;
     };
     
-    const chomp_right_side = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CHOMP RIGHT!`);
+    // const chomp_right_side = () => {
+    //   if (log_level__smart_join >= 2)
+    //     lm.log(`CHOMP RIGHT!`);
 
-      arr[ix] = arr[ix].slice(1);
+    //   arr[ix] = arr[ix].slice(1);
 
-      update_pos_vars();
-      chomped = true;
-    }
+    //   update_pos_vars();
+    //   chomped = true;
+    // }
 
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
@@ -3682,18 +3682,27 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     let chomped = false;
 
-    if (right_word === '<') {
+    // if (right_word === '<') {
+    //   left_word += '<';
+    //   str += '<'
+    //   continue;
+    // }
+
+    if (next_char === '<') {
       left_word += '<';
-      str += '<'
+      str += '<';
+      do {
+        arr[ix] = arr[ix].slice(1);
+        update_pos_vars();
+      } while (next_char === '<');
+     }
+    
+    if (!right_word)
       continue;
-    }
 
     while (!prev_char_is_escaped && prev_char === '<')
       chomp_left_side();
     
-    while (right_word.startsWith('<'))
-      chomp_right_side();
-
     collapse_punctuation();
     
     if (!right_word)
