@@ -10275,9 +10275,11 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   return r(re_src);
 };
 const make_plain_text_rule2 = (additional_excluded_chars = '') => {
-  const re_src = raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*[\(\[](?=[@$])|(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)+(?=(?:[\s${structural_chars}${additional_excluded_chars}<()\[\]]|$))`;
+  const re_src =
+        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*[\(\[](?=[@$])` +
+        raw`|` +
+        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)+(?=(?:[\s${structural_chars}${pseudo_structural_chars}]|$))`;
   lm.log(`RE3: ${re_src}`);
-
   return r(re_src)
 };
 // -------------------------------------------------------------------------------------------------
