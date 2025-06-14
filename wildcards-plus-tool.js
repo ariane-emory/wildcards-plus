@@ -10254,6 +10254,7 @@ const structural_close_ahead      = r(/(?=\s*})/)
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
 const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
+const sj_merge                = rule => xform(smart_join_merge, rule);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -10494,7 +10495,7 @@ const make_AnonWildcardAlternative_rule = content_rule =>
             seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
                 AnonWildcardHeaderItems,
-                flat1(wst_star(content_rule))));
+                sj_merge(flat1(wst_star(content_rule)))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
       (alternative_rule, can_have_trailer = false, empty_value = undefined) => {
@@ -10818,8 +10819,8 @@ const ContentInAnonWildcardAlternative = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-const ContentAtTopLevel                = make_Content_rule({
-  before_plain_text_rules: [
+            const ContentAtTopLevel                = make_Content_rule({
+              before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
     AnonWildcard,
@@ -10830,7 +10831,7 @@ const ContentAtTopLevel                = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const ContentAtTopLevelStar            = sj_merge(flat1(wst_star(ContentAtTopLevel)));
 const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
