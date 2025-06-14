@@ -9479,7 +9479,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked);
+    ret = walked;
   });
 
   if (log_level__expand_and_walk)
