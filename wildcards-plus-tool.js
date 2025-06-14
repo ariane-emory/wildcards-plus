@@ -3655,9 +3655,11 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomp_right_side();
 
     collapse_punctuation();
+
+    if (!right_word)
+      continue;
     
-    if (right_word !== ''                                         &&
-        !chomped &&
+    if (!chomped &&
         !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
         !right_word.startsWith('\\ ')                             && 
@@ -11074,17 +11076,17 @@ async function main() {
 let main_disabled = false;
 
 if (! main_disabled)
-                                                 main().catch(err => {
-                                                   lm.error(`Unhandled error:\n${err.stack}`);
-                                                   // process.exit(1);
-                                                 });
-                                               // =================================================================================================
-                                               // END OF MAIN SECTION.
-                                               // =================================================================================================
-                                               // lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
+  main().catch(err => {
+    lm.error(`Unhandled error:\n${err.stack}`);
+    // process.exit(1);
+  });
+// =================================================================================================
+// END OF MAIN SECTION.
+// =================================================================================================
+// lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
 
-                                               // lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
-                                               //                       { length: Infinity }));
+// lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
+//                       { length: Infinity }));
 
-                                               // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
+// lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
