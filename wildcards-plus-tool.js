@@ -10535,154 +10535,154 @@ const AnonWildcardNoTrailer =
 const SpecialFunctionTail =
       choice(seq(discarded_comments, lws(semicolon)),
              structural_word_break_ahead)
-                                   .abbreviate_str_repr('SpecialFunctionTail');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionUIPrompt =
-                                   xform(seq('ui-prompt', optional(punctuation_trailer), SpecialFunctionTail),
-                                         arr => new ASTUIPrompt(arr[1]))
-                                   .abbreviate_str_repr('SpecialFunctionUIPrompt');
-                             // -------------------------------------------------------------------------------------------------
-                             const UnexpectedSpecialFunctionUIPrompt =
-                                   unexpected(SpecialFunctionUIPrompt,
-                                              (rule, input, index) =>
-                                              new FatalParseError("%ui-prompt is only supported when " +
-                                                                  "using wildcards-plus.js inside Draw Things, " +
-                                                                  "NOT when " +
-                                                                  "running the wildcards-plus-tool.js script",
-                                                                  input, index - 1))
-                                   .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionUINegPrompt =
-                                   xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
-                                         arr => new ASTUINegPrompt(arr[1]))
-                                   .abbreviate_str_repr('SpecialFunctionUINegPrompt');
-                             // -------------------------------------------------------------------------------------------------
-                             const UnexpectedSpecialFunctionUINegPrompt =
-                                   unexpected(SpecialFunctionUINegPrompt,
-                                              (rule, input, index) =>
-                                              new FatalParseError("%ui-neg-prompt is only supported when " +
-                                                                  "using wildcards-plus.js inside Draw Things, " +
-                                                                  "NOT when " +
-                                                                  "running the wildcards-plus-tool.js script",
-                                                                  input, index - 1))
-                                   .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionInclude =
-                                   xform(arr => new ASTInclude(arr[1]),
-                                         head(c_funcall('%include',              // [0][0]
-                                                        head(discarded_comments, // -
-                                                             lws(rjsonc_string), // [0][1]
-                                                             discarded_comments, // -
-                                                            )),  
-                                              optional(SpecialFunctionTail)))
-                                   .abbreviate_str_repr('SpecialFunctionInclude');
-                             // -------------------------------------------------------------------------------------------------
-                             const UnexpectedSpecialFunctionInclude =
-                                   unexpected(SpecialFunctionInclude,
-                                              (rule, input, index) =>
-                                              new FatalParseError("%include is only supported when " +
-                                                                  `using wildcards-plus-tool.js, ` +
-                                                                  `NOT when ` +
-                                                                  "running the wildcards-plus.js script " +
-                                                                  "inside Draw Things",
-                                                                  input, index - 1))
-                                   .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionSetPickSingle =
-                                   xform(arr => new ASTSetPickSingle(arr[1][1]),
-                                         seq('single-pick',                                            // [0]
-                                             discarded_comments,                                       // -
-                                             cutting_seq(lws(equals),                                  // [1][0]
-                                                         discarded_comments,                           // -
-                                                         lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                                                    lc_alpha_snake)),        
-                                                         optional(SpecialFunctionTail))))
-                                   .abbreviate_str_repr('SpecialFunctionSetPickSingle');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionSetPickMultiple =
-                                   xform(arr => new ASTSetPickMultiple(arr[1][1]),
-                                         seq('multi-pick',                                             // [0]
-                                             discarded_comments,                                       // -
-                                             cutting_seq(lws(equals),                                  // [1][0]
-                                                         discarded_comments,                           // -
-                                                         lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
-                                                                    lc_alpha_snake)),
-                                                         optional(SpecialFunctionTail)))) 
-                                   .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionRevertPickSingle =
-                                   xform(seq('revert-single-pick',
-                                             optional(SpecialFunctionTail)),
-                                         () => new ASTRevertPickSingle())
-                                   .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionRevertPickMultiple =
-                                   xform(seq('revert-multi-pick',
-                                             optional(SpecialFunctionTail)),
-                                         () => new ASTRevertPickMultiple())
-                                   .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionUpdateConfigurationBinary =
-                                   xform(arr => new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '='),
-                                         cutting_seq(seq(c_ident,                                        // [0][0]
-                                                         discarded_comments,                             // -
-                                                         lws(any_assignment_operator),                   // [0][1]
-                                                         discarded_comments),                            // -
-                                                     lws(choice(ExposedRjsonc,                           // [1]
-                                                                head(() => LimitedContentNoArticleCorrection,
-                                                                     optional(SpecialFunctionTail))))))  // [1][1]
-                                   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionUpdateConfigurationUnary =
-                                   xform(arr => 
-                                     new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
-                                     seq(/conf(?:ig)?/,                                                  // [0]
-                                         discarded_comments,                                             // -
-                                         cutting_seq(lws(choice(plus_equals, equals)),                   // [1][0]
-                                                     discarded_comments,                                 // -
-                                                     lws(choice(head(RjsoncObject,
-                                                                     optional(SpecialFunctionTail)),
-                                                                head(() => LimitedContentNoAWCTrailers,
-                                                                     optional(SpecialFunctionTail))))))) // [1][1]
-                                   .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
-                             // -------------------------------------------------------------------------------------------------
-                             const SpecialFunctionNotInclude =
-                                   cutting_cadr(percent,
-                                                choice(
-                                                  SpecialFunctionUpdateConfigurationUnary,  // before binary!
-                                                  SpecialFunctionUpdateConfigurationBinary,
-                                                  (dt_hosted
-                                                   ? SpecialFunctionUIPrompt
-                                                   : UnexpectedSpecialFunctionUIPrompt),
-                                                  (dt_hosted
-                                                   ? SpecialFunctionUINegPrompt
-                                                   : UnexpectedSpecialFunctionUINegPrompt),
-                                                  SpecialFunctionSetPickSingle,
-                                                  SpecialFunctionSetPickMultiple,
-                                                  SpecialFunctionRevertPickSingle,
-                                                  SpecialFunctionRevertPickMultiple,
-                                                ))
-                                   .abbreviate_str_repr('SpecialFunctionNotInclude');
-                             // =================================================================================================
-                             // other non-terminals:
-                             // =================================================================================================
-                             const NamedWildcardReference  =
-                                   xform(seq(at,                                        // [0]
-                                             optional(caret),                           // [1]
-                                             optional(xform(parseInt, uint), 1),        // [2]
-                                             optional(xform(parseInt,                   // [3]
-                                                            cadr(dash, uint))),
-                                             optional(/[,\.&|;]/),                      // [4]
-                                             ident,                                     // [5]
-                                             optional_punctuation_trailer,  // [6]
-                                            ), 
-                                         arr => {
-                                           const ident   = arr[5];
-                                           const min_ct  = arr[2];
-                                           const max_ct  = arr[3] ?? min_ct;
-                                           const joiner  = arr[4]; // ??''
-                                           const caret   = arr[1];
-                                           const trailer = arr[6];
+      .abbreviate_str_repr('SpecialFunctionTail');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUIPrompt =
+      xform(seq('ui-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUIPrompt(arr[1]))
+      .abbreviate_str_repr('SpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionUIPrompt =
+      unexpected(SpecialFunctionUIPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUINegPrompt =
+      xform(seq('ui-neg-prompt', optional(punctuation_trailer), SpecialFunctionTail),
+            arr => new ASTUINegPrompt(arr[1]))
+      .abbreviate_str_repr('SpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionUINegPrompt =
+      unexpected(SpecialFunctionUINegPrompt,
+                 (rule, input, index) =>
+                 new FatalParseError("%ui-neg-prompt is only supported when " +
+                                     "using wildcards-plus.js inside Draw Things, " +
+                                     "NOT when " +
+                                     "running the wildcards-plus-tool.js script",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionInclude =
+      xform(arr => new ASTInclude(arr[1]),
+            head(c_funcall('%include',              // [0][0]
+                           head(discarded_comments, // -
+                                lws(rjsonc_string), // [0][1]
+                                discarded_comments, // -
+                               )),  
+                 optional(SpecialFunctionTail)))
+      .abbreviate_str_repr('SpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const UnexpectedSpecialFunctionInclude =
+      unexpected(SpecialFunctionInclude,
+                 (rule, input, index) =>
+                 new FatalParseError("%include is only supported when " +
+                                     `using wildcards-plus-tool.js, ` +
+                                     `NOT when ` +
+                                     "running the wildcards-plus.js script " +
+                                     "inside Draw Things",
+                                     input, index - 1))
+      .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickSingle =
+      xform(arr => new ASTSetPickSingle(arr[1][1]),
+            seq('single-pick',                                            // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),        
+                            optional(SpecialFunctionTail))))
+      .abbreviate_str_repr('SpecialFunctionSetPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionSetPickMultiple =
+      xform(arr => new ASTSetPickMultiple(arr[1][1]),
+            seq('multi-pick',                                             // [0]
+                discarded_comments,                                       // -
+                cutting_seq(lws(equals),                                  // [1][0]
+                            discarded_comments,                           // -
+                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                                       lc_alpha_snake)),
+                            optional(SpecialFunctionTail)))) 
+      .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickSingle =
+      xform(seq('revert-single-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickSingle())
+      .abbreviate_str_repr('SpecialFunctionRevertPickSingle');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionRevertPickMultiple =
+      xform(seq('revert-multi-pick',
+                optional(SpecialFunctionTail)),
+            () => new ASTRevertPickMultiple())
+      .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationBinary =
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '='),
+            cutting_seq(seq(c_ident,                                        // [0][0]
+                            discarded_comments,                             // -
+                            lws(any_assignment_operator),                   // [0][1]
+                            discarded_comments),                            // -
+                        lws(choice(ExposedRjsonc,                           // [1]
+                                   head(() => LimitedContentNoArticleCorrection,
+                                        optional(SpecialFunctionTail))))))  // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionUpdateConfigurationUnary =
+      xform(arr => 
+        new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+        seq(/conf(?:ig)?/,                                                  // [0]
+            discarded_comments,                                             // -
+            cutting_seq(lws(choice(plus_equals, equals)),                   // [1][0]
+                        discarded_comments,                                 // -
+                        lws(choice(head(RjsoncObject,
+                                        optional(SpecialFunctionTail)),
+                                   head(() => LimitedContentNoAWCTrailers,
+                                        optional(SpecialFunctionTail))))))) // [1][1]
+      .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
+// -------------------------------------------------------------------------------------------------
+const SpecialFunctionNotInclude =
+      cutting_cadr(percent,
+                   choice(
+                     SpecialFunctionUpdateConfigurationUnary,  // before binary!
+                     SpecialFunctionUpdateConfigurationBinary,
+                     (dt_hosted
+                      ? SpecialFunctionUIPrompt
+                      : UnexpectedSpecialFunctionUIPrompt),
+                     (dt_hosted
+                      ? SpecialFunctionUINegPrompt
+                      : UnexpectedSpecialFunctionUINegPrompt),
+                     SpecialFunctionSetPickSingle,
+                     SpecialFunctionSetPickMultiple,
+                     SpecialFunctionRevertPickSingle,
+                     SpecialFunctionRevertPickMultiple,
+                   ))
+      .abbreviate_str_repr('SpecialFunctionNotInclude');
+// =================================================================================================
+// other non-terminals:
+// =================================================================================================
+const NamedWildcardReference  =
+      xform(seq(at,                                        // [0]
+                optional(caret),                           // [1]
+                optional(xform(parseInt, uint), 1),        // [2]
+                optional(xform(parseInt,                   // [3]
+                               cadr(dash, uint))),
+                optional(/[,\.&|;]/),                      // [4]
+                ident,                                     // [5]
+                optional_punctuation_trailer,  // [6]
+               ), 
+            arr => {
+              const ident   = arr[5];
+              const min_ct  = arr[2];
+              const max_ct  = arr[3] ?? min_ct;
+              const joiner  = arr[4]; // ??''
+              const caret   = arr[1];
+              const trailer = arr[6];
 
               if (min_ct == 0 && max_ct == 0) {
                 lm.log(`WARNING: retrieving 0 items from a named ` +
