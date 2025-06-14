@@ -10478,12 +10478,21 @@ const AnonWildcardHeaderItems =
       wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = (content_rule, { correct_articles = true } = {}) => 
+const make_AnonWildcardAlternative_rule = (content_rule, { sj_merge_correct_articles = true } = {}) => 
       xform(make_ASTAnonWildcardAlternative,
             seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
                 AnonWildcardHeaderItems,
-                sj_merge(flat1(wst_star(content_rule)), { correct_articles: correct_articles })));
+                sj_merge(flat1(wst_star(content_rule)), { sj_merge_correct_articles: sj_merge_correct_articles })));
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative  =
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative,
+                                        { sj_merge_correct_articles: true })
+      .abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
+                                        { sj_merge_correct_articles: false })
+      .abbreviate_str_repr('AnonWildcardAlternative');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
@@ -10505,25 +10514,17 @@ const make_AnonWildcard_rule            =
                          tail_rule));
       };
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative  =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
-      .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcardAlternativeNoArticleCorrection =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternativeNoArticleCorrection,
-                                        { correct_articles: false })
-      .abbreviate_str_repr('AnonWildcardAlternative');
-// -------------------------------------------------------------------------------------------------
 const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
                              { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoArticleCorrection =
-      make_AnonWildcard_rule(AnonWildcardAlternativeNoArticleCorrection,
+const AnonWildcardNoSJMergeArticleCorrection =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
                              { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true })
+                             { can_have_trailer: true, empty_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
 const AnonWildcardNoTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternative,
@@ -10782,7 +10783,7 @@ const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoArticleCorrection =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoArticleCorrection)
+      make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoAWCTrailers =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer)
@@ -10828,8 +10829,8 @@ const make_ContentInAnonWildcardAlternative_rule = nested_AnonWildcard_rule =>
       });
 const ContentInAnonWildcardAlternative =
       make_ContentInAnonWildcardAlternative_rule(AnonWildcard);
-const ContentInAnonWildcardAlternativeNoArticleCorrection =
-      make_ContentInAnonWildcardAlternative_rule(AnonWildcardNoArticleCorrection);
+const ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcardNoSJMergeArticleCorrection);
 const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
