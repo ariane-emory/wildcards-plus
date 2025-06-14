@@ -10488,12 +10488,14 @@ const make_AnonWildcardAlternative_rule = (content_rule,
                          { sj_merge_correct_articles: sj_merge_correct_articles })));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative  =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative,
-                                        { sj_merge_correct_articles: true })
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternative,
+        { sj_merge_correct_articles: true })
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoSJMergeArticleCorrection =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
-                                        { sj_merge_correct_articles: false })
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
+        { sj_merge_correct_articles: false })
       .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
