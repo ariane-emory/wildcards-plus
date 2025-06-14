@@ -1629,6 +1629,13 @@ class Regex extends Rule {
       return null;
     }
 
+    if (re_match.groups) {
+      const tmp = re_match;
+      delete tmp.input;
+      
+      lm.log(`re_match: ${inspect_fun(tmp)}`);
+    }
+    
     return new MatchResult(re_match[re_match.length - 1],
                            input,
                            index + re_match[0].length);
@@ -3229,6 +3236,29 @@ let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
+function smart_join_merge(arr, { correct_articles = true } = {}) {
+  const result = [];
+  let buffer = [];
+
+  for (const item of arr) {
+    if (typeof item === 'string') {
+      buffer.push(item);
+    } else {
+      if (buffer.length) {
+        result.push(smart_join(buffer, { correct_articles: correct_articles }));
+        buffer = [];
+      }
+      result.push(item);
+    }
+  }
+
+  if (buffer.length) {
+    result.push(smart_join(buffer, { correct_articles: correct_articles }));
+  }
+
+  return result;
+}
+// ------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (!Array.isArray(arr) ||
       typeof correct_articles !== 'boolean')
@@ -3252,117 +3282,91 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
-  const linking_chars                        = "_-";      
-  const left_collapsible_punctuation_chars   = "_-,.;!?";
-  const right_collapsible_punctuation_chars  = "_-,.;!?:])";
+  let   str                                 = arr[0];
+  let   left_word                           = str;  
+  let   ix                                  = 1;
+  const linking_chars                       = "_-";      
+  const left_collapsible_punctuation_chars  = "_-,.;!?";
+  const right_collapsible_punctuation_chars = "_-,.;!?:])";
+  const prev_char                           = () => left_word[left_word.length - 1] ?? "";
+  const next_char                           = () => right_word()[next_char_is_escaped() ? 1 : 0] ?? '';
+  const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
+  const next_char_is_escaped                = () => right_word()[0] === '\\';
+  const right_word                          = () => arr[ix];
 
-  let   str                                  = arr[0];
-  let   left_word                            = str;  
+  const add_a_space = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`SPACE!`);
+
+    // prev_char  = ' ';
+    str       += ' ';
+  };
+
+  const chomp_left_side = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`CHOMP LEFT!`);
+    
+    str       = str.slice(0, -1);
+    left_word = left_word.slice(0, -1);
+
+    log_pos_vars();
+  };
+
+  const collapse_chars_leftwards = n => {
+    if (log_level__smart_join >= 2)
+      lm.log(`SHIFT ${n} CHARACTERS!`, true);
+
+    const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+    const shifted_str    = right_word().substring(0, n);
+
+    arr[ix]   = right_word().substring(n);
+    str       = str.substring(0, str.length - overcut_length) + shifted_str;
+    left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
+
+    log_pos_vars();
+  };
+
+  const collapse_punctuation = () => {
+    while (!prev_char_is_escaped() &&
+           left_collapsible_punctuation_chars.includes(prev_char()) &&
+           right_word().startsWith('...'))
+      collapse_chars_leftwards(3);
+
+    const test = () =>
+          prev_char() !== '' && (!prev_char_is_escaped() &&
+                                 left_collapsible_punctuation_chars.includes(prev_char())) &&
+          next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
+
+    if (test()) 
+      do {
+        if (log_level__expand_and_walk >= 2)
+          lm.log(`collapsing ${inspect_fun(prev_char())} <= ${inspect_fun(next_char())}`);
+        collapse_chars_leftwards(1);
+      } while (test());
+    else if (log_level__expand_and_walk >= 2)
+      lm.log(`not collapsing`);
+  };
   
-  for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word           = null;
-    let prev_char            = null;
-    let prev_char_is_escaped = null;
-    let next_char_is_escaped = null;
-    let next_char            = null;
+  const log_pos_vars = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`ix = ${inspect_fun(ix)}, \n` +
+             `str = ${inspect_fun(str)}, \n` +
+             `left_word = ${inspect_fun(left_word)}, ` +         
+             `right_word = ${inspect_fun(right_word())}, \n` + 
+             `prev_char = ${inspect_fun(prev_char())}, ` +         
+             `next_char = ${inspect_fun(next_char())}, \n` + 
+             `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
+             `next_char_is_escaped = ${next_char_is_escaped()}`, true)
+  };
 
-    const add_a_space = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`SPACE!`);
-
-      prev_char  = ' ';
-      str       += ' ';
-    }
-
-    const chomp_left_side = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CHOMP LEFT!`);
-      
-      str       = str.slice(0, -1);
-      left_word = left_word.slice(0, -1);
-      
-      update_pos_vars();
-      chomped = true;
-    };
-    
-    const chomp_right_side = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CHOMP RIGHT!`);
-
-      arr[ix] = arr[ix].slice(1);
-
-      update_pos_vars();
-      chomped = true;
-    }
-
-    const move_chars_left = (n) => {
-      if (log_level__smart_join >= 2)
-        lm.log(`SHIFT ${n} CHARACTERS!`, true);
-
-      const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str    = right_word.substring(0, n);
-
-      arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut_length) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
-      
-      update_pos_vars();
-    };
-    
-    const update_pos_vars = () => {
-      right_word           = arr[ix]; // ?.toString() ?? "";
-      prev_char            = left_word[left_word.length - 1] ?? "";
-      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char_is_escaped = right_word[0] === '\\';
-      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
-
-      if (log_level__smart_join >= 2)
-        //lm.indent(() => 
-        lm.log(`ix = ${inspect_fun(ix)}, \n` +
-               `str = ${inspect_fun(str)}, \n` +
-               `left_word = ${inspect_fun(left_word)}, ` +         
-               `right_word = ${inspect_fun(right_word)}, \n` + 
-               `prev_char = ${inspect_fun(prev_char)}, ` +         
-               `next_char = ${inspect_fun(next_char)}, \n` + 
-               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`, true)
-      //);
-    };
-
-    const collapse_punctuation = () => {
-      while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
-        move_chars_left(3);
-
-      const test = () =>
-            left_collapsible_punctuation_chars.includes(prev_char) &&
-            right_collapsible_punctuation_chars.includes(next_char);
-
-      if (test()) 
-        do {
-          lm.log(`collapsing ${prev_char} =- ${next_char}`);
-          move_chars_left(1);
-        } while (test());
-      else 
-        lm.log(`not collapsing`);
-    }
-
-    update_pos_vars();
-    
-    // if (right_word === '<') {
-    //   str       += '<';
-    //   left_word += '<';
-    //   continue;
-    // }
-
-    // collapse_punctuation();
-
+  const maybe_correct_articles = () => {
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
         const original_article = article_match[1];
-        const chose            = choose_indefinite_article(right_word);
+        const chose            = choose_indefinite_article(right_word());
         const lower_original   = original_article.toLowerCase();
         let   updated_article; 
 
@@ -3377,40 +3381,57 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
+  };
+  
+  const shift_ltris_leftwards = () => {
+    if (next_char() === '<') {
+      left_word += '<';
+      str += '<';
+      do {
+        arr[ix] = arr[ix].slice(1);
+        log_pos_vars();
+      } while (next_char() === '<');
+    }
+  }
 
+  const maybe_chomp_left_side_ltris = () =>  {
     let chomped = false;
-
-    while (!prev_char_is_escaped && prev_char === '<')
+    while (!prev_char_is_escaped() && prev_char() === '<') {
       chomp_left_side();
-    
-    while (right_word.startsWith('<'))
-      chomp_right_side();
+      chomped = true;
+    }
+    return chomped;
+  };
+  
+  for (; ix < arr.length; ix++) {
+    log_pos_vars();
+    maybe_correct_articles();
+    shift_ltris_leftwards();
 
-    // this case may be impossible now?
-    // if (right_word === '') {
-    //   if (log_level__smart_join >= 2)
-    //     lm.log(`JUMP EMPTY (LATE)!`, true);
+    if (!right_word())
+      continue;
 
-    //   continue;
-    // }
+    const chomped = maybe_chomp_left_side_ltris();
 
     collapse_punctuation();
     
-    if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
-        !right_word.startsWith('\\n')                             &&
-        !right_word.startsWith('\\ ')                             && 
-        !right_collapsible_punctuation_chars.includes (next_char) && 
-        !linking_chars.includes                       (prev_char) &&
-        !linking_chars.includes                       (next_char) &&
-        !'(['.includes(prev_char))
+    if (!right_word())
+      continue;
+
+    if (!chomped                                                    &&
+        !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
+        !right_word().startsWith('\\n')                             &&
+        !right_word().startsWith('\\ ')                             && 
+        !right_collapsible_punctuation_chars .includes(next_char()) && 
+        !linking_chars                       .includes(prev_char()) &&
+        !linking_chars                       .includes(next_char()) &&
+        !'(['                                .includes(prev_char()))
       add_a_space();
 
     if (log_level__smart_join >= 2)
-      lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+      lm.log(`CONSUME ${inspect_fun(right_word())}!`);
 
-    str       += right_word;
-    left_word  = right_word;
+    str += left_word = right_word();
   }
   
   if (log_level__smart_join >= 1)
@@ -4310,6 +4331,9 @@ const prelude_text = `
 @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
 @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
 
+@colors = { brown  | red    | orange | yellow | green  | blue    | indigo
+          | violet | purple | black  | grey   | white  | silver  | gold }
+
 @pony_scores =
 {0
 |@pony score_4_up
@@ -4342,7 +4366,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 576;  %oh   = 768; 
+  %ow   = 768;  %oh   = 576;
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -8822,7 +8846,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // %sampled = { Euler A AYS };
               expand_wildcards(thing.value, context, 
                                { correct_articles: false })); 
-            // ^ not walk because we're going to parse it as JSON
+            // ^ not walk or correct_articles because we're going to parse it as JSON
             
             const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                   ? RjsoncObject
@@ -8962,7 +8986,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 context.configuration[our_name] =
                   lm.indent(() => smart_join([tmp_str, value],
-                                             { correct_articles: false })); // never correct here?
+                                             { correct_articles: false }));
+                // ^ never correct here to avoid 'Euler An'
               }
               else {
                 // probly won't work most of the time, but let's try anyhow, I guess:
@@ -9185,7 +9210,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked.replace(/^[<]+/, ''));
+    ret = unescape(walked);
   });
 
   if (log_level__expand_and_walk)
@@ -9951,6 +9976,8 @@ const structural_close_ahead      = r(/(?=\s*})/)
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
 const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
+const sj_merge                = (rule, { correct_articles = true } = {}) =>
+      xform(arr => smart_join_merge(arr, { correct_articles: correct_articles }), rule);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -9980,27 +10007,32 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const pseudo_structural_chars = raw`<\(\)\[\]`;
 const syntax_chars            = raw`@#$%`;
+// const pseudo_structural_chars = raw`<\(\)\[\]`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = (additional_excluded_chars = '') =>
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
-      raw`${comment_beginning}` +
-      raw`)` +
-      raw`\S)`;
+const make_plain_text_rule = (additional_excluded_chars = '') => {
+  const re_front_part =
+        raw`(?:` +
+        raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
+        raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*?` +
+        raw`)`;
+
+  const alternative_1 = re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
+  const alternative_2 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+
+  const re_src = alternative_1 + `|`  + alternative_2;
+
+  lm.log(`RE: ${re_src}`);
+
+  return xform(r(re_src),
+               str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
+};
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = additional_excluded_chars => 
-      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
-        raw`(?=[\s{|}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
-// -------------------------------------------------------------------------------------------------
-const plain_text_no_semis  = make_plain_text_rule(';')
-      .abbreviate_str_repr('plain_text_no_semis');
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
+const plain_text_no_semis  = make_plain_text_rule(';')
+      .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -10064,7 +10096,7 @@ const CheckFlagWithSetConsequent =
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const CheckFlagWithOrAlternatives = // last check alternative
+const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
       xform(cutting_seq(question,                     // [0]
                         plus(flag_ident, comma),      // [1]
                         structural_word_break_ahead), // [2]
@@ -10073,7 +10105,7 @@ const CheckFlagWithOrAlternatives = // last check alternative
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-const NotFlagWithSetConsequent = // last not alternative
+const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
@@ -10145,7 +10177,7 @@ const make_ASTAnonWildcardAlternative = arr => {
   if (weight == 0)
     return DISCARD;
   
-  const flags = ([ ...arr[0], ...arr[2] ]);
+  const flags = [ ...arr[0], ...arr[2] ];
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
@@ -10174,17 +10206,32 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 };
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = content_rule => 
+const AnonWildcardHeaderItems =
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      .abbreviate_str_repr('AnonWildcardHeaderItems');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcardAlternative_rule = (content_rule,
+                                           { sj_merge_correct_articles = true } = {}) =>
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+            seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
-                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
-                flat1(wst_star(content_rule))));
+                AnonWildcardHeaderItems,
+                sj_merge(flat1(wst_star(content_rule)),
+                         { sj_merge_correct_articles: sj_merge_correct_articles })));
+// -------------------------------------------------------------------------------------------------
+const AnonWildcardAlternative  =
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternative,
+        { sj_merge_correct_articles: true })
+      .abbreviate_str_repr('AnonWildcardAlternative');
+const AnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
+        { sj_merge_correct_articles: false })
+      .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, can_have_trailer = false, empty_value = undefined) => {
+      (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
         const new_ASTAnonWildcard = arr =>
               new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
@@ -10203,14 +10250,21 @@ const make_AnonWildcard_rule            =
                          tail_rule));
       };
 // -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative  =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
-      .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcard             = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
+const AnonWildcard =
+      make_AnonWildcard_rule(AnonWildcardAlternative,
+                             { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardInDefinition = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+const AnonWildcardNoSJMergeArticleCorrection =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
+                             { can_have_trailer: true, empty_value: DISCARD })
+      .abbreviate_str_repr('AnonWildcard');
+const AnonWildcardInDefinition =
+      make_AnonWildcard_rule(AnonWildcardAlternative,
+                             { can_have_trailer: true, empty_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
-const AnonWildcardNoTrailer    = make_AnonWildcard_rule(AnonWildcardAlternative, false, '')
+const AnonWildcardNoTrailer =
+      make_AnonWildcard_rule(AnonWildcardAlternative,
+                             { can_have_trailer: false, empty_value:  '' })
       .abbreviate_str_repr('AnonWildcardNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
@@ -10230,8 +10284,7 @@ const UnexpectedSpecialFunctionUIPrompt =
                  (rule, input, index) =>
                  new FatalParseError("%ui-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
+                                     "NOT when running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
@@ -10312,7 +10365,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             lws(any_assignment_operator),                   // [0][1]
                             discarded_comments),                            // -
                         lws(choice(ExposedRjsonc,                           // [1]
-                                   head(() => LimitedContent,
+                                   head(() => LimitedContentNoArticleCorrection,
                                         optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
@@ -10462,10 +10515,13 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      make_LimitedContent_rule(plain_text, AnonWildcard)
+      .abbreviate_str_repr('LimitedContent');
+const LimitedContentNoArticleCorrection =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
@@ -10495,16 +10551,21 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const ContentInAnonWildcardAlternative = make_Content_rule({
-  before_plain_text_rules: [
-    end_quantified_match_if(structural_close_ahead),
-    A1111StyleLora,
-    TestFlagInAlternativeContent,
-    AnonWildcard,
-  ],
-  after_plain_text_rules:  [
-  ],
-});
+const make_ContentInAnonWildcardAlternative_rule = nested_AnonWildcard_rule =>
+      make_Content_rule({
+        before_plain_text_rules: [
+          end_quantified_match_if(structural_close_ahead),
+          A1111StyleLora,
+          TestFlagInAlternativeContent,
+          nested_AnonWildcard_rule,
+        ],
+        after_plain_text_rules:  [
+        ],
+      });
+const ContentInAnonWildcardAlternative =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcard);
+const ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcardNoSJMergeArticleCorrection);
 const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -10517,7 +10578,7 @@ const ContentAtTopLevel                = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const ContentAtTopLevelStar            = sj_merge(flat1(wst_star(ContentAtTopLevel)));
 const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
