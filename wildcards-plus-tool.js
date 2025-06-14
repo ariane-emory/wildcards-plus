@@ -10311,10 +10311,10 @@ const A1111StyleLora =
             wst_cutting_seq(
               seq(ltri, lws('lora')),                              // [0]
               colon,                                               // [1] 
-              choice(filename, () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer), // [2]
+              choice(filename, () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer), // [2]
               optional(wst_cadr(colon,                             // [3]
                                 choice(A1111StyleLoraWeight,
-                                       () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer)),
+                                       () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer)),
                        "1.0"),
               rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -10601,7 +10601,7 @@ const SpecialFunctionSetPickSingle =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
@@ -10612,7 +10612,7 @@ const SpecialFunctionSetPickMultiple =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),
                             optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
@@ -10649,7 +10649,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         discarded_comments,                                 // -
                         lws(choice(head(RjsoncObject,
                                         optional(SpecialFunctionTail)),
-                                   head(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer,
+                                   head(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer,
                                         optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -10790,9 +10790,9 @@ const LimitedContent =
 const LimitedContentNoAWCArticleCorrection =
       make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
       .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
-const LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer =
+const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
-      .abbreviate_str_repr('LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer');
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
       unexpected(rule,
