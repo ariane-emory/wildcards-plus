@@ -3628,7 +3628,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const collapse_punctuation = () => {
-      while (left_collapsible_punctuation_chars.includes(prev_char) && right_word.startsWith('...'))
+      while (!prev_char_is_escaped &&
+             left_collapsible_punctuation_chars.includes(prev_char) &&
+             right_word.startsWith('...'))
         move_chars_left(3);
 
       const test = () =>
@@ -10819,8 +10821,8 @@ const ContentInAnonWildcardAlternative = make_Content_rule({
   after_plain_text_rules:  [
   ],
 });
-            const ContentAtTopLevel                = make_Content_rule({
-              before_plain_text_rules: [
+const ContentAtTopLevel                = make_Content_rule({
+  before_plain_text_rules: [
     A1111StyleLora,
     TopLevelTestFlag,
     AnonWildcard,
