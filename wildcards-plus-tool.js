@@ -10259,17 +10259,16 @@ const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
   const re_front_part =
-        raw`(?:(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
-        raw`(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*)`;
+        raw`(?:` +
+        raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S` + `)` +
+        raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*` +
+        raw`)`;
 
-  const re_src =
-        raw`${re_front_part}?` +
-        raw`(?:[\(\[](?=[@$]))` +
-        raw`|` +
-        re_front_part +
-        // raw`(?=(?:[\s${structural_chars}<]|$))`;
-        raw`(?=[\s${structural_chars}]|$)`;
+  const alternative_1 = re_front_part + raw`?(?:[\(\[](?=[@$]))`;
+  const alternative_2 = re_front_part + raw`(?=[\s${structural_chars}]|$)`;
 
+  const re_src = alternative_1 + `|` + alternative_2;
+  
   lm.log(`RE: ${re_src}`);
   
   return r(re_src)
