@@ -10509,7 +10509,7 @@ const AnonWildcardAlternative  =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcardAlternativeNoArticleCorrection =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative,
+      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternativeNoArticleCorrection,
                                         { correct_articles: false })
       .abbreviate_str_repr('AnonWildcardAlternative');
 const AnonWildcard             = make_AnonWildcard_rule(AnonWildcardAlternative, true, DISCARD)
@@ -10812,6 +10812,16 @@ const ContentInAnonWildcardAlternative = make_Content_rule({
     A1111StyleLora,
     TestFlagInAlternativeContent,
     AnonWildcard,
+  ],
+  after_plain_text_rules:  [
+  ],
+});
+const ContentInAnonWildcardAlternativeNoArticleCorrection = make_Content_rule({
+  before_plain_text_rules: [
+    end_quantified_match_if(structural_close_ahead),
+    A1111StyleLora,
+    TestFlagInAlternativeContent,
+    AnonWildcardNoArticleCorrection,
   ],
   after_plain_text_rules:  [
   ],
