@@ -10259,11 +10259,16 @@ const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') 
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_initial_chars    = '',
-                              additional_excluded_subsequent_chars = '') => 
-      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
-        raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
-        raw`(?=[\s${structural_chars}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`); 
+                              additional_excluded_subsequent_chars = '') => {
+                                const re_src = raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
+                                      raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
+                                      raw`(?=[\s${structural_chars}]|$)|` +
+                                      raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
+
+                                lm.log(`RE: ${re_src}`);
+                                
+                                return r(re_src);
+                              };
 //      ^ sus, won't 1st/2nd part of regex have already eaten these?
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`, `;`)
