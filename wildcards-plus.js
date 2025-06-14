@@ -3339,7 +3339,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
       if (test()) 
         do {
-          lm.log(`collapsing ${prev_char} =- ${next_char}`);
+          lm.log(`collapsing ${inspect_fun(prev_char)} <= ${inspect_fun(next_char)}`);
           move_chars_left(1);
         } while (test());
       else if (log_level__expand_and_walk >= 2)
@@ -3386,17 +3386,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     while (right_word.startsWith('<'))
       chomp_right_side();
 
-    // this case may be impossible now?
-    // if (right_word === '') {
-    //   if (log_level__smart_join >= 2)
-    //     lm.log(`JUMP EMPTY (LATE)!`, true);
-
-    //   continue;
-    // }
-
     collapse_punctuation();
     
-    if (!chomped &&
+    if (!right_word)
+      continue;
+
+    if (!chomped                                                  &&
         !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
         !right_word.startsWith('\\ ')                             && 
@@ -9990,22 +9985,19 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${additional_excluded_chars}${structural_chars}]|` +
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = (additional_excluded_initial_chars    = '',
-                              additional_excluded_subsequent_chars = '') => 
-      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
-        raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
-        raw`(?=[\s${structural_chars}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`); 
-//      ^ sus, won't 1st/2nd part of regex have already eaten these?
+const make_plain_text_rule = additional_excluded_chars => 
+      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
+        raw`(?=[\s{|}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
 // -------------------------------------------------------------------------------------------------
-const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`, `;`)
+const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
-const plain_text           = make_plain_text_rule(`${syntax_chars}`)
+const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
