@@ -3579,7 +3579,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       str       = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
 
-      update_pos_vars();
+      log_pos_vars();
       chomped = true;
     };
     
@@ -3613,9 +3613,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     const next_char_is_escaped = () => right_word()[0] === '\\';
     const right_word          = () => arr[ix];
     
-    const update_pos_vars = () => {
-      // right_word = arr[ix];
-      
+    const log_pos_vars = () => {
       if (log_level__smart_join >= 2)
         //lm.indent(() => 
         lm.log(`ix = ${inspect_fun(ix)}, \n` +
@@ -3650,7 +3648,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         lm.log(`not collapsing`);
     }
 
-    update_pos_vars();
+    log_pos_vars();
 
     // correct article if needed:
     if (correct_articles) {
@@ -3687,7 +3685,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       str += '<';
       do {
         arr[ix] = arr[ix].slice(1);
-        update_pos_vars();
+        log_pos_vars();
       } while (next_char() === '<');
     }
 
