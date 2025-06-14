@@ -9114,7 +9114,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // %sampled = { Euler A AYS };
               expand_wildcards(thing.value, context, 
                                { correct_articles: false })); 
-            // ^ not walk because we're going to parse it as JSON
+            // ^ not walk or correct_articles because we're going to parse it as JSON
             
             const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                   ? RjsoncObject
@@ -9254,7 +9254,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 context.configuration[our_name] =
                   lm.indent(() => smart_join([tmp_str, value],
-                                             { correct_articles: false })); // never correct here?
+                                             { correct_articles: false }));
+                // ^ never correct here to avoid 'Euler An'
               }
               else {
                 // probly won't work most of the time, but let's try anyhow, I guess:
