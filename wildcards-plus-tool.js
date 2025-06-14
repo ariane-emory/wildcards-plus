@@ -3626,10 +3626,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
              `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
              `next_char_is_escaped = ${next_char_is_escaped()}`, true)
   };
-  
-  for (; ix < arr.length; ix++)  {
-    log_pos_vars();
 
+  const maybe_correct_articles = () => {
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/^([Aa]n?)$/);
@@ -3651,9 +3649,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
+  };
+  
+  for (; ix < arr.length; ix++)  {
+    log_pos_vars();
 
-    let chomped = false;
-
+    maybe_correct_articles();
+    
     if (next_char() === '<') {
       left_word += '<';
       str += '<';
@@ -3665,6 +3667,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (!right_word())
       continue;
+
+    let chomped = false;
 
     while (!prev_char_is_escaped() && prev_char() === '<') {
       chomp_left_side();
@@ -3689,8 +3693,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (log_level__smart_join >= 2)
       lm.log(`CONSUME ${inspect_fun(right_word())}!`);
 
-    str       += right_word();
-    left_word  = right_word();
+    str += left_word = right_word();
   }
   
   if (log_level__smart_join >= 1)
