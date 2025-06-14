@@ -11040,6 +11040,9 @@ async function main() {
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
 
+    if (!context.configuration.sampler)
+      throw new Error("ERROR: context.configuration missing key sampler, something has gone wrong");
+    
     log_level__expand_and_walk = old_log_level__expand_and_walk;
     log_level__smart_join      = old_log_level__smart_join;
     

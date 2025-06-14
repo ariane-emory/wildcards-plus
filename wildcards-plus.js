@@ -10040,14 +10040,15 @@ const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
       xform(arr => new ASTLora(arr[2], arr[3]),
-            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
-                            colon,                                               // [1] 
-                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                            optional(wst_cadr(colon,                             // [3]
-                                              choice(A1111StyleLoraWeight,
-                                                     () => LimitedContentNoAWCTrailers)),
-                                     "1.0"),
-                            rtri))
+            wst_cutting_seq(
+              seq(ltri, lws('lora')),                              // [0]
+              colon,                                               // [1] 
+              choice(filename, () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer), // [2]
+              optional(wst_cadr(colon,                             // [3]
+                                choice(A1111StyleLoraWeight,
+                                       () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer)),
+                       "1.0"),
+              rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
@@ -10217,7 +10218,7 @@ const make_AnonWildcardAlternative_rule = (content_rule,
                 lws(optional(swb_uint, 1)),                                 
                 AnonWildcardHeaderItems,
                 sj_merge(flat1(wst_star(content_rule)),
-                         { sj_merge_correct_articles: sj_merge_correct_articles })));
+                         { correct_articles: sj_merge_correct_articles })));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative  =
       make_AnonWildcardAlternative_rule(
@@ -10254,18 +10255,21 @@ const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
                              { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoSJMergeArticleCorrection =
-      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: true, empty_value: DISCARD })
-      .abbreviate_str_repr('AnonWildcard');
+// no empty value because values that are going to go on the rhs of context.named_wildcards need
+// to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
                              { can_have_trailer: true, empty_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
-const AnonWildcardNoTrailer =
-      make_AnonWildcard_rule(AnonWildcardAlternative,
+// note differing empty values due their contexts of use:
+const AnonWildcardNoSJMergeArticleCorrection =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
+                             { can_have_trailer: true, empty_value: DISCARD })
+      .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
+const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
                              { can_have_trailer: false, empty_value:  '' })
-      .abbreviate_str_repr('AnonWildcardNoTrailer');
+      .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrectionOrTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -10298,8 +10302,7 @@ const UnexpectedSpecialFunctionUINegPrompt =
                  (rule, input, index) =>
                  new FatalParseError("%ui-neg-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
+                                     "NOT when running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
@@ -10330,7 +10333,7 @@ const SpecialFunctionSetPickSingle =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
@@ -10341,7 +10344,7 @@ const SpecialFunctionSetPickMultiple =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),
                             optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
@@ -10365,7 +10368,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             lws(any_assignment_operator),                   // [0][1]
                             discarded_comments),                            // -
                         lws(choice(ExposedRjsonc,                           // [1]
-                                   head(() => LimitedContentNoArticleCorrection,
+                                   head(() => LimitedContentNoAWCArticleCorrection,
                                         optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
@@ -10378,7 +10381,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         discarded_comments,                                 // -
                         lws(choice(head(RjsoncObject,
                                         optional(SpecialFunctionTail)),
-                                   head(() => LimitedContentNoAWCTrailers,
+                                   head(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer,
                                         optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -10496,10 +10499,9 @@ const ScalarAssignment        =
             discarded_comments,                               // - 
             cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
                         discarded_comments,                   // -
-                        lws(choice(
-                          () => rjsonc_string, // [1][1]
+                        lws(choice(                           // [1][1]
+                          () => rjsonc_string,
                           () => LimitedContent,
-                          // () => hwst_plus(choice(LimitedContent, discarded_comment)),
                         )),
                         optional(SpecialFunctionTail))))
       .abbreviate_str_repr('ScalarAssignment');
@@ -10517,12 +10519,12 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
 const LimitedContent =
       make_LimitedContent_rule(plain_text, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoArticleCorrection =
+const LimitedContentNoAWCArticleCorrection =
       make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
-      .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer)
-      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+      .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
+const LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer =
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
+      .abbreviate_str_repr('LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
       unexpected(rule,
