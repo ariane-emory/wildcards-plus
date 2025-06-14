@@ -3558,7 +3558,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   let   left_word                            = str;  
   
   for (let ix = 1; ix < arr.length; ix++)  {
-    let right_word           = null;
+    // let right_word           = null;
     // let prev_char            = null;
     // let next_char            = null;
     // let prev_char_is_escaped = null;
@@ -3598,9 +3598,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
 
       const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str    = right_word2().substring(0, n);
+      const shifted_str    = right_word().substring(0, n);
 
-      arr[ix]   = right_word2().substring(n);
+      arr[ix]   = right_word().substring(n);
       str       = str.substring(0, str.length - overcut_length) + shifted_str;
       left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
       
@@ -3608,20 +3608,20 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     };
 
     const prev_char            = () => left_word[left_word.length - 1] ?? "";
-    const next_char            = () => right_word2()[next_char_is_escaped() ? 1 : 0] ?? '';
+    const next_char            = () => right_word()[next_char_is_escaped() ? 1 : 0] ?? '';
     const prev_char_is_escaped = () => left_word[left_word.length - 2] === '\\';
-    const next_char_is_escaped = () => right_word2()[0] === '\\';
-    const right_word2          = () => arr[ix];
+    const next_char_is_escaped = () => right_word()[0] === '\\';
+    const right_word          = () => arr[ix];
     
     const update_pos_vars = () => {
-      right_word = arr[ix];
+      // right_word = arr[ix];
       
       if (log_level__smart_join >= 2)
         //lm.indent(() => 
         lm.log(`ix = ${inspect_fun(ix)}, \n` +
                `str = ${inspect_fun(str)}, \n` +
                `left_word = ${inspect_fun(left_word)}, ` +         
-               `right_word = ${inspect_fun(right_word)}, \n` + 
+               `right_word = ${inspect_fun(right_word())}, \n` + 
                `prev_char = ${inspect_fun(prev_char())}, ` +         
                `next_char = ${inspect_fun(next_char())}, \n` + 
                `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
@@ -3632,7 +3632,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     const collapse_punctuation = () => {
       while (!prev_char_is_escaped() &&
              left_collapsible_punctuation_chars.includes(prev_char()) &&
-             right_word.startsWith('...'))
+             right_word().startsWith('...'))
         move_chars_left(3);
 
       const test = () =>
@@ -3652,23 +3652,13 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     update_pos_vars();
 
-    if (right_word !== right_word2()) throw new Error("stop");
-    
-    // if (right_word === '<') {
-    //   str       += '<';
-    //   left_word += '<';
-    //   continue;
-    // }
-
-    // collapse_punctuation();
-
     // correct article if needed:
     if (correct_articles) {
       const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
         const original_article = article_match[1];
-        const chose            = choose_indefinite_article(right_word);
+        const chose            = choose_indefinite_article(right_word());
         const lower_original   = original_article.toLowerCase();
         let   updated_article; 
 
@@ -3683,8 +3673,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
           str = str.slice(0, -original_article.length) + updated_article;
       }
     }
-
-    if (right_word !== right_word2()) throw new Error("stop");
 
     let chomped = false;
 
@@ -3703,29 +3691,21 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       } while (next_char() === '<');
     }
 
-    if (right_word !== right_word2()) throw new Error("stop");
-
-    if (!right_word)
+    if (!right_word())
       continue;
-
-    if (right_word !== right_word2()) throw new Error("stop");
 
     while (!prev_char_is_escaped() && prev_char() === '<')
       chomp_left_side();
-    
-    if (right_word !== right_word2()) throw new Error("stop");
 
     collapse_punctuation();
     
-    if (!right_word)
+    if (!right_word())
       continue;
-
-    if (right_word !== right_word2()) throw new Error("stop");
 
     if (!chomped                                                    &&
         !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
-        !right_word.startsWith('\\n')                               &&
-        !right_word.startsWith('\\ ')                               && 
+        !right_word().startsWith('\\n')                            &&
+        !right_word().startsWith('\\ ')                            && 
         !right_collapsible_punctuation_chars.includes (next_char()) && 
         !linking_chars.includes                       (prev_char()) &&
         !linking_chars.includes                       (next_char()) &&
@@ -3733,10 +3713,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       add_a_space();
 
     if (log_level__smart_join >= 2)
-      lm.log(`CONSUME ${inspect_fun(right_word)}!`);
+      lm.log(`CONSUME ${inspect_fun(right_word())}!`);
 
-    str       += right_word;
-    left_word  = right_word;
+    str       += right_word();
+    left_word  = right_word();
   }
   
   if (log_level__smart_join >= 1)
