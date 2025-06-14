@@ -1,9 +1,9 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-$corge = CORGE
+// $corge = CORGE
 
-\n foo<$corge
-\n bar< $corge
-\n baz <$corge
-
+// \n foo<$corge
+// \n bar< $corge
+// \n baz <$corge
+ONE < TWO

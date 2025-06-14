@@ -305,7 +305,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = true;
+let print_ast_before_includes_enabled  = false;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -1900,7 +1900,7 @@ class Regex extends Rule {
     if (re_match.groups) {
       const tmp = re_match;
       delete tmp.input;
-    
+      
       lm.log(`re_match: ${inspect_fun(tmp)}`);
     }
     
@@ -3654,6 +3654,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     let chomped = false;
+
+    if (right_word == '<') {
+      left_word += '<';
+      str += '<'
+      continue;
+    }
 
     while (!prev_char_is_escaped && prev_char === '<')
       chomp_left_side();
@@ -10984,12 +10990,10 @@ async function main() {
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
-    const old_log_match_enabled          = log_match_enabled;
     
     // log_level__expand_and_walk = 2;
     // log_level__smart_join      = 2;
-    // log_flags_enabled          = true;
-
+    
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
 
