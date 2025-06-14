@@ -10523,6 +10523,8 @@ const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
                              { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
+// no empty value because values that are going to go on the rhs of context.named_wildcards need
+// to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
                              { can_have_trailer: true, empty_value: undefined })
