@@ -3503,29 +3503,6 @@ function rjson_stringify(obj) {
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
-// -------------------------------------------------------------------------------------------------
-function smart_join_merge(arr, { correct_articles = true } = {}) {
-  const result = [];
-  let buffer = [];
-
-  for (const item of arr) {
-    if (typeof item === 'string') {
-      buffer.push(item);
-    } else {
-      if (buffer.length) {
-        result.push(smart_join(buffer, { correct_articles: correct_articles }));
-        buffer = [];
-      }
-      result.push(item);
-    }
-  }
-
-  if (buffer.length) {
-    result.push(smart_join(buffer, { correct_articles: correct_articles }));
-  }
-
-  return result;
-}
 // ------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (!Array.isArray(arr) ||
@@ -3707,6 +3684,29 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
            `(#${smart_join_trap_counter})`);
 
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function smart_join_merge(arr, { correct_articles = true } = {}) {
+  const result = [];
+  let buffer = [];
+
+  for (const item of arr) {
+    if (typeof item === 'string') {
+      buffer.push(item);
+    } else {
+      if (buffer.length) {
+        result.push(smart_join(buffer, { correct_articles: correct_articles }));
+        buffer = [];
+      }
+      result.push(item);
+    }
+  }
+
+  if (buffer.length) {
+    result.push(smart_join(buffer, { correct_articles: correct_articles }));
+  }
+
+  return result;
 }
 // -------------------------------------------------------------------------------------------------
 function stop() {
