@@ -10264,11 +10264,11 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   const re_src =
         raw`(?:${re_front_part})?` +
-        raw`[\(\[](?=[@$])` +
+        raw`(?:[\(\[](?=[@$]))` +
         raw`|` +
         re_front_part +
         // raw`(?=(?:[\s${structural_chars}<]|$))`;
-        raw`(?=[\s${structural_chars}<]|$)`;
+        raw`(?=[\s${structural_chars}]|$)`;
 
   return r(re_src)
 };
