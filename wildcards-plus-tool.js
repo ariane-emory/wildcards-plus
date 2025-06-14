@@ -10257,13 +10257,28 @@ const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') 
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
+// // -------------------------------------------------------------------------------------------------
+// const make_plain_text_rule = additional_excluded_chars => {
+//   const re_src = raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
+//         raw`(?=[\s{|}${pseudo_structural_chars}]|$)|` +
+//         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
+
+//   lm.log(`RE1: ${re_src}`);
+
+//   return r(re_src);
+// };
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = additional_excluded_chars => {
-  const re_src = raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
+const make_plain_text_rule = (additional_excluded_chars = '') => {
+  const re_src = raw`(?:\\.|` +
+        raw`(?!`+
+        raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
+        raw`${comment_beginning}` +
+        raw`)` +
+        raw`\S)+` +
         raw`(?=[\s{|}${pseudo_structural_chars}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
 
-  lm.log(`RE: ${re_src}`);
+  lm.log(`RE2: ${re_src}`);
   
   return r(re_src);
 };
