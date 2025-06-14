@@ -1,9 +1,3 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
-
-// $corge = CORGE
-
-// \n foo<$corge
-// \n bar< $corge
-// \n baz <$corge
-this string, this string is the whole AST. fun(@foo)
+<FOO <BAR< < <BAZ< CORGE< 
