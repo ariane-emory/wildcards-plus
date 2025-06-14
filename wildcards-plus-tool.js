@@ -3682,7 +3682,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     let chomped = false;
 
-    if (right_word == '<') {
+    if (right_word === '<') {
       left_word += '<';
       str += '<'
       continue;
@@ -9491,7 +9491,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked.replace(/^[<]+/, ''));
+    ret = unescape(walked);
   });
 
   if (log_level__expand_and_walk)
