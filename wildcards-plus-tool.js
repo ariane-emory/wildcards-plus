@@ -10253,49 +10253,29 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const pseudo_structural_chars = raw`<\(\)\[\]`;
 const syntax_chars            = raw`@#$%`;
+const pseudo_structural_chars = raw`<\(\)\[\]`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-      raw`${comment_beginning}` +
-      raw`)` +
-      raw`\S)`;
-// -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
-  const re_src = raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)+` +
-        raw`(?=[\s{|}${pseudo_structural_chars}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
-
-  lm.log(`RE2: ${re_src}`);
-  
-  return r(re_src);
-};
-const make_plain_text_rule2 = (additional_excluded_chars = '') => {
   const re_front_part =
-        raw`(?:(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
-        raw`(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*)`;
+        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
+        raw`(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*`;
 
   const re_src =
-        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*` +
+        raw`(?:${re_front_part})?` +
         raw`[\(\[](?=[@$])` +
         raw`|` +
         re_front_part +
-        raw`(?=(?:[\s${structural_chars}${pseudo_structural_chars}]|$))`;
-
-  lm.log(`RE3: ${re_src}`);
+        raw`(?=(?:[\s${structural_chars}]|$))`;
 
   return r(re_src)
 };
 // -------------------------------------------------------------------------------------------------
-// desired new RE: /(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)*[\(\[](?=[@$])|(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+(?=(?:[\s{|}<()\[\]]|$))/
+const plain_text           = make_plain_text_rule()
+      .abbreviate_str_repr('plain_text');
 const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
-const plain_text           = make_plain_text_rule2()
-      .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
