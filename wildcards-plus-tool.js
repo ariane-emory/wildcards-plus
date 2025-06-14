@@ -3662,6 +3662,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
   }
 
+  const maybe_chomp_left_side_ltris = () =>  {
+    let chomped = false;
+    while (!prev_char_is_escaped() && prev_char() === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    return chomped;
+  };
+  
   for (; ix < arr.length; ix++)  {
     log_pos_vars();
     maybe_correct_articles();
@@ -3670,12 +3679,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (!right_word())
       continue;
 
-    let chomped = false;
-
-    while (!prev_char_is_escaped() && prev_char() === '<') {
-      chomp_left_side();
-      chomped = true;
-    }
+    const chomped = maybe_chomp_left_side_ltris();
 
     collapse_punctuation();
     
