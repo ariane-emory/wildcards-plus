@@ -10260,12 +10260,12 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_rule = (additional_excluded_chars = '') => {
   const re_front_part =
         raw`(?:` +
-        raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S` + `)` +
+        raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
         raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*` +
         raw`)`;
 
-  const alternative_1 = re_front_part + raw`?(?:[\(\[](?=[@$]))`;
-  const alternative_2 = re_front_part + raw`(?=[\s${structural_chars}]|$)`;
+  const alternative_1 = re_front_part + `?` + raw`(?:[<(\[](?=[@$]))`;
+  const alternative_2 = re_front_part +       raw`(?=[\s${structural_chars}]|$)`;
 
   const re_src = alternative_1 + `|` + alternative_2;
   
