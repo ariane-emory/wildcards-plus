@@ -3558,12 +3558,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   let   left_word                            = str;  
   
   for (let ix = 1; ix < arr.length; ix++)  {
-    // let right_word           = null;
-    // let prev_char            = null;
-    // let next_char            = null;
-    // let prev_char_is_escaped = null;
-    // let next_char_is_escaped = null;
-
     const add_a_space = () => {
       if (log_level__smart_join >= 2)
         lm.log(`SPACE!`);
@@ -3583,16 +3577,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       chomped = true;
     };
     
-    // const chomp_right_side = () => {
-    //   if (log_level__smart_join >= 2)
-    //     lm.log(`CHOMP RIGHT!`);
-
-    //   arr[ix] = arr[ix].slice(1);
-
-    //   update_pos_vars();
-    //   chomped = true;
-    // }
-
     const move_chars_left = (n) => {
       if (log_level__smart_join >= 2)
         lm.log(`SHIFT ${n} CHARACTERS!`, true);
@@ -3673,12 +3657,6 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
 
     let chomped = false;
-
-    // if (right_word === '<') {
-    //   left_word += '<';
-    //   str += '<'
-    //   continue;
-    // }
 
     if (next_char() === '<') {
       left_word += '<';
