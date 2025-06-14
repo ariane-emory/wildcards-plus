@@ -3634,7 +3634,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         move_chars_left(3);
 
       const test = () =>
-            prev_char !== '' && left_collapsible_punctuation_chars.includes(prev_char) &&
+            prev_char !== '' && (!prev_char_is_escaped &&
+                                 left_collapsible_punctuation_chars.includes(prev_char)) &&
             next_char !== '' && right_collapsible_punctuation_chars.includes(next_char);
 
       if (test()) 
@@ -10307,8 +10308,9 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   lm.log(`RE: ${re_src}`);
 
-  return xform(str => str.replace(/^<+/, '<').replace(/<+$/, '<'),
-               r(re_src));
+  return xform(r(re_src),
+               str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
+               
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
