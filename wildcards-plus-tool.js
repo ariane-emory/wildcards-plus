@@ -10527,7 +10527,7 @@ const AnonWildcardInDefinition =
       .abbreviate_str_repr('AnonWildcardInDefinition');
 const AnonWildcardNoTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             {can_have_trailer: false, empty_value:  '' })
+                             { can_have_trailer: false, empty_value:  '' })
       .abbreviate_str_repr('AnonWildcardNoTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
