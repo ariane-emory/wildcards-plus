@@ -3656,14 +3656,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     collapse_punctuation();
     
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
-
-      continue;
-    }
-
-    if (!chomped &&
+    if (right_word !== ''                                         &&
+        !chomped                                                  &&
         !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
         !right_word.startsWith('\\ ')                             && 
