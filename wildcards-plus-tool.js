@@ -3559,16 +3559,16 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   
   for (let ix = 1; ix < arr.length; ix++)  {
     let right_word           = null;
-    let prev_char            = null;
-    let prev_char_is_escaped = null;
-    let next_char_is_escaped = null;
-    let next_char            = null;
+    // let prev_char            = null;
+    // let next_char            = null;
+    // let prev_char_is_escaped = null;
+    // let next_char_is_escaped = null;
 
     const add_a_space = () => {
       if (log_level__smart_join >= 2)
         lm.log(`SPACE!`);
 
-      prev_char  = ' ';
+      // prev_char  = ' ';
       str       += ' ';
     }
 
@@ -3606,42 +3606,43 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       
       update_pos_vars();
     };
-    
+
+    const prev_char            = () => left_word[left_word.length - 1] ?? "";
+    const next_char            = () => right_word[next_char_is_escaped() ? 1 : 0] ?? '';
+    const prev_char_is_escaped = () => left_word[left_word.length - 2] === '\\';
+    const next_char_is_escaped = () => right_word[0] === '\\';
+
     const update_pos_vars = () => {
       right_word           = arr[ix]; // ?.toString() ?? "";
-      prev_char            = left_word[left_word.length - 1] ?? "";
-      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char_is_escaped = right_word[0] === '\\';
-      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
-
+      
       if (log_level__smart_join >= 2)
         //lm.indent(() => 
         lm.log(`ix = ${inspect_fun(ix)}, \n` +
                `str = ${inspect_fun(str)}, \n` +
                `left_word = ${inspect_fun(left_word)}, ` +         
                `right_word = ${inspect_fun(right_word)}, \n` + 
-               `prev_char = ${inspect_fun(prev_char)}, ` +         
-               `next_char = ${inspect_fun(next_char)}, \n` + 
-               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`, true)
+               `prev_char = ${inspect_fun(prev_char())}, ` +         
+               `next_char = ${inspect_fun(next_char())}, \n` + 
+               `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
+               `next_char_is_escaped = ${next_char_is_escaped()}`, true)
       //);
     };
 
     const collapse_punctuation = () => {
-      while (!prev_char_is_escaped &&
-             left_collapsible_punctuation_chars.includes(prev_char) &&
+      while (!prev_char_is_escaped() &&
+             left_collapsible_punctuation_chars.includes(prev_char()) &&
              right_word.startsWith('...'))
         move_chars_left(3);
 
       const test = () =>
-            prev_char !== '' && (!prev_char_is_escaped &&
-                                 left_collapsible_punctuation_chars.includes(prev_char)) &&
-            next_char !== '' && right_collapsible_punctuation_chars.includes(next_char);
+            prev_char() !== '' && (!prev_char_is_escaped() &&
+                                   left_collapsible_punctuation_chars.includes(prev_char())) &&
+            next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
 
       if (test()) 
         do {
           if (log_level__expand_and_walk >= 2)
-            lm.log(`collapsing ${inspect_fun(prev_char)} <= ${inspect_fun(next_char)}`);
+            lm.log(`collapsing ${inspect_fun(prev_char())} <= ${inspect_fun(next_char())}`);
           move_chars_left(1);
         } while (test());
       else if (log_level__expand_and_walk >= 2)
@@ -3688,19 +3689,19 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     //   continue;
     // }
 
-    if (next_char === '<') {
+    if (next_char() === '<') {
       left_word += '<';
       str += '<';
       do {
         arr[ix] = arr[ix].slice(1);
         update_pos_vars();
-      } while (next_char === '<');
-     }
+      } while (next_char() === '<');
+    }
     
     if (!right_word)
       continue;
 
-    while (!prev_char_is_escaped && prev_char === '<')
+    while (!prev_char_is_escaped() && prev_char() === '<')
       chomp_left_side();
     
     collapse_punctuation();
@@ -3708,14 +3709,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (!right_word)
       continue;
 
-    if (!chomped                                                  &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
-        !right_word.startsWith('\\n')                             &&
-        !right_word.startsWith('\\ ')                             && 
-        !right_collapsible_punctuation_chars.includes (next_char) && 
-        !linking_chars.includes                       (prev_char) &&
-        !linking_chars.includes                       (next_char) &&
-        !'(['.includes(prev_char))
+    if (!chomped                                                    &&
+        !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
+        !right_word.startsWith('\\n')                               &&
+        !right_word.startsWith('\\ ')                               && 
+        !right_collapsible_punctuation_chars.includes (next_char()) && 
+        !linking_chars.includes                       (prev_char()) &&
+        !linking_chars.includes                       (next_char()) &&
+        !'(['.includes(prev_char()))
       add_a_space();
 
     if (log_level__smart_join >= 2)
