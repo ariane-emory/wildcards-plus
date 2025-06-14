@@ -305,7 +305,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = true;
+let print_ast_before_includes_enabled  = false;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -1897,6 +1897,13 @@ class Regex extends Rule {
       return null;
     }
 
+    if (re_match.groups) {
+      const tmp = re_match;
+      delete tmp.input;
+    
+      lm.log(`re_match: ${inspect_fun(tmp)}`);
+    }
+    
     return new MatchResult(re_match[re_match.length - 1],
                            input,
                            index + re_match[0].length);
@@ -10257,24 +10264,9 @@ const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') 
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
-// // -------------------------------------------------------------------------------------------------
-// const make_plain_text_rule = additional_excluded_chars => {
-//   const re_src = raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
-//         raw`(?=[\s{|}${pseudo_structural_chars}]|$)|` +
-//         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
-
-//   lm.log(`RE1: ${re_src}`);
-
-//   return r(re_src);
-// };
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
-  const re_src = raw`(?:\\.|` +
-        raw`(?!`+
-        raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
-        raw`${comment_beginning}` +
-        raw`)` +
-        raw`\S)+` +
+  const re_src = raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)+` +
         raw`(?=[\s{|}${pseudo_structural_chars}]|$)|` +
         raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
 
@@ -10282,11 +10274,17 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   
   return r(re_src);
 };
+const make_plain_text_rule2 = (additional_excluded_chars = '') => {
+  const re_src = raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*[\(\[](?=[@$])|(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)+(?=(?:[\s${structural_chars}${additional_excluded_chars}<()\[\]]|$))`;
+  lm.log(`RE3: ${re_src}`);
+
+  return r(re_src)
+};
 // -------------------------------------------------------------------------------------------------
-// desired new RE: /^(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+(?=([\s{|}<()\[\]]|$))|(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)*[\(\[](?=[@$])/
+// desired new RE: /(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)*[\(\[](?=[@$])|(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+(?=(?:[\s{|}<()\[\]]|$))/
 const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
-const plain_text           = make_plain_text_rule()
+const plain_text           = make_plain_text_rule2()
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
