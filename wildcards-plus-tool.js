@@ -10258,12 +10258,15 @@ const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') 
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = additional_excluded_chars => { 
-  return r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
-           raw`(?=[\s{|}]|$)|` +
-           raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
-};
+const make_plain_text_rule = additional_excluded_chars => {
+  const re_src = raw`${make_plain_text_char_RegExp_source_str(additional_excluded_chars)}+` +
+        raw`(?=[\s{|}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`;
 
+  lm.log(`RE: ${re_src}`);
+  
+  return r(re_src);
+};
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(';')
         .abbreviate_str_repr('plain_text_no_semis');
