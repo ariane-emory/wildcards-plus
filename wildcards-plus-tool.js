@@ -10786,7 +10786,7 @@ const LimitedContent =
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoArticleCorrection =
       make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
-      .abbreviate_str_repr('LimitedContent');
+      .abbreviate_str_repr('LimitedContentNoArticleCorrection');
 const LimitedContentNoAWCTrailers =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
