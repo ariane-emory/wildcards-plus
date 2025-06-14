@@ -305,7 +305,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = false;
+let print_ast_before_includes_enabled  = true;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -10265,12 +10265,15 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
         raw`)`;
 
   const alternative_1 = re_front_part + `?` + raw`(?:[<(\[](?=[@$]))`;
-  const alternative_2 = re_front_part +       raw`(?=[\s${structural_chars}]|$)`;
+  const alternative_2 = re_front_part +       raw`<`;
+  const alternative_3 = re_front_part +       raw`(?=[\s${structural_chars}]|$)`;
 
-  const re_src = alternative_1 + `|` + alternative_2;
-  
+  const re_src = alternative_1
+        + `|`  + alternative_2
+        + `|`  + alternative_3;
+
   lm.log(`RE: ${re_src}`);
-  
+
   return r(re_src)
 };
 // -------------------------------------------------------------------------------------------------
