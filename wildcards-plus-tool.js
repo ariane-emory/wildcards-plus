@@ -10280,7 +10280,8 @@ const make_plain_text_rule2 = (additional_excluded_chars = '') => {
         raw`(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*)`;
 
   const re_src =
-        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*[\(\[](?=[@$])` +
+        raw`(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*` +
+        raw`[\(\[](?=[@$])` +
         raw`|` +
         re_front_part +
         raw`(?=(?:[\s${structural_chars}${pseudo_structural_chars}]|$))`;
