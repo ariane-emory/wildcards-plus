@@ -3651,11 +3651,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     }
   };
   
-  for (; ix < arr.length; ix++)  {
-    log_pos_vars();
-
-    maybe_correct_articles();
-    
+  const shift_ltris_leftwards = () => {
     if (next_char() === '<') {
       left_word += '<';
       str += '<';
@@ -3664,6 +3660,12 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         log_pos_vars();
       } while (next_char() === '<');
     }
+  }
+
+  for (; ix < arr.length; ix++)  {
+    log_pos_vars();
+    maybe_correct_articles();
+    shift_ltris_leftwards();
 
     if (!right_word())
       continue;
