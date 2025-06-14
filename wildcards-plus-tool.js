@@ -3535,8 +3535,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const right_collapsible_punctuation_chars = "_-,.;!?:])";
   const prev_char                           = () => left_word[left_word.length - 1] ?? "";
   const next_char                           = () => right_word()[next_char_is_escaped() ? 1 : 0] ?? '';
-  const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
-  const next_char_is_escaped                = () => right_word()[0] === '\\';
+  // const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
+  // const next_char_is_escaped                = () => right_word()[0] === '\\';
   const right_word                          = () => arr[ix];
 
   const add_a_space = () => {
@@ -3572,14 +3572,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
 
   const collapse_punctuation = () => {
-    while (!prev_char_is_escaped() &&
-           left_collapsible_punctuation_chars.includes(prev_char()) &&
-           right_word().startsWith('...'))
+    while (/* !prev_char_is_escaped() && */
+      left_collapsible_punctuation_chars.includes(prev_char()) &&
+        right_word().startsWith('...'))
       collapse_chars_leftwards(3);
 
     const test = () =>
-          prev_char() !== '' && (!prev_char_is_escaped() &&
-                                 left_collapsible_punctuation_chars.includes(prev_char())) &&
+          prev_char() !== '' &&
+          left_collapsible_punctuation_chars.includes(prev_char())) &&
           next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
 
     if (test()) 
@@ -3599,9 +3599,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
              `left_word = ${inspect_fun(left_word)}, ` +         
              `right_word = ${inspect_fun(right_word())}, \n` + 
              `prev_char = ${inspect_fun(prev_char())}, ` +         
-             `next_char = ${inspect_fun(next_char())}, \n` + 
-             `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
-             `next_char_is_escaped = ${next_char_is_escaped()}`, true)
+             `next_char = ${inspect_fun(next_char())}, \n` //+ 
+             // `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
+             // `next_char_is_escaped = ${next_char_is_escaped()}`,
+             , true)
   };
 
   const maybe_correct_articles = () => {
