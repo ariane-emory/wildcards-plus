@@ -10552,8 +10552,7 @@ const UnexpectedSpecialFunctionUIPrompt =
                  (rule, input, index) =>
                  new FatalParseError("%ui-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
+                                     "NOT when running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
