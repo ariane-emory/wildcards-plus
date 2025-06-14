@@ -10291,7 +10291,7 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   const re_src = alternative_1 + `|`  + alternative_2;
 
-  lm.log(`RE: ${re_src}`);
+  // lm.log(`RE: ${re_src}`);
 
   return xform(r(re_src),
                str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
