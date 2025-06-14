@@ -9468,7 +9468,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                  `=> ` +
                  `${thing_str_repr(obj.value, { always_include_type_str: true, length: 200 })}`);
 
-      return obj.value;
+      return unescape(obj.value);
     }
   }
 
@@ -9480,7 +9480,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked);
+    ret = walked; // unescape(walked);
   });
 
   if (log_level__expand_and_walk)
@@ -10296,9 +10296,9 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   // lm.log(`RE: ${re_src}`);
 
   return xform(r(re_src),
-               str => unescape(str
-                               .replace(/^<+/, '<')
-                               .replace(/<+$/, '<')));
+               str => str
+               .replace(/^<+/, '<')
+               .replace(/<+$/, '<'));
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
