@@ -3504,7 +3504,7 @@ let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
 // -------------------------------------------------------------------------------------------------
-function smart_join_merge(arr, { correct_articles = true }) {
+function smart_join_merge(arr, { correct_articles = true } = {}) {
   const result = [];
   let buffer = [];
 
@@ -11130,3 +11130,4 @@ if (! main_disabled)
 
 // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
+lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
