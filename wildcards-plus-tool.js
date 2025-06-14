@@ -11135,4 +11135,4 @@ if (! main_disabled)
 
 // lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
 
-lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
+// lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
