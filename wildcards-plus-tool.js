@@ -3671,7 +3671,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     return chomped;
   };
   
-  for (; ix < arr.length; ix++)  {
+  for (; ix < arr.length; ix++) {
     log_pos_vars();
     maybe_correct_articles();
     shift_ltris_leftwards();
@@ -10243,7 +10243,8 @@ const structural_close_ahead      = r(/(?=\s*})/)
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
 const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
-const sj_merge                = rule => xform(smart_join_merge, rule);
+const sj_merge                = (rule, correct_articles = false) =>
+      xform(smart_join_merge, rule);
 // =================================================================================================
 // terminals:
 // =================================================================================================
