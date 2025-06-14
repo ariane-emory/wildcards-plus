@@ -10770,13 +10770,13 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      make_LimitedContent_rule(plain_text, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoArticleCorrection =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoArticleCorrection /* AnonWildcardNoLoras */)
+      make_LimitedContent_rule(plain_text, AnonWildcardNoArticleCorrection)
       .abbreviate_str_repr('LimitedContent');
 const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoTrailer)
       .abbreviate_str_repr('LimitedContentNoAWCTrailers');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
@@ -10806,13 +10806,13 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const make_ContentInAnonWildcardAlternative_rule = child_AnonWildcard_rule =>
+const make_ContentInAnonWildcardAlternative_rule = nested_AnonWildcard_rule =>
       make_Content_rule({
         before_plain_text_rules: [
           end_quantified_match_if(structural_close_ahead),
           A1111StyleLora,
           TestFlagInAlternativeContent,
-          child_AnonWildcard_rule,
+          nested_AnonWildcard_rule,
         ],
         after_plain_text_rules:  [
         ],
