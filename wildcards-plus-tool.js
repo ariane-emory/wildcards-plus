@@ -9196,7 +9196,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `in key ${inspect_fun(our_name)}`);
                 
                 const new_arr = [ ...tmp_arr, ...value ];
-                if (log_expand_and_walk_enabled >= 2)
+
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by array ${inspect_fun(value)}, ` +             
@@ -9214,7 +9215,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 const new_obj = { ...tmp_obj, ...value };
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by object ${inspect_fun(value)}, ` +             
@@ -9230,7 +9231,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `to non-number ${inspect_fun(tmp_num)} ` +
                             `in key ${inspect_fun(our_name)}`);
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +
                          `increment by number ${inspect_fun(value)}, ` +
@@ -11034,8 +11035,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
     
-    // log_level__expand_and_walk = 2;
-    // log_level__smart_join      = 2;
+    log_level__expand_and_walk = 2;
+    log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
