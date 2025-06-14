@@ -10764,10 +10764,9 @@ const ScalarAssignment        =
             discarded_comments,                               // - 
             cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
                         discarded_comments,                   // -
-                        lws(choice(
-                          () => rjsonc_string, // [1][1]
+                        lws(choice(                           // [1][1]
+                          () => rjsonc_string,
                           () => LimitedContent,
-                          // () => hwst_plus(choice(LimitedContent, discarded_comment)),
                         )),
                         optional(SpecialFunctionTail))))
       .abbreviate_str_repr('ScalarAssignment');
