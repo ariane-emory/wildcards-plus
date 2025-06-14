@@ -10806,26 +10806,21 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const ContentInAnonWildcardAlternative = make_Content_rule({
-  before_plain_text_rules: [
-    end_quantified_match_if(structural_close_ahead),
-    A1111StyleLora,
-    TestFlagInAlternativeContent,
-    AnonWildcard,
-  ],
-  after_plain_text_rules:  [
-  ],
-});
-const ContentInAnonWildcardAlternativeNoArticleCorrection = make_Content_rule({
-  before_plain_text_rules: [
-    end_quantified_match_if(structural_close_ahead),
-    A1111StyleLora,
-    TestFlagInAlternativeContent,
-    AnonWildcardNoArticleCorrection,
-  ],
-  after_plain_text_rules:  [
-  ],
-});
+const make_ContentInAnonWildcardAlternative_rule = child_AnonWildcard_rule =>
+      make_Content_rule({
+        before_plain_text_rules: [
+          end_quantified_match_if(structural_close_ahead),
+          A1111StyleLora,
+          TestFlagInAlternativeContent,
+          child_AnonWildcard_rule,
+        ],
+        after_plain_text_rules:  [
+        ],
+      });
+const ContentInAnonWildcardAlternative =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcard);
+const ContentInAnonWildcardAlternativeNoArticleCorrection =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcardNoArticleCorrection);
 const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
