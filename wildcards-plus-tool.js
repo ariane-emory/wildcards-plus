@@ -10254,7 +10254,7 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // plain_text terminal variants:
 // =================================================================================================
 const syntax_chars            = raw`@#$%`;
-const pseudo_structural_chars = raw`<\(\)\[\]`;
+// const pseudo_structural_chars = raw`<\(\)\[\]`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
@@ -10267,7 +10267,8 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
         raw`[\(\[](?=[@$])` +
         raw`|` +
         re_front_part +
-        raw`(?=(?:[\s${structural_chars}]|$))`;
+        // raw`(?=(?:[\s${structural_chars}<]|$))`;
+        raw`(?=[\s${structural_chars}<]|$)`;
 
   return r(re_src)
 };
