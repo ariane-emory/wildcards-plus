@@ -3602,8 +3602,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         move_chars_left(3);
 
       const test = () =>
-            left_collapsible_punctuation_chars.includes(prev_char) &&
-            right_collapsible_punctuation_chars.includes(next_char);
+            prev_char !== '' && left_collapsible_punctuation_chars.includes(prev_char) &&
+            next_char !== '' && right_collapsible_punctuation_chars.includes(next_char);
 
       if (test()) 
         do {

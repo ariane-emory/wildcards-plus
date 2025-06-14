@@ -3334,15 +3334,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
         move_chars_left(3);
 
       const test = () =>
-            left_collapsible_punctuation_chars.includes(prev_char) &&
-            right_collapsible_punctuation_chars.includes(next_char);
+            prev_char !== '' && left_collapsible_punctuation_chars.includes(prev_char) &&
+            next_char !== '' && right_collapsible_punctuation_chars.includes(next_char);
 
       if (test()) 
         do {
           lm.log(`collapsing ${prev_char} =- ${next_char}`);
           move_chars_left(1);
         } while (test());
-      else 
+      else if (log_level__expand_and_walk >= 2)
         lm.log(`not collapsing`);
     }
 
@@ -4310,6 +4310,9 @@ const prelude_text = `
 @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
 @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
 
+@colors = { brown  | red    | orange | yellow | green  | blue    | indigo
+          | violet | purple | black  | grey   | white  | silver  | gold }
+
 @pony_scores =
 {0
 |@pony score_4_up
@@ -4342,7 +4345,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 576;  %oh   = 768; 
+  %ow   = 768;  %oh   = 576;
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -9984,22 +9987,25 @@ const pseudo_structural_chars = raw`<\(\)\[\]`;
 const syntax_chars            = raw`@#$%`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = (additional_excluded_chars = '') =>
+const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
+      raw`[\s${additional_excluded_chars}${structural_chars}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = additional_excluded_chars => 
-      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
-        raw`(?=[\s{|}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
+const make_plain_text_rule = (additional_excluded_initial_chars    = '',
+                              additional_excluded_subsequent_chars = '') => 
+      r(raw`${make_plain_text_char_RegExp_source_str(additional_excluded_initial_chars)}` +
+        raw`${make_plain_text_char_RegExp_source_str(additional_excluded_subsequent_chars)}*` +
+        raw`(?=[\s${structural_chars}]|$)|` +
+        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`); 
+//      ^ sus, won't 1st/2nd part of regex have already eaten these?
 // -------------------------------------------------------------------------------------------------
-const plain_text_no_semis  = make_plain_text_rule(';')
+const plain_text_no_semis  = make_plain_text_rule(`${syntax_chars};`, `;`)
       .abbreviate_str_repr('plain_text_no_semis');
-const plain_text           = make_plain_text_rule()
+const plain_text           = make_plain_text_rule(`${syntax_chars}`)
       .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
@@ -10064,7 +10070,7 @@ const CheckFlagWithSetConsequent =
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const CheckFlagWithOrAlternatives = // last check alternative
+const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
       xform(cutting_seq(question,                     // [0]
                         plus(flag_ident, comma),      // [1]
                         structural_word_break_ahead), // [2]
@@ -10073,7 +10079,7 @@ const CheckFlagWithOrAlternatives = // last check alternative
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-const NotFlagWithSetConsequent = // last not alternative
+const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
@@ -10145,7 +10151,7 @@ const make_ASTAnonWildcardAlternative = arr => {
   if (weight == 0)
     return DISCARD;
   
-  const flags = ([ ...arr[0], ...arr[2] ]);
+  const flags = [ ...arr[0], ...arr[2] ];
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
@@ -10174,13 +10180,15 @@ const make_ASTAnonWildcardAlternative = arr => {
     ]);
 };
 // -------------------------------------------------------------------------------------------------
+const AnonWildcardHeaderItems =
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      .abbreviate_str_repr('AnonWildcardHeaderItems');
+// -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = content_rule => 
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+            seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
-                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+                AnonWildcardHeaderItems,
                 flat1(wst_star(content_rule))));
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
