@@ -10271,12 +10271,12 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
         raw`)`;
 
   const alternative_1 = re_front_part + `?` + raw`(?:[<(\[](?=[@$]))`;
-  const alternative_2 = re_front_part +       raw`<`;
-  const alternative_3 = re_front_part +       raw`(?=[\s${structural_chars}]|$)`;
+  // const alternative_2 = re_front_part +       raw`<`;
+  const alternative_3 = re_front_part +       raw`(?:<|(?=[\s${structural_chars}]|$))`;
 
   const re_src = alternative_1
-        + `|`  + alternative_2
-        + `|`  + alternative_3;
+  // + `|`  + alternative_2
+    + `|`  + alternative_3;
 
   lm.log(`RE: ${re_src}`);
 
