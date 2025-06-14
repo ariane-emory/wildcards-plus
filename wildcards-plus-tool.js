@@ -3534,7 +3534,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const left_collapsible_punctuation_chars  = "_-,.;!?";
   const right_collapsible_punctuation_chars = "_-,.;!?:])";
   const prev_char                           = () => left_word[left_word.length - 1] ?? "";
-  const next_char                           = () => right_word()[next_char_is_escaped() ? 1 : 0] ?? '';
+  const next_char                           = () => right_word()[0] ?? '';
   // const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
   // const next_char_is_escaped                = () => right_word()[0] === '\\';
   const right_word                          = () => arr[ix];
@@ -3578,9 +3578,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       collapse_chars_leftwards(3);
 
     const test = () =>
-          prev_char() !== '' &&
-          left_collapsible_punctuation_chars.includes(prev_char())) &&
-          next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
+          (prev_char() !== '' && left_collapsible_punctuation_chars.includes(prev_char())) &&
+          (next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char()));
 
     if (test()) 
       do {
@@ -3642,7 +3641,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
   const maybe_chomp_left_side_ltris = () =>  {
     let chomped = false;
-    while (!prev_char_is_escaped() && prev_char() === '<') {
+    while (prev_char() === '<') {
       chomp_left_side();
       chomped = true;
     }
@@ -3665,7 +3664,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       continue;
 
     if (!chomped                                                    &&
-        !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
+        !(prev_char && ' n'.includes(prev_char()))                  &&
         !right_word().startsWith('\\n')                             &&
         !right_word().startsWith('\\ ')                             && 
         !right_collapsible_punctuation_chars .includes(next_char()) && 
