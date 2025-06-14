@@ -9491,7 +9491,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-  return ret;
+  return ret.replace(/\\</g, '<');
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -10295,7 +10295,12 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   // lm.log(`RE: ${re_src}`);
 
   return xform(r(re_src),
-               str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
+               str => str
+               .replace(/^<+/,    '<')
+               .replace(/<+$/,    '<')
+               .replace(/\\n/g,   '\n')
+               .replace(/\\ /g,   ' ')
+               .replace(/\\([^<])/g, '$1'));
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
