@@ -10268,157 +10268,158 @@ const make_plain_text_rule = additional_excluded_chars => {
   return r(re_src);
 };
 // -------------------------------------------------------------------------------------------------
+// desired new RE: /^(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)+(?=([\s{|}<()\[\]]|$))|(?:\\.|(?![\s@#$%{|}]|\/\/|\/\*)\S)*[\(\[](?=[@$])/
 const plain_text_no_semis  = make_plain_text_rule(';')
-        .abbreviate_str_repr('plain_text_no_semis');
-  const plain_text           = make_plain_text_rule()
-        .abbreviate_str_repr('plain_text');
-  // =================================================================================================
-  // A1111-style LoRAs:
-  // =================================================================================================
-  const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
-        .abbreviate_str_repr('A1111StyleLoraWeight');
-  const A1111StyleLora =
-        xform(arr => new ASTLora(arr[2], arr[3]),
-              wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
-                              colon,                                               // [1] 
-                              choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                              optional(wst_cadr(colon,                             // [3]
-                                                choice(A1111StyleLoraWeight,
-                                                       () => LimitedContentNoAWCTrailers)),
-                                       "1.0"),
-                              rtri))
-        .abbreviate_str_repr('A1111StyleLora');
-  // =================================================================================================
-  // mod RJSONC:
-  // =================================================================================================
-  const ExposedRjsonc = 
-        make_Jsonc_rule(choice(head(choice(RjsoncObject,
-                                           RjsoncArray,
-                                           rjsonc_string),
-                                    optional(() => SpecialFunctionTail)),
-                               head(choice(json_null,
-                                           json_true,
-                                           json_false,
-                                           json_number),
-                                    () => SpecialFunctionTail))); 
-  // =================================================================================================
-  // flag-related rules:
-  // =================================================================================================
-  const flag_ident = xform(seq(choice(ident, '*'),
-                               star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
-                           arr => [arr[0], ...arr[1]]);
-  const SimpleCheckFlag =
-        xform(with_swb(seq(question,
-                           flag_ident)),
-              arr => {
-                const args = [arr[1]];
-                return new ASTCheckFlags(args);
-              })
-        .abbreviate_str_repr('SimpleCheckFlag');
-  const SimpleNotFlag =
-        xform(with_swb(seq(bang,
-                           optional(hash),
-                           flag_ident)),
-              arr => {
-                const args = [arr[2],
-                              { set_immediately: !!arr[1]}];
-                return new ASTNotFlag(...args);
-              })
-        .abbreviate_str_repr('SimpleNotFlag');
-  const CheckFlagWithSetConsequent =
-        xform(cutting_with_swb(seq(question,     // [0]
-                                   flag_ident,   // [1]
-                                   dot_hash,     // [2]
-                                   flag_ident)), // [3]
-              arr => {
-                const args = [ [ arr[1] ], arr[3] ]; 
-                return new ASTCheckFlags(...args);
-              })
-        .abbreviate_str_repr('CheckFlagWithSetConsequent');
-  const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
-        xform(cutting_seq(question,                     // [0]
-                          plus(flag_ident, comma),      // [1]
-                          structural_word_break_ahead), // [2]
-              arr => {
-                const args = [arr[1]];
-                return new ASTCheckFlags(...args);
-              })
-        .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-  const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
-        xform(cutting_seq(bang,                         // [0]
-                          flag_ident,                   // [1]
-                          dot_hash,                     // [2]
-                          flag_ident,                   // [3]
-                          structural_word_break_ahead), // - 
-              arr => {
-                const args = [arr[1],
-                              { consequently_set_flag_tail: arr[3]}]; 
-                return new ASTNotFlag(...args);
-              })
-        .abbreviate_str_repr('NotFlagWithSetConsequent');
-  // -------------------------------------------------------------------------------------------------
-  const SetFlag   =
-        xform(arr => new ASTSetFlag(arr),
-              cutting_cadr(hash, flag_ident, structural_word_break_ahead))
-        .abbreviate_str_repr('SetFlag');
-  const UnsetFlag =
-        xform(arr=> new ASTUnsetFlag(arr),
-              cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
-        .abbreviate_str_repr('UnsetFlag');
-  // -------------------------------------------------------------------------------------------------
-  const unexpected_TestFlag_at_top_level = rule => 
-        unexpected(rule, (rule, input, index) =>
-          new FatalParseError(`check/not flag guards without set consequents at the top level ` +
-                              `would serve no purpose and so are not permitted`,
-                              input, index));
-  const innapropriately_placed_TestFlag  = rule => 
-        unexpected(rule, (rule, input, index) =>
-          new FatalParseError(`innapropriately placed test flag`,
-                              input, index));
-  const wrap_TestFlag_in_AnonWildcard    = rule =>
-        xform(rule, flag =>
-          new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
-  // -------------------------------------------------------------------------------------------------
-  const TestFlagInGuardPosition =
-        choice(SimpleCheckFlag,
-               SimpleNotFlag,
-               CheckFlagWithSetConsequent,
-               NotFlagWithSetConsequent,
-               CheckFlagWithOrAlternatives);
-  const TopLevelTestFlag =
-        choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
-               .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
-               unexpected_TestFlag_at_top_level(SimpleNotFlag)
-               .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
-               wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-               .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-               wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-               .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
-               unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
-               .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
-  const TestFlagInAlternativeContent =
-        choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
-               .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
-               innapropriately_placed_TestFlag(SimpleNotFlag)
-               .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
-               innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
-               .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
-               innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
-               .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
-               innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
-               .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
-  // =================================================================================================
-  // AnonWildcard-related rules:
-  // =================================================================================================
-  const make_ASTAnonWildcardAlternative = arr => {
-    const weight = arr[1];
+      .abbreviate_str_repr('plain_text_no_semis');
+const plain_text           = make_plain_text_rule()
+      .abbreviate_str_repr('plain_text');
+// =================================================================================================
+// A1111-style LoRAs:
+// =================================================================================================
+const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
+      .abbreviate_str_repr('A1111StyleLoraWeight');
+const A1111StyleLora =
+      xform(arr => new ASTLora(arr[2], arr[3]),
+            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
+                            colon,                                               // [1] 
+                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
+                            optional(wst_cadr(colon,                             // [3]
+                                              choice(A1111StyleLoraWeight,
+                                                     () => LimitedContentNoAWCTrailers)),
+                                     "1.0"),
+                            rtri))
+      .abbreviate_str_repr('A1111StyleLora');
+// =================================================================================================
+// mod RJSONC:
+// =================================================================================================
+const ExposedRjsonc = 
+      make_Jsonc_rule(choice(head(choice(RjsoncObject,
+                                         RjsoncArray,
+                                         rjsonc_string),
+                                  optional(() => SpecialFunctionTail)),
+                             head(choice(json_null,
+                                         json_true,
+                                         json_false,
+                                         json_number),
+                                  () => SpecialFunctionTail))); 
+// =================================================================================================
+// flag-related rules:
+// =================================================================================================
+const flag_ident = xform(seq(choice(ident, '*'),
+                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
+                         arr => [arr[0], ...arr[1]]);
+const SimpleCheckFlag =
+      xform(with_swb(seq(question,
+                         flag_ident)),
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(args);
+            })
+      .abbreviate_str_repr('SimpleCheckFlag');
+const SimpleNotFlag =
+      xform(with_swb(seq(bang,
+                         optional(hash),
+                         flag_ident)),
+            arr => {
+              const args = [arr[2],
+                            { set_immediately: !!arr[1]}];
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('SimpleNotFlag');
+const CheckFlagWithSetConsequent =
+      xform(cutting_with_swb(seq(question,     // [0]
+                                 flag_ident,   // [1]
+                                 dot_hash,     // [2]
+                                 flag_ident)), // [3]
+            arr => {
+              const args = [ [ arr[1] ], arr[3] ]; 
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithSetConsequent');
+const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
+      xform(cutting_seq(question,                     // [0]
+                        plus(flag_ident, comma),      // [1]
+                        structural_word_break_ahead), // [2]
+            arr => {
+              const args = [arr[1]];
+              return new ASTCheckFlags(...args);
+            })
+      .abbreviate_str_repr('CheckFlagWithOrAlternatives');
+const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
+      xform(cutting_seq(bang,                         // [0]
+                        flag_ident,                   // [1]
+                        dot_hash,                     // [2]
+                        flag_ident,                   // [3]
+                        structural_word_break_ahead), // - 
+            arr => {
+              const args = [arr[1],
+                            { consequently_set_flag_tail: arr[3]}]; 
+              return new ASTNotFlag(...args);
+            })
+      .abbreviate_str_repr('NotFlagWithSetConsequent');
+// -------------------------------------------------------------------------------------------------
+const SetFlag   =
+      xform(arr => new ASTSetFlag(arr),
+            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
+      .abbreviate_str_repr('SetFlag');
+const UnsetFlag =
+      xform(arr=> new ASTUnsetFlag(arr),
+            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
+      .abbreviate_str_repr('UnsetFlag');
+// -------------------------------------------------------------------------------------------------
+const unexpected_TestFlag_at_top_level = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`check/not flag guards without set consequents at the top level ` +
+                            `would serve no purpose and so are not permitted`,
+                            input, index));
+const innapropriately_placed_TestFlag  = rule => 
+      unexpected(rule, (rule, input, index) =>
+        new FatalParseError(`innapropriately placed test flag`,
+                            input, index));
+const wrap_TestFlag_in_AnonWildcard    = rule =>
+      xform(rule, flag =>
+        new ASTAnonWildcard([make_ASTAnonWildcardAlternative([[], [1], [flag], []])]));
+// -------------------------------------------------------------------------------------------------
+const TestFlagInGuardPosition =
+      choice(SimpleCheckFlag,
+             SimpleNotFlag,
+             CheckFlagWithSetConsequent,
+             NotFlagWithSetConsequent,
+             CheckFlagWithOrAlternatives);
+const TopLevelTestFlag =
+      choice(unexpected_TestFlag_at_top_level(SimpleCheckFlag)
+             .abbreviate_str_repr('UnexpectedSimpleCheckFlagAtTopLevel'),
+             unexpected_TestFlag_at_top_level(SimpleNotFlag)
+             .abbreviate_str_repr('UnexpectedSimpleNotFlagAtTopLevel'),
+             wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
+             wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
+             unexpected_TestFlag_at_top_level(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('UnexpectedCheckFlagWithOrAlternativesAtTopLevel'));
+const TestFlagInAlternativeContent =
+      choice(innapropriately_placed_TestFlag(SimpleCheckFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleCheckFlag'),
+             innapropriately_placed_TestFlag(SimpleNotFlag)
+             .abbreviate_str_repr('InappropriatelyPlacedSimpleNotFlag'),
+             innapropriately_placed_TestFlag(CheckFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
+             .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
+             innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
+             .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
+// =================================================================================================
+// AnonWildcard-related rules:
+// =================================================================================================
+const make_ASTAnonWildcardAlternative = arr => {
+  const weight = arr[1];
 
-    if (weight == 0)
-      return DISCARD;
-    
-    const flags = [ ...arr[0], ...arr[2] ];
-    const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
-    const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
+  if (weight == 0)
+    return DISCARD;
+  
+  const flags = [ ...arr[0], ...arr[2] ];
+  const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
+  const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
   const ASTSetFlags_for_ASTCheckFlags_with_consequently_set_flag_tails =
         check_flags
