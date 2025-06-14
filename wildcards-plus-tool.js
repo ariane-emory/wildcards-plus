@@ -10485,7 +10485,7 @@ const make_AnonWildcardAlternative_rule = (content_rule,
                 lws(optional(swb_uint, 1)),                                 
                 AnonWildcardHeaderItems,
                 sj_merge(flat1(wst_star(content_rule)),
-                         { sj_merge_correct_articles: sj_merge_correct_articles })));
+                         { correct_articles: sj_merge_correct_articles })));
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative  =
       make_AnonWildcardAlternative_rule(
