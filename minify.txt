@@ -1,4 +1,4 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-\n (@colors: @random_weight)
+\n soo,(@colors: @random_weight)
