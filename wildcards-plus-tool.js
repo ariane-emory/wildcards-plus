@@ -10308,14 +10308,15 @@ const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
       xform(arr => new ASTLora(arr[2], arr[3]),
-            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
-                            colon,                                               // [1] 
-                            choice(filename, () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer), // [2]
-                            optional(wst_cadr(colon,                             // [3]
-                                              choice(A1111StyleLoraWeight,
-                                                     () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer)),
-                                     "1.0"),
-                            rtri))
+            wst_cutting_seq(
+              seq(ltri, lws('lora')),                              // [0]
+              colon,                                               // [1] 
+              choice(filename, () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer), // [2]
+              optional(wst_cadr(colon,                             // [3]
+                                choice(A1111StyleLoraWeight,
+                                       () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer)),
+                       "1.0"),
+              rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
