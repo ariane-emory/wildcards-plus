@@ -6,4 +6,4 @@
 // \n foo<$corge
 // \n bar< $corge
 // \n baz <$corge
-ONE < TWO
+<FOO
