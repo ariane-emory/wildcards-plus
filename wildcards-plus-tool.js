@@ -10478,12 +10478,13 @@ const AnonWildcardHeaderItems =
       wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = (content_rule, { sj_merge_correct_articles = true } = {}) => 
-      xform(make_ASTAnonWildcardAlternative,
-            seq(AnonWildcardHeaderItems,
-                lws(optional(swb_uint, 1)),                                 
-                AnonWildcardHeaderItems,
-                sj_merge(flat1(wst_star(content_rule)), { sj_merge_correct_articles: sj_merge_correct_articles })));
+const make_AnonWildcardAlternative_rule = (content_rule, { sj_merge_correct_articles = true } = {}) => {
+  return xform(make_ASTAnonWildcardAlternative,
+               seq(AnonWildcardHeaderItems,
+                   lws(optional(swb_uint, 1)),                                 
+                   AnonWildcardHeaderItems,
+                   sj_merge(flat1(wst_star(content_rule)), { sj_merge_correct_articles: sj_merge_correct_articles })));
+};
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardAlternative  =
       make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative,
