@@ -3654,16 +3654,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     while (right_word.startsWith('<'))
       chomp_right_side();
 
-    // this case may be impossible now?
-    // if (right_word === '') {
-    //   if (log_level__smart_join >= 2)
-    //     lm.log(`JUMP EMPTY (LATE)!`, true);
-
-    //   continue;
-    // }
-
     collapse_punctuation();
     
+    if (right_word === '') {
+      if (log_level__smart_join >= 2)
+        lm.log(`JUMP EMPTY (LATE)!`, true);
+
+      continue;
+    }
+
     if (!chomped &&
         !(prev_char_is_escaped && ' n'.includes(prev_char))       &&
         !right_word.startsWith('\\n')                             &&
