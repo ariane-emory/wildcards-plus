@@ -10299,18 +10299,14 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
         raw`)`;
 
   const alternative_1 = re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
-  // const alternative_2 = re_front_part +       raw`<`;
-  const alternative_3 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  const alternative_2 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
 
-  const re_src = alternative_1
-  //+ `|`  + alternative_2
-        + `|`  + alternative_3;
+  const re_src = alternative_1 + `|`  + alternative_2;
 
   lm.log(`RE: ${re_src}`);
 
   return xform(r(re_src),
                str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
-               
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
