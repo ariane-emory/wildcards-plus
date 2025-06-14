@@ -305,7 +305,7 @@ let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = false;
+let print_ast_before_includes_enabled  = true;
 let print_ast_after_includes_enabled   = false;
 let print_ast_json_enabled             = false;
 let print_packrat_cache_counts_enabled = false;
@@ -10253,7 +10253,7 @@ const comment_beginning       = raw`\/\/|\/\*`;
 const make_plain_text_char_RegExp_source_str = (additional_excluded_chars = '') =>
       raw`(?:\\.|` +
       raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
+      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|` +
       raw`${comment_beginning}` +
       raw`)` +
       raw`\S)`;
