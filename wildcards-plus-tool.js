@@ -3550,6 +3550,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   else if (arr.length === 1)
     return arr[0];
 
+  let   str                                 = arr[0];
+  let   left_word                           = str;  
+  let   ix                                  = 1;
   const linking_chars                       = "_-";      
   const left_collapsible_punctuation_chars  = "_-,.;!?";
   const right_collapsible_punctuation_chars = "_-,.;!?:])";
@@ -3558,13 +3561,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
   const next_char_is_escaped                = () => right_word()[0] === '\\';
   const right_word                          = () => arr[ix];
+
   const add_a_space = () => {
     if (log_level__smart_join >= 2)
       lm.log(`SPACE!`);
 
     // prev_char  = ' ';
     str       += ' ';
-  }
+  };
 
   const chomp_left_side = () => {
     if (log_level__smart_join >= 2)
@@ -3575,7 +3579,42 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     log_pos_vars();
   };
-    
+
+  const collapse_chars_leftwards = n => {
+    if (log_level__smart_join >= 2)
+      lm.log(`SHIFT ${n} CHARACTERS!`, true);
+
+    const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+    const shifted_str    = right_word().substring(0, n);
+
+    arr[ix]   = right_word().substring(n);
+    str       = str.substring(0, str.length - overcut_length) + shifted_str;
+    left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
+
+    log_pos_vars();
+  };
+
+  const collapse_punctuation = () => {
+    while (!prev_char_is_escaped() &&
+           left_collapsible_punctuation_chars.includes(prev_char()) &&
+           right_word().startsWith('...'))
+      collapse_chars_leftwards(3);
+
+    const test = () =>
+          prev_char() !== '' && (!prev_char_is_escaped() &&
+                                 left_collapsible_punctuation_chars.includes(prev_char())) &&
+          next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
+
+    if (test()) 
+      do {
+        if (log_level__expand_and_walk >= 2)
+          lm.log(`collapsing ${inspect_fun(prev_char())} <= ${inspect_fun(next_char())}`);
+        collapse_chars_leftwards(1);
+      } while (test());
+    else if (log_level__expand_and_walk >= 2)
+      lm.log(`not collapsing`);
+  };
+  
   const log_pos_vars = () => {
     if (log_level__smart_join >= 2)
       lm.log(`ix = ${inspect_fun(ix)}, \n` +
@@ -3587,48 +3626,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
              `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
              `next_char_is_escaped = ${next_char_is_escaped()}`, true)
   };
-
-  let   str                                 = arr[0];
-  let   left_word                           = str;  
-  let   ix                                  = 1;
   
   for (; ix < arr.length; ix++)  {
-    const collapse_chars_leftwards = n => {
-      if (log_level__smart_join >= 2)
-        lm.log(`SHIFT ${n} CHARACTERS!`, true);
-
-      const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str    = right_word().substring(0, n);
-
-      arr[ix]   = right_word().substring(n);
-      str       = str.substring(0, str.length - overcut_length) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
-
-      log_pos_vars();
-    };
-
-
-    const collapse_punctuation = () => {
-      while (!prev_char_is_escaped() &&
-             left_collapsible_punctuation_chars.includes(prev_char()) &&
-             right_word().startsWith('...'))
-        collapse_chars_leftwards(3);
-
-      const test = () =>
-            prev_char() !== '' && (!prev_char_is_escaped() &&
-                                   left_collapsible_punctuation_chars.includes(prev_char())) &&
-            next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
-
-      if (test()) 
-        do {
-          if (log_level__expand_and_walk >= 2)
-            lm.log(`collapsing ${inspect_fun(prev_char())} <= ${inspect_fun(next_char())}`);
-          collapse_chars_leftwards(1);
-        } while (test());
-      else if (log_level__expand_and_walk >= 2)
-        lm.log(`not collapsing`);
-    }
-
     log_pos_vars();
 
     // correct article if needed:
