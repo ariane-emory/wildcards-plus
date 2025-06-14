@@ -3578,7 +3578,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       
       str       = str.slice(0, -1);
       left_word = left_word.slice(0, -1);
-      
+
       update_pos_vars();
       chomped = true;
     };
