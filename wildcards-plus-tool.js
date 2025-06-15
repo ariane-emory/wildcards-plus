@@ -4326,8 +4326,9 @@ class Context {
       negative_prompt:              this.negative_prompt,
     });
 
-    // avoid copying this by assigning to #configuration instead of using
-    // configuration argument to constructor:
+    // avoid copying this by assigning to '#configuration' instead of using
+    // configuration argument to constructor (which would use the 'set configuration' setter (which
+    // would ccopy it)
     copy.#configuration = this.configuration;
 
     Object.assign(copy, obj);
