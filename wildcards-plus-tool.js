@@ -4375,54 +4375,42 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag, replace_existing = false) {
+  set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
-    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      // if (log_flags_enabled)
-      //   lm.log(`skipping, already set`);
+    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag)))
       return;
-    }
     
     if (log_flags_enabled) 
       lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
              `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-    //if (replace_existing)
-    {
-      const new_flag_head = new_flag.slice(0, -1);
+    const new_flag_head = new_flag.slice(0, -1);
 
-      this.flags = this.flags.filter(existing_flag => {
-        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+    this.flags = this.flags.filter(existing_flag => {
+      if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+        // if (log_flags_enabled)
+        //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+        //          `new flag ${compress(inspect_fun(new_flag))}`);
+        return false;
+      }
+
+      if (replace_existing)
+        if (new_flag_head.length != 0 &&
+            arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
           // if (log_flags_enabled)
-          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-          //          `new flag ${compress(inspect_fun(new_flag))}`);
-          return false;
+          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+          //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+          return false; 
         }
-
-        if (replace_existing)
-          if (new_flag_head.length != 0 &&
-              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-            // if (log_flags_enabled)
-            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
-            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-            return false; 
-          }
-        
-        return true;
-      });
-    }
+      
+      return true;
+    });
 
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
   unset_flag(flag) {
-    // if (log_flags_enabled)
-    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
-    
     this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
-
-    // if (log_flags_enabled)
-    //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
   reset_temporaries() {
