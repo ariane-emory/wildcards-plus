@@ -1,0 +1,95 @@
+// 1:1 os6
+// {
+// "width": 1536,
+// "height": 1536,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+// 2:3 os6
+// {
+// "width": 1280,
+// "height": 1920,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+// 3:2 os6
+// {
+// "width": 1920,
+// "height": 1280,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+// 3:4 os6
+// {
+// "width": 1344,
+// "height": 1796,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+// 9:16 os6
+// {
+// "width": 1152,
+// "height": 2048,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 1024,
+// "hiresFixStrength": 0.6
+// }
+
+// 16:9 os6
+// {
+// "width": 2048,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 1024,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }

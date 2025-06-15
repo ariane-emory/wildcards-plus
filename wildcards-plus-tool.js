@@ -5304,20 +5304,6 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_3_to_2 =
-{ %w    = 1920; %h    = 1280;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_large_2_to_3 =
 { %w    = 1280; %h    = 1920;   
   %ow   = 576;  %oh   = 768;    
@@ -5329,6 +5315,20 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_3_to_2 =
+{ %w    = 1920; %h    = 1280;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
 
@@ -5360,20 +5360,6 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_16_to_9 =
-{ %w    = 2048; %h    = 1152;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_large_9_to_16 =
 { %w    = 1152; %h    = 2048;   
   %ow   = 576;  %oh   = 768;    
@@ -5385,6 +5371,20 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_16_to_9 =
+{ %w    = 2048; %h    = 1152;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
   #xl_magic_object_scaling.4
 }
 
