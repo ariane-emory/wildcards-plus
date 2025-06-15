@@ -4255,8 +4255,8 @@ class Context {
     scalar_variables             = new Map(),
     named_wildcards              = new Map(),
     noisy                        = false,
-    files                        = [],
-    configuration                = {},
+    files                        = [], 
+    configuration                = {}, 
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_long,
@@ -4288,15 +4288,15 @@ class Context {
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
-      scalar_variables:             new Map(this.scalar_variables), // slightly shared
-      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      scalar_variables:             new Map(this.scalar_variables), 
+      named_wildcards:              new Map(this.named_wildcards),  // some sharing
       noisy:                        this.noisy,
       files:                        structured_clone(this.files),
-      configuration:                this.configuration, 
+      configuration:                this.configuration,  // constructer calls settar that copies for us automatically
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
+      pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
 
@@ -4322,7 +4322,7 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.prior_rpick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
 
