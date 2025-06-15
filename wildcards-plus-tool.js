@@ -2810,7 +2810,8 @@ const make_JsoncObject_rule = (key_rule, value_rule,
                                                         value_rule, 
                                                         wst_star(comment_rule)
                                                        )),
-                                          comma)),
+                                          comma,
+                                          trailing_separator_mode)),
                                )),
                 rbrc)))
 // -------------------------------------------------------------------------------------------------
