@@ -7,9 +7,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl.magic_object_scaling.6
 }
 // 1:1 os6
 // {
@@ -36,9 +36,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl.magic_object_scaling.6
 }
 // 2:3 os6
 // {
@@ -65,9 +65,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl.magic_object_scaling.6
 }
 // 3:2 os6
 // {
@@ -94,9 +94,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl.magic_object_scaling.6
 }
 // 3:4 os6
 // {
@@ -114,7 +114,22 @@
 // "hiresFixStrength": 0.6
 // }
 
-@xl_magic_large_9_to_116_os6 =
+// {
+// "width": 1792,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_9_to_16_os6 =
 { %w    = 1152: %h    = 2048;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
@@ -123,9 +138,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl.magic_object_scaling.6
 }
 // 9:16 os6
 // {
@@ -152,9 +167,9 @@
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
-  #xl_magic_orientation.FIX
-  #xl_magic_aspect_ration.FIX.FIX
-  #xl.magic_object_scaling.FIX
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl.magic_object_scaling.6
 }
 // 16:9 os6
 // {
