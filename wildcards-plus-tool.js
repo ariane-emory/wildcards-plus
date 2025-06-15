@@ -11160,11 +11160,10 @@ if (! main_disabled)
 // =================================================================================================
 // END OF MAIN SECTION.
 // =================================================================================================
-// lm.log(thing_str_repr([ 'foo', 'bar', 'baz' ]));
 
-// lm.log(thing_str_repr([ "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", "foobarbaz", ],
-//                       { length: Infinity }));
-
-// lm.log(abbreviate("foobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbazfoobarbaz", true, Infinity));
-
-// lm.log(inspect_fun(smart_join_merge([ null, 'foo', 'bar', 7, 'baz', 8, 'corge', 'grault' ])));
+// let c = new Context();
+// let b = false;
+// c.set_flag(['foo', 'bar', 'baz'], b);
+// c.set_flag(['foo', 'bar', 'qux'], b);
+// c.set_flag(['foo', 'corge' ], b);
+// lm.log(`${inspect_fun(c.flags)}`);
