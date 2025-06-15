@@ -6,6 +6,10 @@
   %hrfw = 512;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 1:1 os6
 // {
@@ -31,6 +35,10 @@
   %hrfw = 512;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 2:3 os6
 // {
@@ -56,6 +64,10 @@
   %hrfw = 768;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 3:2 os6
 // {
@@ -81,6 +93,10 @@
   %hrfw = 576;  %hrfh = 768;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 3:4 os6
 // {
@@ -106,6 +122,10 @@
   %hrfw = 576;  %hrfh = 1024;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 9:16 os6
 // {
@@ -131,6 +151,10 @@
   %hrfw = 1024; %hrfh = 576;
   %hrf  = true;
   %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.FIX
+  #xl_magic_aspect_ration.FIX.FIX
+  #xl.magic_object_scaling.FIX
 }
 // 16:9 os6
 // {
