@@ -3576,15 +3576,17 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
 
   const collapse_punctuation = () => {
-    while (!prev_char_is_escaped() &&
-           left_collapsible_punctuation_chars.includes(prev_char()) &&
+    while (left_collapsible_punctuation_chars.includes(prev_char()) &&
+           // !prev_char_is_escaped() &&
            right_word().startsWith('...'))
       collapse_chars_leftwards(3);
 
     const test = () =>
-          prev_char() !== '' && (!prev_char_is_escaped() &&
-                                 left_collapsible_punctuation_chars.includes(prev_char())) &&
-          next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
+          prev_char() !== '' &&
+          (!prev_char_is_escaped() &&
+           left_collapsible_punctuation_chars.includes(prev_char())) &&
+          next_char() !== '' &&
+          right_collapsible_punctuation_chars.includes(next_char());
 
     if (test()) 
       do {
@@ -3669,7 +3671,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (!right_word())
       continue;
 
-    if (!chomped                                                    &&
+    if (prev_char                                                   &&
+        !chomped                                                    &&
         !'\n '                               .includes(prev_char()) &&
         !right_word().startsWith('\\ ')                             && 
         !right_collapsible_punctuation_chars .includes(next_char()) && 
