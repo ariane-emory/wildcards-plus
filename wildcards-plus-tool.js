@@ -4426,10 +4426,11 @@ class Context {
     //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  reset_temporaries() {
+  reset_variables() {
     this.flags = [];
     this.scalar_variables = new Map();
-
+    this.named_wildcards = new Map();
+    
     for (const [name, nwc] of this.named_wildcards) {
       if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
@@ -11263,7 +11264,7 @@ async function main() {
     LOG_LINE('=');
     
     const context = base_context.clone();
-    context.reset_temporaries(); // probably unnecessary?
+    // context.reset_variables(); // probably unnecessary?
 
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
