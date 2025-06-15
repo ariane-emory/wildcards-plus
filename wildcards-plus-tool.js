@@ -8951,10 +8951,10 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
-  if (thing            === undefined ||
-      context          === undefined ||
-      correct_articles === undefined)
+function expand_wildcards(thing, context, { correct_articles = true } = {}) {
+  if (thing === undefined           ||
+      !(context instanceof Context) || 
+      typeof correct_articles !== 'boolean')
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
