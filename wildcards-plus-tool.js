@@ -9543,7 +9543,7 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0)
+      if (children.length > 0)
         walk(children, mode, warnings_arr);      
     }
     // ---------------------------------------------------------------------------------------------
@@ -9691,7 +9691,7 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTNode) {
         walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode
+        // ^ don't propagate local_audit_semantics_mode to other node types by default.
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
