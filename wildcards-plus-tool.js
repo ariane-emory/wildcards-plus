@@ -9624,9 +9624,7 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        // lm.indent(() =>
-        walk(got, audit_semantics_mode, warnings_arr)
-        // ); // don't propagate local_audit_semantics_mode
+        walk(got, audit_semantics_mode, warnings_arr) // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
