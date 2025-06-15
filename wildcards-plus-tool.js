@@ -4375,7 +4375,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag, replace_existing = false) {
+  set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
