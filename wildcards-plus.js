@@ -10641,7 +10641,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
                              picker_priority_descriptions) ]),
     this.section("When picking multiple items, prioritize:", "",
-                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition_long),
                              picker_priority_descriptions) ]),
     this.section('about', doc_string, [])
   ];
