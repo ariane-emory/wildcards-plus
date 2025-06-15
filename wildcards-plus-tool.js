@@ -64,9 +64,11 @@ function parse_file(filename) {
   const old_log_level__smart_join      = log_level__smart_join;
 
   log_level__smart_join = 2;
+
   // log_match_enabled          = true;
   // log_flags_enabled          = true;
   // log_level__expand_and_walk = 2; // not here, later during walk! 
+
   let  result        = null;
 
   if (dt_hosted) {
@@ -3673,8 +3675,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
 
     if (prev_char                                                   &&
         !chomped                                                    &&
-        !'\n '                               .includes(prev_char()) &&
-        !right_word().startsWith('\\ ')                             && 
+        !'\n '                               .includes(prev_char()) && // might remove this one..
+        !'\n '                               .includes(next_char()) && // and this one.
         !right_collapsible_punctuation_chars .includes(next_char()) && 
         !linking_chars                       .includes(prev_char()) &&
         !linking_chars                       .includes(next_char()) &&
@@ -11048,8 +11050,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
     
-    log_level__expand_and_walk = 2;
-    log_level__smart_join      = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
