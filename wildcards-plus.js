@@ -3235,29 +3235,6 @@ function rjson_stringify(obj) {
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
-// -------------------------------------------------------------------------------------------------
-function smart_join_merge(arr, { correct_articles = true } = {}) {
-  const result = [];
-  let buffer = [];
-
-  for (const item of arr) {
-    if (typeof item === 'string') {
-      buffer.push(item);
-    } else {
-      if (buffer.length) {
-        result.push(smart_join(buffer, { correct_articles: correct_articles }));
-        buffer = [];
-      }
-      result.push(item);
-    }
-  }
-
-  if (buffer.length) {
-    result.push(smart_join(buffer, { correct_articles: correct_articles }));
-  }
-
-  return result;
-}
 // ------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
   if (!Array.isArray(arr) ||
@@ -3327,15 +3304,17 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
 
   const collapse_punctuation = () => {
-    while (!prev_char_is_escaped() &&
-           left_collapsible_punctuation_chars.includes(prev_char()) &&
+    while (left_collapsible_punctuation_chars.includes(prev_char()) &&
+           // !prev_char_is_escaped() &&
            right_word().startsWith('...'))
       collapse_chars_leftwards(3);
 
     const test = () =>
-          prev_char() !== '' && (!prev_char_is_escaped() &&
-                                 left_collapsible_punctuation_chars.includes(prev_char())) &&
-          next_char() !== '' && right_collapsible_punctuation_chars.includes(next_char());
+          prev_char() !== '' &&
+          (!prev_char_is_escaped() &&
+           left_collapsible_punctuation_chars.includes(prev_char())) &&
+          next_char() !== '' &&
+          right_collapsible_punctuation_chars.includes(next_char());
 
     if (test()) 
       do {
@@ -3355,8 +3334,8 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
              `right_word = ${inspect_fun(right_word())}, \n` + 
              `prev_char = ${inspect_fun(prev_char())}, ` +         
              `next_char = ${inspect_fun(next_char())}, \n` + 
-             `prev_char_is_escaped = ${prev_char_is_escaped()}. ` + 
-             `next_char_is_escaped = ${next_char_is_escaped()}`, true)
+             `PCIE = ${prev_char_is_escaped()}. ` + 
+             `NCIE = ${next_char_is_escaped()}`, true)
   };
 
   const maybe_correct_articles = () => {
@@ -3384,13 +3363,15 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   };
   
   const shift_ltris_leftwards = () => {
-    if (next_char() === '<') {
+    const test = () => !next_char_is_escaped() && next_char() === '<';
+    
+    if (test()) {
       left_word += '<';
       str += '<';
       do {
         arr[ix] = arr[ix].slice(1);
         log_pos_vars();
-      } while (next_char() === '<');
+      } while (test());
     }
   }
 
@@ -3418,10 +3399,10 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (!right_word())
       continue;
 
-    if (!chomped                                                    &&
-        !(prev_char_is_escaped() && ' n'.includes(prev_char()))     &&
-        !right_word().startsWith('\\n')                             &&
-        !right_word().startsWith('\\ ')                             && 
+    if (prev_char                                                   &&
+        !chomped                                                    &&
+        !'\n '                               .includes(prev_char()) && // might remove this one..
+        !'\n '                               .includes(next_char()) && // and this one.
         !right_collapsible_punctuation_chars .includes(next_char()) && 
         !linking_chars                       .includes(prev_char()) &&
         !linking_chars                       .includes(next_char()) &&
@@ -3439,6 +3420,29 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
            `(#${smart_join_trap_counter})`);
 
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function smart_join_merge(arr, { correct_articles = true } = {}) {
+  const result = [];
+  let buffer = [];
+
+  for (const item of arr) {
+    if (typeof item === 'string') {
+      buffer.push(item);
+    } else {
+      if (buffer.length) {
+        result.push(smart_join(buffer, { correct_articles: correct_articles }));
+        buffer = [];
+      }
+      result.push(item);
+    }
+  }
+
+  if (buffer.length) {
+    result.push(smart_join(buffer, { correct_articles: correct_articles }));
+  }
+
+  return result;
 }
 // -------------------------------------------------------------------------------------------------
 function stop() {
@@ -8928,7 +8932,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `in key ${inspect_fun(our_name)}`);
                 
                 const new_arr = [ ...tmp_arr, ...value ];
-                if (log_expand_and_walk_enabled >= 2)
+
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by array ${inspect_fun(value)}, ` +             
@@ -8946,7 +8951,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 const new_obj = { ...tmp_obj, ...value };
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by object ${inspect_fun(value)}, ` +             
@@ -8962,7 +8967,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `to non-number ${inspect_fun(tmp_num)} ` +
                             `in key ${inspect_fun(our_name)}`);
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +
                          `increment by number ${inspect_fun(value)}, ` +
@@ -9210,7 +9215,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked);
+    ret = walked;
   });
 
   if (log_level__expand_and_walk)
@@ -9222,7 +9227,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-  return ret;
+  return ret.replace(/\\</g, '<');
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -10012,21 +10017,26 @@ const syntax_chars            = raw`@#$%`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
-  const re_front_part =
+  const plain_text_re_front_part =
         raw`(?:` +
         raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
         raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*?` +
         raw`)`;
 
-  const alternative_1 = re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
-  const alternative_2 = re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  const alternative_1 = plain_text_re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
+  const alternative_2 = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
 
-  const re_src = alternative_1 + `|`  + alternative_2;
+  const plain_text_re_src = alternative_1 + `|`  + alternative_2;
 
-  // lm.log(`RE: ${re_src}`);
+  // lm.log(`RE: ${plain_text_re_src}`);
 
-  return xform(r(re_src),
-               str => str.replace(/^<+/, '<').replace(/<+$/, '<'));
+  return xform(r(plain_text_re_src),
+               str => str
+               .replace(/^<+/,    '<')
+               .replace(/<+$/,    '<')
+               .replace(/\\n/g,   '\n')
+               .replace(/\\ /g,   ' ')
+               .replace(/\\([^<])/g, '$1'));
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
@@ -10043,10 +10053,10 @@ const A1111StyleLora =
             wst_cutting_seq(
               seq(ltri, lws('lora')),                              // [0]
               colon,                                               // [1] 
-              choice(filename, () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer), // [2]
+              choice(filename, () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer), // [2]
               optional(wst_cadr(colon,                             // [3]
                                 choice(A1111StyleLoraWeight,
-                                       () => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer)),
+                                       () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer)),
                        "1.0"),
               rtri))
       .abbreviate_str_repr('A1111StyleLora');
@@ -10333,7 +10343,7 @@ const SpecialFunctionSetPickSingle =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
@@ -10344,7 +10354,7 @@ const SpecialFunctionSetPickMultiple =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),
                             optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
@@ -10381,7 +10391,7 @@ const SpecialFunctionUpdateConfigurationUnary =
                         discarded_comments,                                 // -
                         lws(choice(head(RjsoncObject,
                                         optional(SpecialFunctionTail)),
-                                   head(() => LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer,
+                                   head(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer,
                                         optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
@@ -10522,9 +10532,9 @@ const LimitedContent =
 const LimitedContentNoAWCArticleCorrection =
       make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
       .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
-const LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer =
+const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
-      .abbreviate_str_repr('LimitedContentNoAWCSJMergeArticleCorrectionOrTrailer');
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
       unexpected(rule,
