@@ -1,10 +1,10 @@
 @xl_magic_large_1_to_1_os6 =
-{ %w = 1536: %h = 1536;
-  %ow = 768; %oh = 576;
-  %tw = 1536; %th = 1152;
-  %nw = 1792; %nh = 1344;
-  %hrfw = 512; %hrfh = 512;
-  %hrf = true;
+{ %w    = 1536: %h    = 1536;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 1:1 os6
@@ -24,12 +24,12 @@
 // }
 
 @xl_magic_large_2_to_3_os6 =
-{ %w = 1280: %h = 1920;
-  %ow = 576; %oh = 768;
-  %tw = 1152; %th = 1536;
-  %nw = 1344; %nh = 1792;
-  %hrfw = 512; %hrfh = 768;
-  %hrf = true;
+{ %w    = 1280: %h    = 1920;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 2:3 os6
@@ -49,12 +49,12 @@
 // }
 
 @xl_magic_large_3_to_2_os6 =
-{ %w = 1920: %h = 1280;
-  %ow = 768; %oh = 576;
-  %tw = 1536; %th = 1152;
-  %nw = 1792; %nh = 1344;
-  %hrfw = 768; %hrfh = 512;
-  %hrf = true;
+{ %w    = 1920: %h    = 1280;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 3:2 os6
@@ -74,12 +74,12 @@
 // }
 
 @xl_magic_large_3_to_4_os6 =
-{ %w = 1344: %h = 1796;
-  %ow = 576; %oh = 768;
-  %tw = 1152; %th = 1536;
-  %nw = 1344; %nh = 1792;
-  %hrfw = 576; %hrfh = 768;
-  %hrf = true;
+{ %w    = 1344: %h    = 1796;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 3:4 os6
@@ -99,12 +99,12 @@
 // }
 
 @xl_magic_large_9_to_116_os6 =
-{ %w = 1152: %h = 2048;
-  %ow = 576; %oh = 768;
-  %tw = 1152; %th = 1536;
-  %nw = 1344; %nh = 1792;
-  %hrfw = 576; %hrfh = 1024;
-  %hrf = true;
+{ %w    = 1152: %h    = 2048;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 9:16 os6
@@ -124,12 +124,12 @@
 // }
 
 @xl_magic_large_16_to_9_os6 =
-{ %w = 2048: %h = 1152;
-  %ow = 768; %oh = 576;
-  %tw = 1536; %th = 1152;
-  %nw = 1792; %nh = 1344;
+{ %w    = 2048: %h    = 1152;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
   %hrfw = 1024; %hrfh = 576;
-  %hrf = true;
+  %hrf  = true;
   %hrf_strength = 0.6;
 }
 // 16:9 os6
