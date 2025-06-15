@@ -3985,7 +3985,7 @@ class Context {
     configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    pick_multiple_priority       = picker_priority.avoid_repetition_long,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
@@ -4101,7 +4101,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag, replace_existing = false) {
+  set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)

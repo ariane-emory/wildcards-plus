@@ -4259,7 +4259,7 @@ class Context {
     configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    pick_multiple_priority       = picker_priority.avoid_repetition_long,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
