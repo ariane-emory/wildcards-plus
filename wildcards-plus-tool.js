@@ -2777,7 +2777,8 @@ const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
                      choice_rule,
                      wst_star(comment_rule)));
 const make_JsoncArray_rule = (value_rule,
-                              comment_rule = () => jsonc_comment) => 
+                              comment_rule = () => jsonc_comment,
+                              trailing_separator_mode = trailing_separator_modes.forbidden) => 
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
@@ -2838,8 +2839,8 @@ const Rjsonc = make_Jsonc_rule(
   choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
          json_null,           json_true,
          json_false,          json_number));
-const RjsoncArray = make_JsoncArray_rule(Rjsonc);
-const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+const RjsoncArray = make_JsoncArray_rule(Rjsonc, trailing_separator_modes.allowed);
+const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc, trailing_separator_modes.allowed);
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
