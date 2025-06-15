@@ -5030,20 +5030,6 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_3_to_2 =
-{ %w    = 1920; %h    = 1280;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_large_2_to_3 =
 { %w    = 1280; %h    = 1920;   
   %ow   = 576;  %oh   = 768;    
@@ -5055,6 +5041,20 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_3_to_2 =
+{ %w    = 1920; %h    = 1280;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
 
@@ -5086,6 +5086,20 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_large_9_to_16 =
+{ %w    = 1152; %h    = 2048;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+
 @xl_magic_large_16_to_9 =
 { %w    = 2048; %h    = 1152;   
   %ow   = 768;  %oh   = 576;    
@@ -5100,19 +5114,209 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_9_to_16 =
-{ %w    = 1152; %h    = 2048;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 576;  %hrfh = 1024;
+@xl_magic_large_1_to_1_os6 =
+{ %w    = 1536: %h    = 1536;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl.magic_object_scaling.6
+}
+// 1:1 os6
+// {
+// "width": 1536,
+// "height": 1536,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_2_to_3_os6 =
+{ %w    = 1280: %h    = 1920;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl.magic_object_scaling.6
+}
+// 2:3 os6
+// {
+// "width": 1280,
+// "height": 1920,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_3_to_2_os6 =
+{ %w    = 1920: %h    = 1280;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 512;
   %hrf  = true;
   %hrf_strength = 0.6;
   #xl_magic_size.large
   #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
+  #xl_magic_aspect_ratio.3.2
+  #xl.magic_object_scaling.6
 }
+// 3:2 os6
+// {
+// "width": 1920,
+// "height": 1280,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_3_to_4_os6 =
+{ %w    = 1344: %h    = 1796;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl.magic_object_scaling.6
+}
+// 3:4 os6
+// {
+// "width": 1344,
+// "height": 1796,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_4_to_3_os6 = 
+{ %w    = 1792; %h    = 1344;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscale
+  #xl_magic_aspect_ratio.4.3
+  #xl.magic_object_scaling.6
+
+}
+// {
+// "width": 1792,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_9_to_16_os6 =
+{ %w    = 1152: %h    = 2048;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl.magic_object_scaling.6
+}
+// 9:16 os6
+// {
+// "width": 1152,
+// "height": 2048,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 1024,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_16_to_9_os6 =
+{ %w    = 2048: %h    = 1152;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl.magic_object_scaling.6
+}
+// 16:9 os6
+// {
+// "width": 2048,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 1024,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
+
 
 // --------------------------------------------------------------------------------------------------
 // pickers:
@@ -5166,6 +5370,16 @@ const prelude_text = `
 | @xl_magic_large_4_to_3
 | @xl_magic_large_9_to_16
 | @xl_magic_large_16_to_9
+}
+
+@xl_magic_large_random_os6 =
+{ @xl_magic_large_1_to_1_os6
+| @xl_magic_large_2_to_3_os6
+| @xl_magic_large_3_to_2_os6
+| @xl_magic_large_3_to_4_os6
+| @xl_magic_large_4_to_3_os6
+| @xl_magic_large_9_to_16_os6
+| @xl_magic_large_16_to_9_os6
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -9269,7 +9483,7 @@ function audit_semantics(root_ast_node,
 
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
-      if (children?.length > 0)
+      if (children.length > 0)
         walk(children, mode, warnings_arr);      
     }
     // ---------------------------------------------------------------------------------------------
@@ -9350,9 +9564,7 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        // lm.indent(() =>
-        walk(got, audit_semantics_mode, warnings_arr)
-        // ); // don't propagate local_audit_semantics_mode
+        walk(got, audit_semantics_mode, warnings_arr) // don't propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9406,7 +9618,12 @@ function audit_semantics(root_ast_node,
               : local_audit_semantics_mode;
         // ^ propagate local_audit_semantics_mode
         
-        walk_children(thing, mode, warnings_arr);
+        // always do unsafe wask first to collect flags set inside:
+        walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
+
+        // then, if needed, do a second walk to check guards:
+        if (mode !== audit_semantics_modes.unsafe)
+          walk_children(thing, mode,                  warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
@@ -9414,7 +9631,7 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTNode) {
         walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode
+        // ^ don't propagate local_audit_semantics_mode to other node types by default.
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
