@@ -4322,7 +4322,7 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.prior_rpick_multiple_priority,      
+      prior_pick_multiple_priority: this.prior_pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
 
