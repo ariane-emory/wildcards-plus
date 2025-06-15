@@ -2682,10 +2682,12 @@ const flat                    = (rule, depth = Infinity) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
-const make_JsonArray_rule = value_rule => 
+const make_JsonArray_rule = (value_rule,
+                             trailing_separator_mode = trailing_separator_modes.forbidden) => 
       wst_cutting_enc(lsqr,
                       wst_star(value_rule,
-                               comma),
+                               comma,
+                               trailing_separator_mode),
                       rsqr);
 // -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
@@ -2784,7 +2786,8 @@ const make_JsoncArray_rule = (value_rule,
                                      wst_star(comment_rule))));
 const make_JsoncObject_rule = (key_rule, value_rule,
                                { comment_rule = () => jsonc_comment,
-                                 sequence_combinator = wst_cutting_seq } = {}) => 
+                                 sequence_combinator = wst_cutting_seq,
+                                 trailing_separator_mode = trailing_separator_modes.forbidden } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2840,7 +2843,9 @@ const Rjsonc = make_Jsonc_rule(
          json_null,           json_true,
          json_false,          json_number));
 const RjsoncArray = make_JsoncArray_rule(Rjsonc, trailing_separator_modes.allowed);
-const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc, trailing_separator_modes.allowed);
+const RjsoncObject =
+      make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc,
+                            { trailing_separator_mode: trailing_separator_modes.allowed });
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
