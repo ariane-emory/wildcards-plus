@@ -9731,15 +9731,16 @@ const audit_semantics_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null, 
-                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.collect_warnings,
+                           visited = new Set()} = {}) {
   if (root_ast_node === undefined      ||
       !base_context instanceof Context ||
-      !Object.values(audit_semantics_modes).includes(audit_semantics_mode))
+      !Object.values(audit_semantics_modes).includes(audit_semantics_mode) ||
+      !visited instanceof Set)
     throw new Error(`bad audit_semantics args: ` +
                     `${compress(inspect_fun(arguments))}, ` +
                     `this likely indicates a programmer error`);
 
-  const visited = new Set();
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
