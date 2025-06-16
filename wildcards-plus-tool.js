@@ -9746,7 +9746,7 @@ function audit_semantics(root_ast_node,
 
   // -----------------------------------------------------------------------------------------------
   function walk(thing, local_audit_semantics_mode, warnings_arr) {    
-    if (typeof local_audit_semantics_mode !== 'string' ||
+    if (!Object.values(audit_semantics_modes).includes(audit_semantics_mode) ||
         !Array.isArray(warnings_arr))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
