@@ -9882,8 +9882,10 @@ function audit_semantics(root_ast_node,
                         `${suggestion}`,
                         warnings_arr);
         }
+
+        walk(got, local_audit_semantics_mode, warnings_arr) // switch modes
         
-        walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
+        // walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9940,8 +9942,12 @@ function audit_semantics(root_ast_node,
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode to other node types by default?
+        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        // ^ try allowing propogate here
+        
+        // lm.log(`won't propogate local mode through ${thing.constructor.name}`);
+        // walk_children(thing, audit_semantics_mode, warnings_arr);
+        // // ^ don't propagate local_audit_semantics_mode to other node types by default?
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
