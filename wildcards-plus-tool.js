@@ -9815,6 +9815,8 @@ function audit_semantics(root_ast_node,
         throw new Error(msg);
       else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
         warnings_arr.push(msg);
+      else
+        throw new Error("what do?");
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
