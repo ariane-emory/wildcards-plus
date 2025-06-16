@@ -3044,7 +3044,7 @@ class WeightedPicker {
   // }
   // -----------------------------------------------------------------------------------------------
   pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never, each = id,
+       allow_if = undefined, forbid_if = undefined, each = id,
        priority = null) {
     if (!(typeof min_count === 'number'   && 
           typeof max_count === 'number'   &&
