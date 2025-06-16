@@ -306,7 +306,7 @@ let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
-let log_level__audit                   = 0;
+let log_level__audit                   = 3;
 let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
@@ -4641,9 +4641,9 @@ const prelude_text = `
 @__set_gender_if_unset  = {  ?female   #gender.female 
                           |  ?male     #gender.male
                           |  ?neuter   #gender.neuter 
-                          |3 !male !female !neuter !gender.#female   #female
-                          |2 !male !female !neuter !gender.#male     #male
-                          |1 !male !female !neuter !gender.#neuter   #neuter }
+                          |3 !female !male !neuter !gender.#female   #female
+                          |2 !female !male !neuter !gender.#male     #male
+                          |1 !female !male !neuter !gender.#neuter   #neuter }
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -9812,8 +9812,10 @@ function audit_semantics(root_ast_node,
 
       if (audit_semantics_mode == audit_semantics_mode.throw_error)
         throw new Error(msg);
-      else if (audit_semantics_mode == audit_semantics_modes.collect_warnings)
+      else if (audit_semantics_mode == audit_semantics_modes.collect_warnings) {
+        lm.log(`PUSH WARNING '${msg}'`);
         warnings_arr.push(msg);
+      }
       else
         throw new Error("what do?");
     }
@@ -9823,7 +9825,7 @@ function audit_semantics(root_ast_node,
         lm.log(`flag ${flag} could be set by now`);
         return;
       }
-
+      
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
       const suggestion = suggest_closest(flag_str, known_flags);
@@ -11422,3 +11424,5 @@ if (! main_disabled)
 // c.set_flag(['foo', 'bar', 'qux'], b);
 // c.set_flag(['foo', 'corge' ], b);
 // lm.log(`${inspect_fun(c.flags)}`);
+// lm.log(` => ${suggest_closest("male", ["male", "female", "neuter" ])}`);
+// lm.log(` => ${suggest_closest("female", ["male", "female", "neuter" ])}`);
