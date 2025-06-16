@@ -9890,12 +9890,12 @@ function audit_semantics(root_ast_node,
               : local_audit_semantics_mode;
         // ^ propagate local_audit_semantics_mode
         
-        // always do unsafe wask first to collect flags set inside:
-        walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
+        // // always do unsafe wask first to collect flags set inside:
+        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
 
         // then, if needed, do a second walk to check guards:
-        if (mode !== audit_semantics_modes.unsafe)
-          walk_children(thing, mode,                  warnings_arr);
+        // if (mode !== audit_semantics_modes.unsafe)
+          walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
