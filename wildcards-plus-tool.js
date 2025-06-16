@@ -9803,7 +9803,7 @@ function audit_semantics(root_ast_node,
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children.length > 0)
-        walk(children, mode, warnings_arr);      
+        walk(children, mode, warnings_arr, speculate);      
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg, warnings_arr) {
@@ -9865,7 +9865,7 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr)
+            walk(elem, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
@@ -9888,8 +9888,7 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
 
-        walk(got, local_audit_semantics_mode, warnings_arr,
-             { speculate: true}); // switch modes
+        walk(got, local_audit_semantics_mode, warnings_arr, speculate); // start speculate
         
         // walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
       }
@@ -9968,7 +9967,7 @@ function audit_semantics(root_ast_node,
 
   const warnings =  [];
   
-  walk(root_ast_node, audit_semantics_mode, warnings);
+  walk(root_ast_node, audit_semantics_mode, warnings, false);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
