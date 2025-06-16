@@ -9771,11 +9771,11 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
-  speculative:       'speculative',
+  // speculate:         'speculate',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, 
+                         { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
@@ -9788,9 +9788,11 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
-    if (typeof local_audit_semantics_mode !== 'string' ||
-        !Array.isArray(warnings_arr))
+  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate) {    
+    if (!(thing &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+          Array.isArray(warnings_arr) &&
+          typeof speculate == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
     function walk_children(thing, mode, warnings_arr) {
@@ -9886,7 +9888,8 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
 
-        walk(got, local_audit_semantics_mode, warnings_arr) // switch modes
+        walk(got, local_audit_semantics_mode, warnings_arr,
+             { speculate: true}); // switch modes
         
         // walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
       }
@@ -9937,7 +9940,12 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
+        // if (local_audit_semantics_mode == audit_semantics_mode.speculate) {
+        
+        // }
+        // else {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        // }
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
