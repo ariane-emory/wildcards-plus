@@ -27,6 +27,7 @@ let log_configuration_enabled          = true;
 let log_loading_prelude                = true;
 let log_post_enabled                   = true;
 let log_finalize_enabled               = false;
+let log_intercalate_enabled            = false;
 let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
@@ -1628,6 +1629,13 @@ class Regex extends Rule {
       return null;
     }
 
+    if (re_match.groups) {
+      const tmp = re_match;
+      delete tmp.input;
+      
+      lm.log(`re_match: ${inspect_fun(tmp)}`);
+    }
+    
     return new MatchResult(re_match[re_match.length - 1],
                            input,
                            index + re_match[0].length);
@@ -1709,7 +1717,7 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 // helper functions and related vars:
 // -------------------------------------------------------------------------------------------------
-function abbreviate(str, normalize_newlines = true, len = 100) {
+function abbreviate(str, normalize_newlines = true, length = 100) {
   if (typeof str !== 'string')
     throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
 
@@ -1719,7 +1727,7 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   // str = compress(str);
   
-  if (str.length < len)
+  if (str.length < length)
     return str;
 
   const bracing_pairs = [
@@ -1735,12 +1743,12 @@ function abbreviate(str, normalize_newlines = true, len = 100) {
 
   for (const [left, right] of bracing_pairs) {
     if (str.startsWith(left) && str.endsWith(right)) {
-      const inner = str.substring(left.length, len - 3 - right.length);
+      const inner = str.substring(left.length, length - 3 - right.length);
       return `${left}${inner.trim()}...${right}`;
     }
   }
 
-  return `${str.substring(0, len - 3).trim()}...`;
+  return `${str.substring(0, length - 3).trim()}...`;
 }
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
@@ -3123,6 +3131,9 @@ function indent_lines(indent, str, indent_str = "| ") {
 }
 // -------------------------------------------------------------------------------------------------
 function intercalate(separator, array, { final_separator = null } = {}) {
+  if (log_intercalate_enabled)
+    lm.log(`INTERCALATE ARGS: ${compress(inspect_fun(arguments))}`);
+
   if (array.length === 0) return [];
 
   const result = [array[0]];
@@ -3134,6 +3145,9 @@ function intercalate(separator, array, { final_separator = null } = {}) {
     result.push(sep, array[ix]);
   }
 
+  if (log_intercalate_enabled)
+    lm.log(`INTERCALATED: ${compress(inspect_fun(result))}`);
+  
   return result;
 }
 // -------------------------------------------------------------------------------------------------
@@ -3221,219 +3235,214 @@ function rjson_stringify(obj) {
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
-// -------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 function smart_join(arr, { correct_articles = undefined } = {}) {
-  if (correct_articles === undefined)
+  if (!Array.isArray(arr) ||
+      typeof correct_articles !== 'boolean')
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
-  const maybe_trap = ()  => {
-    if (smart_join_trap_counter === smart_join_trap_target) {
+  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+    lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
+
+  const maybe_trap = () => {
+    if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-      
-      throw stop(); 
-    }
   }
 
-  smart_join_trap_counter += 1;
-
-
-  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
-    lm.log(`smart_joining ${thing_str_repr(arr)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
-
-  if (typeof arr == 'string')
-    throw new Error(`got string`);
-  
   maybe_trap();
   
-  if (! arr || typeof arr === 'string')
-    return arr;
-
-  arr = [...arr.flat(Infinity).filter(x=> x)];
-
-  // if (arr.includes("''") || arr.includes('""'))
-  //   throw new Error(`sus arr 1: ${inspect_fun(arr)}`);
+  arr = arr.flat(Infinity).filter(x => x);
 
   if (arr.length === 0) 
     return '';
   else if (arr.length === 1)
     return arr[0];
 
-  // const vowelp       = (ch)  => "aeiou".includes(ch.toLowerCase()); 
-  const punctuationp = (ch)  => "_-,.?!;:".includes(ch);
-  const linkingp     = (ch)  => "_-".includes(ch);
-  // const whitep       = (ch)  => " \n".includes(ch);
-  
-  // handle "a" → "an" if necessary:
-  const articleCorrection = (originalArticle, nextWord) => {
-    const expected = choose_indefinite_article(nextWord);
-    if (originalArticle.toLowerCase() === 'a' && expected === 'an') {
-      return originalArticle === 'A' ? 'An' : 'an';
-    }
-    return originalArticle;
+  let   str                                 = arr[0];
+  let   left_word                           = str;  
+  let   ix                                  = 1;
+  const linking_chars                       = "_-";      
+  const left_collapsible_punctuation_chars  = "_-,.;!?";
+  const right_collapsible_punctuation_chars = "_-,.;!?:])";
+  const prev_char                           = () => left_word[left_word.length - 1] ?? "";
+  const next_char                           = () => right_word()[next_char_is_escaped() ? 1 : 0] ?? '';
+  const prev_char_is_escaped                = () => left_word[left_word.length - 2] === '\\';
+  const next_char_is_escaped                = () => right_word()[0] === '\\';
+  const right_word                          = () => arr[ix];
+
+  const add_a_space = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`SPACE!`);
+
+    // prev_char  = ' ';
+    str       += ' ';
+  };
+
+  const chomp_left_side = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`CHOMP LEFT!`);
+    
+    str       = str.slice(0, -1);
+    left_word = left_word.slice(0, -1);
+
+    log_pos_vars();
+  };
+
+  const collapse_chars_leftwards = n => {
+    if (log_level__smart_join >= 2)
+      lm.log(`SHIFT ${n} CHARACTERS!`, true);
+
+    const overcut_length = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
+    const shifted_str    = right_word().substring(0, n);
+
+    arr[ix]   = right_word().substring(n);
+    str       = str.substring(0, str.length - overcut_length) + shifted_str;
+    left_word = left_word.substring(0, left_word.length - overcut_length) + shifted_str;
+
+    log_pos_vars();
+  };
+
+  const collapse_punctuation = () => {
+    while (left_collapsible_punctuation_chars.includes(prev_char()) &&
+           // !prev_char_is_escaped() &&
+           right_word().startsWith('...'))
+      collapse_chars_leftwards(3);
+
+    const test = () =>
+          prev_char() !== '' &&
+          (!prev_char_is_escaped() &&
+           left_collapsible_punctuation_chars.includes(prev_char())) &&
+          next_char() !== '' &&
+          right_collapsible_punctuation_chars.includes(next_char());
+
+    if (test()) 
+      do {
+        if (log_level__expand_and_walk >= 2)
+          lm.log(`collapsing ${inspect_fun(prev_char())} <= ${inspect_fun(next_char())}`);
+        collapse_chars_leftwards(1);
+      } while (test());
+    else if (log_level__expand_and_walk >= 2)
+      lm.log(`not collapsing`);
   };
   
-  let left_word = arr[0];  // ?.toString() ?? "";
-  let str       = left_word;
+  const log_pos_vars = () => {
+    if (log_level__smart_join >= 2)
+      lm.log(`ix = ${inspect_fun(ix)}, \n` +
+             `str = ${inspect_fun(str)}, \n` +
+             `left_word = ${inspect_fun(left_word)}, ` +         
+             `right_word = ${inspect_fun(right_word())}, \n` + 
+             `prev_char = ${inspect_fun(prev_char())}, ` +         
+             `next_char = ${inspect_fun(next_char())}, \n` + 
+             `PCIE = ${prev_char_is_escaped()}. ` + 
+             `NCIE = ${next_char_is_escaped()}`, true)
+  };
 
-  for (let ix = 1; ix < arr.length; ix++)  {
-    // if (str.includes(`,,`))
-    //   throw new Error("STOP");
-    
-    let right_word           = null;
-    let prev_char            = null;
-    let prev_char_is_escaped = null;
-    let next_char_is_escaped = null;
-    let next_char            = null;
-
-    const add_a_space = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`SPACE!`, true);
-
-      prev_char  = ' ';
-      str       += ' ';
-    }
-
-    const chomp_left_side = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CHOMP LEFT!`, true);
-      
-      str      = str.slice(0, -1);
-      left_word = left_word.slice(0, -1);
-      
-      update_pos_vars();
-    };
-    
-    const chomp_right_side = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CHOMP RIGHT!`, true);
-
-      arr[ix] = arr[ix].slice(1);
-
-      update_pos_vars();
-    }
-
-    const consume_right_word = () => {
-      if (log_level__smart_join >= 2)
-        lm.log(`CONSUME ${inspect_fun(right_word)}!`, true);
-
-      // if (right_word === '""' || right_word === "''")
-      //   throw new Error(`sus right_word 1: ${inspect_fun(right_word)}\nin arr (${arr.includes("''") || arr.includes('""')}): ${inspect_fun(arr)}`);
-
-      left_word  = right_word;
-      str       += left_word;
-    }
-
-    const move_chars_left = (n) => {
-      if (log_level__smart_join >= 2)
-        lm.log(`SHIFT ${n} CHARACTERS!`, true);
-
-      const overcut     = str.endsWith('\\...') ? 0 : str.endsWith('...') ? 3 : 1; 
-      const shifted_str = right_word.substring(0, n);
-
-      arr[ix]   = right_word.substring(n);
-      str       = str.substring(0, str.length - overcut) + shifted_str;
-      left_word = left_word.substring(0, left_word.length - overcut) + shifted_str;
-      
-      update_pos_vars();
-    };
-    
-    const update_pos_vars = () => {
-      right_word           = arr[ix]; // ?.toString() ?? "";
-      prev_char            = left_word[left_word.length - 1] ?? "";
-      prev_char_is_escaped = left_word[left_word.length - 2] === '\\';
-      next_char_is_escaped = right_word[0] === '\\';
-      next_char            = right_word[next_char_is_escaped ? 1 : 0] ?? '';
-
-      if (log_level__smart_join >= 2)
-        lm.log(`ix = ${inspect_fun(ix)}, ` +
-               `str = ${inspect_fun(str)}, ` +
-               `left_word = ${inspect_fun(left_word)}, ` +         
-               `right_word = ${inspect_fun(right_word)}, ` +       
-               `prev_char = ${inspect_fun(prev_char)}, ` +         
-               `next_char = ${inspect_fun(next_char)}, ` + 
-               `prev_char_is_escaped = ${prev_char_is_escaped}. ` + 
-               `next_char_is_escaped = ${next_char_is_escaped}`, true);
-    };
-    
-    update_pos_vars();
-    
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY!`, true);
-
-      continue;
-    }
-
-    if (right_word === '<') {
-      str += '<';
-      continue;
-    }
-
-    while  (",.;!?".includes(prev_char) && right_word.startsWith('...'))
-      move_chars_left(3);
-    
-    while (",.;!?".includes(prev_char) && next_char && ",.;!?".includes(next_char))
-      move_chars_left(1);
-
-    // Normalize article if needed:
+  const maybe_correct_articles = () => {
+    // correct article if needed:
     if (correct_articles) {
-      const article_match = str.match(/(?:^|\s)([Aa])$/);
+      const article_match = left_word.match(/^([Aa]n?)$/);
       
       if (article_match) {
-        const originalArticle = article_match[1];
-        const updatedArticle = articleCorrection(originalArticle, right_word);
+        const original_article = article_match[1];
+        const chose            = choose_indefinite_article(right_word());
+        const lower_original   = original_article.toLowerCase();
+        let   updated_article; 
 
-        if (updatedArticle !== originalArticle) 
-          str = str.slice(0, -originalArticle.length) + updatedArticle;
+        if ((lower_original === 'a' || lower_original === 'an') && lower_original !== chose)
+          updated_article = original_article[0] === original_article[0].toUpperCase()
+          ? chose[0].toUpperCase() + chose.slice(1)
+          : chose;
+        else 
+          updated_article = original_article;
+
+        if (updated_article !== original_article) 
+          str = str.slice(0, -original_article.length) + updated_article;
       }
     }
-
-    let chomped = false;
-
-    if (!prev_char_is_escaped && prev_char === '<') {
-      chomp_left_side();
-      chomped = true;
-    }
+  };
+  
+  const shift_ltris_leftwards = () => {
+    const test = () => !next_char_is_escaped() && next_char() === '<';
     
-    if (str.endsWith('<')) {
-      chomp_left_side();
-      chomped = true;
+    if (test()) {
+      left_word += '<';
+      str += '<';
+      do {
+        arr[ix] = arr[ix].slice(1);
+        log_pos_vars();
+      } while (test());
     }
-
-    if (right_word.startsWith('<')) {
-      chomp_right_side();
-      chomped = true;
-    }
-
-    if (right_word === '') {
-      if (log_level__smart_join >= 2)
-        lm.log(`JUMP EMPTY (LATE)!`, true);
-
-      continue;
-    }
-
-    if (!chomped &&
-        !(prev_char_is_escaped && ' n'.includes(prev_char)) &&
-        !right_word.startsWith('\\n') &&
-        !right_word.startsWith('\\ ') && 
-        !punctuationp (next_char)     && 
-        !linkingp     (prev_char)     &&
-        !linkingp     (next_char)     &&
-        !'([])'.substring(0,2).includes(prev_char) && // dumb hack for rainbow brackets' sake
-        !'([])'.substring(2,4).includes(next_char))
-      add_a_space();
-
-    consume_right_word();
   }
 
-  if (log_level__smart_join >= 1)
-    lm.log(`smart_joined  ${thing_str_repr(str)} (#${smart_join_trap_counter})`,
-           log_level__expand_and_walk);
+  const maybe_chomp_left_side_ltris = () =>  {
+    let chomped = false;
+    while (!prev_char_is_escaped() && prev_char() === '<') {
+      chomp_left_side();
+      chomped = true;
+    }
+    return chomped;
+  };
+  
+  for (; ix < arr.length; ix++) {
+    log_pos_vars();
+    maybe_correct_articles();
+    shift_ltris_leftwards();
 
-  // lm.log(`${thing_str_repr(str)} <= smart_join(${thing_str_repr(arr)}) #${smart_join_trap_counter }!`);
+    if (!right_word())
+      continue;
+
+    const chomped = maybe_chomp_left_side_ltris();
+
+    collapse_punctuation();
+    
+    if (!right_word())
+      continue;
+
+    if (prev_char                                                   &&
+        !chomped                                                    &&
+        !'\n '                               .includes(prev_char()) && // might remove this one..
+        !'\n '                               .includes(next_char()) && // and this one.
+        !right_collapsible_punctuation_chars .includes(next_char()) && 
+        !linking_chars                       .includes(prev_char()) &&
+        !linking_chars                       .includes(next_char()) &&
+        !'(['                                .includes(prev_char()))
+      add_a_space();
+
+    if (log_level__smart_join >= 2)
+      lm.log(`CONSUME ${inspect_fun(right_word())}!`);
+
+    str += left_word = right_word();
+  }
+  
+  if (log_level__smart_join >= 1)
+    lm.log(`smart_joined  ${thing_str_repr(str, { length: Infinity})} ` +
+           `(#${smart_join_trap_counter})`);
 
   return str;
+}
+// -------------------------------------------------------------------------------------------------
+function smart_join_merge(arr, { correct_articles = true } = {}) {
+  const result = [];
+  let buffer = [];
+
+  for (const item of arr) {
+    if (typeof item === 'string') {
+      buffer.push(item);
+    } else {
+      if (buffer.length) {
+        result.push(smart_join(buffer, { correct_articles: correct_articles }));
+        buffer = [];
+      }
+      result.push(item);
+    }
+  }
+
+  if (buffer.length) {
+    result.push(smart_join(buffer, { correct_articles: correct_articles }));
+  }
+
+  return result;
 }
 // -------------------------------------------------------------------------------------------------
 function stop() {
@@ -3580,6 +3589,11 @@ function suggest_closest(name, candidates) {
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
                                  always_include_type_str = false } = {}) {
+  // lm.log(`length: ${inspect_fun(length)}`);
+
+  // if (length === 100)
+  //   throw new Error("stop");
+  
   let type_str =
       typeof thing === 'object'
       ? (thing === null
@@ -3598,7 +3612,9 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
       type_str  = '';
   }
   else if (Array.isArray(thing)) {
-    thing_str = abbreviate(compress(thing.map(x => thing_str_repr(x)).toString()));
+    thing_str =
+      abbreviate(compress(thing.map(x => thing_str_repr(x, { length: length })).toString()),
+                 true, length);
   }
   else if (typeof thing === 'string') {
     return thing.length === 0
@@ -3607,7 +3623,7 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
   }
   else if (typeof thing === 'object') {
     try {
-      thing_str = abbreviate(compress(inspect_fun(thing)));
+      thing_str = abbreviate(compress(inspect_fun(thing)), true, length);
     } catch {
       thing_str = thing.toString(); // fallback
     }
@@ -3615,8 +3631,10 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
   else {
     thing_str = String(thing);
   }
-  
-  const str = `${type_str}${abbreviate(compress(thing_str), true, thing_str_repr.abbrev_length)}`; 
+
+  const compressed_thing_str = compress(thing_str);
+  const str_tail = abbreviate(compressed_thing_str, true, length);
+  const str = `${type_str}${str_tail}`; 
   return str;
 }
 thing_str_repr.abbrev_length = 100;
@@ -3967,7 +3985,7 @@ class Context {
     configuration                = {},
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
-    pick_multiple_priority       = picker_priority.avoid_repetition_short,
+    pick_multiple_priority       = picker_priority.avoid_repetition_long,
     prior_pick_one_priority      = pick_one_priority,
     prior_pick_multiple_priority = pick_multiple_priority,
     negative_prompt              = null,
@@ -4083,7 +4101,7 @@ class Context {
     return res;
   }
   // -----------------------------------------------------------------------------------------------
-  set_flag(new_flag, replace_existing = false) {
+  set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
     if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
       // if (log_flags_enabled)
@@ -4317,6 +4335,9 @@ const prelude_text = `
 @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
 @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
 
+@colors = { brown  | red    | orange | yellow | green  | blue    | indigo
+          | violet | purple | black  | grey   | white  | silver  | gold }
+
 @pony_scores =
 {0
 |@pony score_4_up
@@ -4349,7 +4370,7 @@ const prelude_text = `
 
 @xl_magic_small_1_to_1 =
 { %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
+  %ow   = 768;  %oh   = 576;
   %tw   = 1024; %th   = 768;   
   %nw   = 1792; %nh   = 1344;  
   %hrf = false;
@@ -4418,7 +4439,7 @@ const prelude_text = `
 
 @xl_magic_small_3_to_2_os6 =
 { %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 6;   
+  %ow   = 768;  %oh   = 576;   
   %tw   = 1536; %th   = 1152;  
   %nw   = 1792; %nh   = 1344;  
   %hrf  = false;
@@ -4441,9 +4462,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1024; %th   = 768;   
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 768;  %th   = 1024;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4464,9 +4485,9 @@ const prelude_text = `
 
 @xl_magic_small_2_to_3_os6 =
 { %w    = 512;  %h    = 768;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
   %hrf  = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4533,9 +4554,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4 =
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768; %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4556,9 +4577,9 @@ const prelude_text = `
 
 @xl_magic_small_3_to_4_os6 = 
 { %w   = 576;  %h     = 768;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4625,9 +4646,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16 =
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768;  %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4647,9 +4668,9 @@ const prelude_text = `
 
 @xl_magic_small_9_to_16_os6 = 
 { %w   = 576;  %h     = 1024;   
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
@@ -4718,9 +4739,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4740,9 +4761,9 @@ const prelude_text = `
 
 @xl_magic_medium_2_to_3_os6 =
 { %w   = 832;   %h    = 1216;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4809,9 +4830,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4878,9 +4899,9 @@ const prelude_text = `
 
 @xl_magic_medium_3_to_4_os6 =
 { %w   = 896;   %h    = 1152;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4901,9 +4922,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16 =
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -4924,9 +4945,9 @@ const prelude_text = `
 
 @xl_magic_medium_9_to_16_os6 = 
 { %w   = 768;   %h    = 1344;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
   %hrf = false;
   #xl_magic_size.medium
   #xl_magic_orientation.portrait
@@ -8615,22 +8636,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (!got)
           throw new ThrownReturn(warning_str(`named wildcard '${thing.name}' not found`));
 
-        let res = [];
-
+        let res;
         let anon_wildcard;
         
         if (got instanceof ASTLatchedNamedWildcard) {          
           anon_wildcard = got.original_value;
-          
-          // for (let ix = 0; ix < rand_int(thing.min_count, thing.max_count); ix++) {
-          //   const expanded = lm.indent(() => walk(got.latched_value, 
-          //                                         { correct_articles: correct_articles})); 
-          //   // ^ not quite sure whether to use walk or expand_wildcards here.
-          
-          //   if (expanded)
-          //     res.push(expanded);
-          ///}
-          res = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
+          res           = Array(rand_int(thing.min_count, thing.max_count)).fill(got.latched_value);
         }
         else { // ASTAnonWildcard
           anon_wildcard = got;
@@ -8639,28 +8650,28 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                   picker_allow, picker_forbid, picker_each, 
-                                   picker_priority).filter(s => s !== '');
+          res           = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                             picker_allow, picker_forbid, picker_each, 
+                                             picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
         }
+
+        res = res.filter(x => x);
         
         if (thing.capitalize && res.length > 0) 
           res[0] = capitalize(res[0]);
 
-        let effective_joiner;
+        // compute effective_trailer:
+        const effective_trailer = thing.trailer
+              ? thing.trailer
+              : anon_wildcard.trailer; // might be null, but that should be okay
+        
+        let effective_joiner = null;   // might remain null, but that should be okay      
         let intercalate_options = {}
-        let effective_trailer = thing.trailer ?? anon_wildcard.trailer;          
 
-        if (log_level__expand_and_walk >= 2)
-          lm.indent(() => {
-            lm.log(`EFFECTIVE_JOINER:  ${effective_joiner}`);
-            lm.log(`EFFECTIVE_TRAILER: ${effective_trailer}`);
-            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
-          });
-
+        // compute effective_joiner:
         if (thing.joiner === '&') {
           effective_joiner = ',';
           intercalate_options.final_separator = 'and';
@@ -8668,10 +8679,16 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         else if (thing.joiner)
           effective_joiner = thing.joiner;
         else if (',.'.includes(anon_wildcard.trailer))
-          effective_joiner = ',';
-        else
-          effective_joiner = thing.joiner;
+          effective_joiner = anon_wildcard.trailer; // might be null, but that should be okay
         
+        // log effective joiner/trailers:
+        if (log_level__expand_and_walk >= 2)
+          lm.indent(() => {
+            lm.log(`EFFECTIVE_JOINER:  ${inspect_fun(effective_joiner)}`);
+            lm.log(`EFFECTIVE_TRAILER: ${inspect_fun(effective_trailer)}`);
+            lm.log(`ANON_WILDCARD:     ${thing_str_repr(anon_wildcard)}`);
+          });
+
         lm.indent(() => {
           let str = smart_join(intercalate(effective_joiner, res, intercalate_options),
                                { correct_articles: false });
@@ -8833,7 +8850,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               // %sampled = { Euler A AYS };
               expand_wildcards(thing.value, context, 
                                { correct_articles: false })); 
-            // ^ not walk because we're going to parse it as JSON
+            // ^ not walk or correct_articles because we're going to parse it as JSON
             
             const jsconc_parsed_expanded_value = (thing instanceof ASTUpdateConfigurationUnary
                                                   ? RjsoncObject
@@ -8915,7 +8932,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `in key ${inspect_fun(our_name)}`);
                 
                 const new_arr = [ ...tmp_arr, ...value ];
-                if (log_expand_and_walk_enabled >= 2)
+
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by array ${inspect_fun(value)}, ` +             
@@ -8933,7 +8951,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 const new_obj = { ...tmp_obj, ...value };
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +      
                          `increment by object ${inspect_fun(value)}, ` +             
@@ -8949,7 +8967,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                             `to non-number ${inspect_fun(tmp_num)} ` +
                             `in key ${inspect_fun(our_name)}`);
 
-                if (log_expand_and_walk_enabled >= 2)
+                if (log_level__expand_and_walk >= 2)
                   lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
                          `${inspect_fun(context.configuration[our_name])}, ` +
                          `increment by number ${inspect_fun(value)}, ` +
@@ -8973,7 +8991,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
                 context.configuration[our_name] =
                   lm.indent(() => smart_join([tmp_str, value],
-                                             { correct_articles: false })); // never correct here?
+                                             { correct_articles: false }));
+                // ^ never correct here to avoid 'Euler An'
               }
               else {
                 // probly won't work most of the time, but let's try anyhow, I guess:
@@ -9023,7 +9042,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         context[prior_key] = context[cur_key];
         context[cur_key]   = walked;
 
-        if (log_configuration_enabled)
+        if (log_level__expand_and_walk >= 2)
           lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
                                  `${inspect_fun(walked)}.`));
         
@@ -9068,8 +9087,8 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
               ? 'pick_one_priority'
               : 'pick_multiple_priority';
         const prior_key = thing instanceof ASTRevertPickSingle
-              ? 'prior_pick_one_priority'
-              : 'prior_pick_multiple_priority';
+              ? 'pick_one_priority'
+              : 'pick_multiple_priority';
         const cur_val   = context[cur_key];
         const prior_val = context[prior_key];
         
@@ -9196,7 +9215,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
   lm.indent(() => {
     const walked = walk(thing, { correct_articles: correct_articles })
-    ret = unescape(walked.replace(/^[<]+/, ''));
+    ret = walked;
   });
 
   if (log_level__expand_and_walk)
@@ -9208,7 +9227,7 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-  return ret;
+  return ret.replace(/\\</g, '<');
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -9567,9 +9586,10 @@ class ASTNamedWildcardReference extends ASTLeafNode {
         str += `${this.min_count}-${this.max_count}`;
       else
         str += `${this.max_count}`;
-
-      str += this.joiner;
     }
+
+    if (this.joiner)
+      str += this.joiner;
 
     str += this.name;
 
@@ -9953,14 +9973,16 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
-const structural_chars              = '{|}';
-const structural_word_break_ahead   = r_raw`(?=[\s${structural_chars}]|$)`
+const structural_chars            = '{|}';
+const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
-const structural_close_ahead        = r(/(?=\s*})/)
+const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
 // -------------------------------------------------------------------------------------------------
 const with_swb                = rule => head(rule, structural_word_break_ahead);
 const cutting_with_swb        = rule => cutting_head(rule, structural_word_break_ahead);
+const sj_merge                = (rule, { correct_articles = true } = {}) =>
+      xform(arr => smart_join_merge(arr, { correct_articles: correct_articles }), rule);
 // =================================================================================================
 // terminals:
 // =================================================================================================
@@ -9980,10 +10002,6 @@ const ident                   =
       xform(r(/[a-zA-Z_-][0-9a-zA-Z_-]*\b/),
             str => str.toLowerCase().replace(/-/g, '_'))
       .abbreviate_str_repr('ident');
-// const liberal_ident           =
-//       xform(r(/[0-9a-zA-Z_-][0-9a-zA-Z_-]*\b/),
-//             str => str.toLowerCase().replace(/-/g, '_'))
-//       .abbreviate_str_repr('ident');
 const swb_uint                = xform(parseInt, with_swb(uint))
       .abbreviate_str_repr('swb_uint');
 const punctuation_trailer          = r(/(?:\.\.\.|[,.!?])/);
@@ -9994,27 +10012,37 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 // plain_text terminal variants:
 // =================================================================================================
-const pseudo_structural_chars = '<\(\)';
-const syntax_chars            = '@#$%;';
+const syntax_chars            = raw`@#$%`;
+// const pseudo_structural_chars = raw`<\(\)\[\]`;
 const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
-const make_plain_text_char_Regexp_source_str = additional_excluded_chars =>
-      raw`(?:\\.|` +
-      raw`(?!`+
-      raw`[\s${syntax_chars}${structural_chars}${additional_excluded_chars ?? ''}]|` +
-      raw`${comment_beginning}` +
-      raw`)` +
-      raw`\S)`;
-// -------------------------------------------------------------------------------------------------
-const make_plain_text_rule = additional_excluded_chars => 
-      r(raw`${make_plain_text_char_Regexp_source_str(additional_excluded_chars)}+` +
-        raw`(?=[\s{|}]|$)|` +
-        raw`(?:[${pseudo_structural_chars}]+(?=[@$]))`);
+const make_plain_text_rule = (additional_excluded_chars = '') => {
+  const plain_text_re_front_part =
+        raw`(?:` +
+        raw  `(?:\\.|(?![\s${syntax_chars}${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)` +
+        raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*?` +
+        raw`)`;
+
+  const alternative_1 = plain_text_re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
+  const alternative_2 = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+
+  const plain_text_re_src = alternative_1 + `|`  + alternative_2;
+
+  // lm.log(`RE: ${plain_text_re_src}`);
+
+  return xform(r(plain_text_re_src),
+               str => str
+               .replace(/^<+/,    '<')
+               .replace(/<+$/,    '<')
+               .replace(/\\n/g,   '\n')
+               .replace(/\\ /g,   ' ')
+               .replace(/\\([^<])/g, '$1'));
+};
 // -------------------------------------------------------------------------------------------------
 const plain_text           = make_plain_text_rule()
       .abbreviate_str_repr('plain_text');
-// const plain_text_no_semis  = make_plain_text_rule(';')
-//       .abbreviate_str_repr('plain_text_no_semis');
+const plain_text_no_semis  = make_plain_text_rule(';')
+      .abbreviate_str_repr('plain_text_no_semis');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -10022,14 +10050,15 @@ const A1111StyleLoraWeight = choice(/\d*\.\d+/, uint)
       .abbreviate_str_repr('A1111StyleLoraWeight');
 const A1111StyleLora =
       xform(arr => new ASTLora(arr[2], arr[3]),
-            wst_cutting_seq(seq(ltri, lws('lora')),                              // [0]
-                            colon,                                               // [1] 
-                            choice(filename, () => LimitedContentNoAWCTrailers), // [2]
-                            optional(wst_cadr(colon,                             // [3]
-                                              choice(A1111StyleLoraWeight,
-                                                     () => LimitedContentNoAWCTrailers)),
-                                     "1.0"), // [4][0]
-                            rtri))
+            wst_cutting_seq(
+              seq(ltri, lws('lora')),                              // [0]
+              colon,                                               // [1] 
+              choice(filename, () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer), // [2]
+              optional(wst_cadr(colon,                             // [3]
+                                choice(A1111StyleLoraWeight,
+                                       () => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer)),
+                       "1.0"),
+              rtri))
       .abbreviate_str_repr('A1111StyleLora');
 // =================================================================================================
 // mod RJSONC:
@@ -10047,13 +10076,6 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-// const flag_ident = xform(dot_chained(ident),
-//                          arr => {
-//                            lm.log();
-//                            lm.log(`FLAG_IDENT IN:  ${inspect_fun(arr)}`);
-//                            lm.log(`FLAG_IDENT OUT: ${inspect_fun(arr)}`);
-//                            return arr;
-//                          });
 const flag_ident = xform(seq(choice(ident, '*'),
                              star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
                          arr => [arr[0], ...arr[1]]);
@@ -10085,20 +10107,20 @@ const CheckFlagWithSetConsequent =
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithSetConsequent');
-const CheckFlagWithOrAlternatives = // last check alternative
-      xform(cutting_seq(question,                // [0]
-                        plus(flag_ident, comma), // [1]
-                        structural_word_break_ahead),  // [2]
+const CheckFlagWithOrAlternatives = // last check alternative, therefore cutting_seq
+      xform(cutting_seq(question,                     // [0]
+                        plus(flag_ident, comma),      // [1]
+                        structural_word_break_ahead), // [2]
             arr => {
               const args = [arr[1]];
               return new ASTCheckFlags(...args);
             })
       .abbreviate_str_repr('CheckFlagWithOrAlternatives');
-const NotFlagWithSetConsequent = // last not alternative
-      xform(cutting_seq(bang,                   // [0]
-                        flag_ident,             // [1]
-                        dot_hash,               // [2]
-                        flag_ident,             // [3]
+const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
+      xform(cutting_seq(bang,                         // [0]
+                        flag_ident,                   // [1]
+                        dot_hash,                     // [2]
+                        flag_ident,                   // [3]
                         structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
@@ -10107,7 +10129,7 @@ const NotFlagWithSetConsequent = // last not alternative
             })
       .abbreviate_str_repr('NotFlagWithSetConsequent');
 // -------------------------------------------------------------------------------------------------
-const SetFlag =
+const SetFlag   =
       xform(arr => new ASTSetFlag(arr),
             cutting_cadr(hash, flag_ident, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
@@ -10121,7 +10143,7 @@ const unexpected_TestFlag_at_top_level = rule =>
         new FatalParseError(`check/not flag guards without set consequents at the top level ` +
                             `would serve no purpose and so are not permitted`,
                             input, index));
-const innapropriately_placed_TestFlag = rule => 
+const innapropriately_placed_TestFlag  = rule => 
       unexpected(rule, (rule, input, index) =>
         new FatalParseError(`innapropriately placed test flag`,
                             input, index));
@@ -10155,24 +10177,18 @@ const TestFlagInAlternativeContent =
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(NotFlagWithSetConsequent)
              .abbreviate_str_repr('InappropriatelyPlacedNotFlagWithSetConsequent'),
-             // Maybe these next two shouldn't be here?
-             // wrap_TestFlag_in_AnonWildcard(CheckFlagWithSetConsequent)
-             // .abbreviate_str_repr('WrappedTopLevelCheckFlagWithSetConsequent'),
-             // wrap_TestFlag_in_AnonWildcard(NotFlagWithSetConsequent)
-             // .abbreviate_str_repr('WrappedNotFlagWithSetConsequent'),
              innapropriately_placed_TestFlag(CheckFlagWithOrAlternatives)
              .abbreviate_str_repr('InappropriatelyPlacedCheckFlagWithOrAlternatives'));
 // =================================================================================================
 // AnonWildcard-related rules:
 // =================================================================================================
 const make_ASTAnonWildcardAlternative = arr => {
-  // lm.log(`ARR: ${inspect_fun(arr)}`);
   const weight = arr[1];
 
   if (weight == 0)
     return DISCARD;
   
-  const flags = ([ ...arr[0], ...arr[2] ]);
+  const flags = [ ...arr[0], ...arr[2] ];
   const check_flags        = flags.filter(f => f instanceof ASTCheckFlags);
   const not_flags          = flags.filter(f => f instanceof ASTNotFlag);
   const set_or_unset_flags = flags.filter(f => f instanceof ASTSetFlag || f instanceof ASTUnsetFlag);
@@ -10188,7 +10204,6 @@ const make_ASTAnonWildcardAlternative = arr => {
         not_flags
         .filter(f => f.set_immediately)
         .map(f => new ASTSetFlag(f.flag));
-
   return new ASTAnonWildcardAlternative(
     weight,
     check_flags,
@@ -10200,34 +10215,71 @@ const make_ASTAnonWildcardAlternative = arr => {
       ...set_or_unset_flags,
       ...arr[3]
     ]);
-}
+};
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcardAlternative_rule = content_rule => 
+const AnonWildcardHeaderItems =
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      .abbreviate_str_repr('AnonWildcardHeaderItems');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcardAlternative_rule = (content_rule,
+                                           { sj_merge_correct_articles = true } = {}) =>
       xform(make_ASTAnonWildcardAlternative,
-            seq(wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
+            seq(AnonWildcardHeaderItems,
                 lws(optional(swb_uint, 1)),                                 
-                wst_star(choice(TestFlagInGuardPosition, discarded_comment,
-                                SetFlag, UnsetFlag)),
-                flat1(wst_star(content_rule))));
+                AnonWildcardHeaderItems,
+                sj_merge(flat1(wst_star(content_rule)),
+                         { correct_articles: sj_merge_correct_articles })));
 // -------------------------------------------------------------------------------------------------
-const make_AnonWildcard_rule         = (alternative_rule, can_have_trailer = false)  =>
-      xform(arr => new ASTAnonWildcard(arr[1], { trailer: arr[2],
-                                                 unsafe: arr[0] == 'unsafe' }),
-            seq(optional('unsafe'),
-                discarded_comments,
-                lws(wst_brc_enc(wst_star(alternative_rule, pipe))),
-                (can_have_trailer
-                 ? optional_punctuation_trailer
-                 : unexpected_punctuation_trailer)));
-// -------------------------------------------------------------------------------------------------
-const AnonWildcardAlternative        =
-      make_AnonWildcardAlternative_rule(() => ContentInAnonWildcardAlternative)
+const AnonWildcardAlternative  =
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternative,
+        { sj_merge_correct_articles: true })
       .abbreviate_str_repr('AnonWildcardAlternative');
-const AnonWildcard                   = make_AnonWildcard_rule(AnonWildcardAlternative, true)
+const AnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_AnonWildcardAlternative_rule(
+        () => ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection,
+        { sj_merge_correct_articles: false })
+      .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
+// -------------------------------------------------------------------------------------------------
+const make_AnonWildcard_rule            =
+      (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
+        const new_ASTAnonWildcard = arr =>
+              new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
+        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+        const tail_rule = can_have_trailer
+              ? optional_punctuation_trailer
+              : unexpected_punctuation_trailer;
+        const xform_fun = empty_value === undefined
+              ? arr => new_ASTAnonWildcard(arr)
+              : arr => (arr.length === 0
+                        ? empty_value
+                        : new_ASTAnonWildcard(arr));
+        return xform(xform_fun,
+                     seq(optional('unsafe'),
+                         discarded_comments,
+                         body_rule,
+                         tail_rule));
+      };
+// -------------------------------------------------------------------------------------------------
+const AnonWildcard =
+      make_AnonWildcard_rule(AnonWildcardAlternative,
+                             { can_have_trailer: true, empty_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
-const AnonWildcardNoTrailer          = make_AnonWildcard_rule(AnonWildcardAlternative, false)
-      .abbreviate_str_repr('AnonWildcardNoTrailer');
+// no empty value because values that are going to go on the rhs of context.named_wildcards need
+// to actually be ASTAnonWildcards:
+const AnonWildcardInDefinition =
+      make_AnonWildcard_rule(AnonWildcardAlternative,
+                             { can_have_trailer: true, empty_value: undefined })
+      .abbreviate_str_repr('AnonWildcardInDefinition');
+// note differing empty values due their contexts of use:
+const AnonWildcardNoSJMergeArticleCorrection =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
+                             { can_have_trailer: true, empty_value: DISCARD })
+      .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
+const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
+      make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
+                             { can_have_trailer: false, empty_value:  '' })
+      .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrectionOrTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
 // =================================================================================================
@@ -10246,8 +10298,7 @@ const UnexpectedSpecialFunctionUIPrompt =
                  (rule, input, index) =>
                  new FatalParseError("%ui-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
+                                     "NOT when running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUIPrompt');
 // -------------------------------------------------------------------------------------------------
@@ -10261,17 +10312,16 @@ const UnexpectedSpecialFunctionUINegPrompt =
                  (rule, input, index) =>
                  new FatalParseError("%ui-neg-prompt is only supported when " +
                                      "using wildcards-plus.js inside Draw Things, " +
-                                     "NOT when " +
-                                     "running the wildcards-plus-tool.js script",
+                                     "NOT when running the wildcards-plus-tool.js script",
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionUINegPrompt');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionInclude =
       xform(arr => new ASTInclude(arr[1]),
-            head(c_funcall('%include',                   // [0][0]
-                           head(discarded_comments,      // -
-                                lws(rjsonc_string),      // [0][1]
-                                discarded_comments,      // -
+            head(c_funcall('%include',              // [0][0]
+                           head(discarded_comments, // -
+                                lws(rjsonc_string), // [0][1]
+                                discarded_comments, // -
                                )),  
                  optional(SpecialFunctionTail)))
       .abbreviate_str_repr('SpecialFunctionInclude');
@@ -10293,7 +10343,7 @@ const SpecialFunctionSetPickSingle =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),        
                             optional(SpecialFunctionTail))))
       .abbreviate_str_repr('SpecialFunctionSetPickSingle');
@@ -10304,7 +10354,7 @@ const SpecialFunctionSetPickMultiple =
                 discarded_comments,                                       // -
                 cutting_seq(lws(equals),                                  // [1][0]
                             discarded_comments,                           // -
-                            lws(choice(() => LimitedContentNoAWCTrailers, // [1][1]
+                            lws(choice(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer, // [1][1]
                                        lc_alpha_snake)),
                             optional(SpecialFunctionTail)))) 
       .abbreviate_str_repr('SpecialFunctionSetPickMultiple');
@@ -10322,32 +10372,27 @@ const SpecialFunctionRevertPickMultiple =
       .abbreviate_str_repr('SpecialFunctionRevertPickMultiple');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationBinary =
-      xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-        return new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '=');
-      },
-            cutting_seq(seq(c_ident,                                                // [0][0]
-                            discarded_comments,                                     // -
-                            lws(any_assignment_operator),                           // [0][1]
-                            discarded_comments),                                    // -
-                        lws(choice(ExposedRjsonc,                                   // [1]
-                                   head(() => LimitedContent,
-                                        optional(SpecialFunctionTail))))))          // [1][1]
+      xform(arr => new ASTUpdateConfigurationBinary(arr[0][0], arr[1], arr[0][1] == '='),
+            cutting_seq(seq(c_ident,                                        // [0][0]
+                            discarded_comments,                             // -
+                            lws(any_assignment_operator),                   // [0][1]
+                            discarded_comments),                            // -
+                        lws(choice(ExposedRjsonc,                           // [1]
+                                   head(() => LimitedContentNoAWCArticleCorrection,
+                                        optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionUpdateConfigurationUnary =
-      xform(arr => {
-        // lm.log(`UNARY ARR: ${inspect_fun(arr)}`);
-        return new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '=');
-      },
-            seq(/conf(?:ig)?/,                                                        // [0]
-                discarded_comments,                                                   // -
-                cutting_seq(lws(choice(plus_equals, equals)),                         // [1][0]
-                            discarded_comments,                                       // -
-                            lws(choice(head(RjsoncObject, // mod_RjsoncObject,
-                                            optional(SpecialFunctionTail)),
-                                       head(() => LimitedContentNoAWCTrailers,
-                                            optional(SpecialFunctionTail))))))) // [1][1]
+      xform(arr => 
+        new ASTUpdateConfigurationUnary(arr[1][1], arr[1][0] == '='),
+        seq(/conf(?:ig)?/,                                                  // [0]
+            discarded_comments,                                             // -
+            cutting_seq(lws(choice(plus_equals, equals)),                   // [1][0]
+                        discarded_comments,                                 // -
+                        lws(choice(head(RjsoncObject,
+                                        optional(SpecialFunctionTail)),
+                                   head(() => LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer,
+                                        optional(SpecialFunctionTail))))))) // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationUnary');
 // -------------------------------------------------------------------------------------------------
 const SpecialFunctionNotInclude =
@@ -10416,7 +10461,7 @@ const NamedWildcardDefinition =
                              discarded_comments,
                              lws(equals)),
                         discarded_comments,
-                        head(lws(AnonWildcard),
+                        head(lws(AnonWildcardInDefinition),
                              optional(SpecialFunctionTail))))
       .abbreviate_str_repr('NamedWildcardDefinition');
 // -------------------------------------------------------------------------------------------------
@@ -10464,10 +10509,9 @@ const ScalarAssignment        =
             discarded_comments,                               // - 
             cutting_seq(lws(choice(plus_equals, equals)),     // [1][0]
                         discarded_comments,                   // -
-                        lws(choice(
-                          () => rjsonc_string, // [1][1]
+                        lws(choice(                           // [1][1]
+                          () => rjsonc_string,
                           () => LimitedContent,
-                          // () => hwst_plus(choice(LimitedContentNoSemis, discarded_comment)),
                         )),
                         optional(SpecialFunctionTail))))
       .abbreviate_str_repr('ScalarAssignment');
@@ -10483,11 +10527,14 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcard /* AnonWildcardNoLoras */)
+      make_LimitedContent_rule(plain_text, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoAWCTrailers =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoTrailer /* AnonWildcardNoLorasNoTrailer */)
-      .abbreviate_str_repr('LimitedContentNoAWCTrailers');
+const LimitedContentNoAWCArticleCorrection =
+      make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
+      .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
+const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
 // -------------------------------------------------------------------------------------------------
 const make_malformed_token_rule = rule => 
       unexpected(rule,
@@ -10499,7 +10546,7 @@ const make_malformed_token_rule = rule =>
                                               index);
                  }).abbreviate_str_repr(`malformed(${rule.toString()})`);
 const make_Content_rule       = ({ before_plain_text_rules = [],
-                                   after_plain_text_rules  = [] } = {}) =>
+                                   after_plain_text_rules  = [] } = {}) => 
       choice(
         ...before_plain_text_rules,
         plain_text,
@@ -10516,16 +10563,21 @@ const make_Content_rule       = ({ before_plain_text_rules = [],
         // ^ reminder, structural_chars === '{|}'
       );
 // -------------------------------------------------------------------------------------------------
-const ContentInAnonWildcardAlternative = make_Content_rule({
-  before_plain_text_rules: [
-    end_quantified_match_if(structural_close_ahead),
-    A1111StyleLora,
-    TestFlagInAlternativeContent,
-    AnonWildcard,
-  ],
-  after_plain_text_rules:  [
-  ],
-});
+const make_ContentInAnonWildcardAlternative_rule = nested_AnonWildcard_rule =>
+      make_Content_rule({
+        before_plain_text_rules: [
+          end_quantified_match_if(structural_close_ahead),
+          A1111StyleLora,
+          TestFlagInAlternativeContent,
+          nested_AnonWildcard_rule,
+        ],
+        after_plain_text_rules:  [
+        ],
+      });
+const ContentInAnonWildcardAlternative =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcard);
+const ContentInAnonWildcardAlternativeNoSJMergeArticleCorrection =
+      make_ContentInAnonWildcardAlternative_rule(AnonWildcardNoSJMergeArticleCorrection);
 const ContentAtTopLevel                = make_Content_rule({
   before_plain_text_rules: [
     A1111StyleLora,
@@ -10538,7 +10590,7 @@ const ContentAtTopLevel                = make_Content_rule({
     SpecialFunctionInclude,
   ],
 });
-const ContentAtTopLevelStar            = flat1(wst_star(ContentAtTopLevel));
+const ContentAtTopLevelStar            = sj_merge(flat1(wst_star(ContentAtTopLevel)));
 const Prompt                           = tws(ContentAtTopLevelStar);
 // =================================================================================================
 Prompt.finalize();
@@ -10589,7 +10641,7 @@ const user_selection = requestFromUser('Wildcards Plus', '', function() {
                  [ this.menu(picker_priority_descriptions.indexOf(picker_priority.ensure_weighted_distribution),
                              picker_priority_descriptions) ]),
     this.section("When picking multiple items, prioritize:", "",
-                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition),
+                 [ this.menu(picker_priority_descriptions.indexOf(picker_priority.avoid_repetition_long),
                              picker_priority_descriptions) ]),
     this.section('about', doc_string, [])
   ];
