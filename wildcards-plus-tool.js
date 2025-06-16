@@ -4644,10 +4644,6 @@ const prelude_text = `
                             {3 !gender.#female #female
                             |2 !gender.#male   #male
                             |1 !gender.#neuter #neuter } }
-
-@__set_gender_if_unset
-@__set_gender_if_unset
-
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -9789,12 +9785,6 @@ function audit_semantics(
     throw new Error(`bad audit_semantics args: ` +
                     `${compress(inspect_fun(arguments))}, ` +
                     `this likely indicates a programmer error`);
-  
-  
-  const dummy_context = base_context
-        ? base_context.clone()
-        : new Context();
-
   // -----------------------------------------------------------------------------------------------
   function walk(thing, local_audit_semantics_mode, warnings_arr, visited) {
     visited = visited ? new Set(visited) : new Set();
@@ -9893,7 +9883,7 @@ function audit_semantics(
         }
 
         walk(got,
-             audit_semantics_modes.unsafe,
+             audit_semantics_modes.unsafe, // ???
              warnings_arr,
              new Set(visited))
       }
@@ -9970,7 +9960,10 @@ function audit_semantics(
   }
 
   const warnings =  [];
-  
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
+
   walk(root_ast_node, audit_semantics_mode, warnings);
 
   if (log_level__audit >= 1)
