@@ -9811,9 +9811,9 @@ function audit_semantics(root_ast_node,
       
       msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
 
-      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
+      if (audit_semantics_mode == audit_semantics_mode.throw_error)
         throw new Error(msg);
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
+      else if (audit_semantics_mode == audit_semantics_modes.collect_warnings)
         warnings_arr.push(msg);
       else
         throw new Error("what do?");
@@ -9945,9 +9945,9 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTNode) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
-        // ^ try allowing propogate here
+        // ^ try allowing propagate here
         
-        // lm.log(`won't propogate local mode through ${thing.constructor.name}`);
+        // lm.log(`won't propagate local mode through ${thing.constructor.name}`);
         // walk_children(thing, audit_semantics_mode, warnings_arr);
         // // ^ don't propagate local_audit_semantics_mode to other node types by default?
       }
