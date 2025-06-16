@@ -9772,6 +9772,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
+  speculative:       'speculative',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9882,7 +9883,7 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        walk(got, audit_semantics_mode, warnings_arr) // don't propagate local_audit_semantics_mode
+        walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9940,7 +9941,7 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTNode) {
         walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode to other node types by default.
+        // ^ don't propagate local_audit_semantics_mode to other node types by default?
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
