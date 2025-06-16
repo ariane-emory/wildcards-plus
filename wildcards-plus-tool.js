@@ -9745,8 +9745,9 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
-    if (!Object.values(audit_semantics_modes).includes(audit_semantics_mode) ||
+  function walk(thing, local_audit_semantics_mode, warnings_arr) {
+    if (thing == undefined ||
+        !Object.values(audit_semantics_modes).includes(audit_semantics_mode) ||
         !Array.isArray(warnings_arr))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
