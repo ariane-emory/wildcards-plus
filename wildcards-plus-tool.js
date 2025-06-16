@@ -4292,6 +4292,8 @@ function get_next_context_id() {
 // -------------------------------------------------------------------------------------------------
 class Context {
   #configuration;
+  #picker_allow_fun;
+  #picker_forbid_fun;
   // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
@@ -4321,9 +4323,41 @@ class Context {
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
     this.in_lora                      = in_lora;
-    
+
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_allow_fun() {
+    this.#picker_allow_fun ??=  option => {
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        for (const flag of check_flag.flags) 
+          if (this.flag_is_set(flag)) {
+            found = true;
+            break;
+          }
+        
+        if (!found)
+          return false;
+      }
+
+      return true;
+    };
+    
+    return this.#picker_allow_fun;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_forbid_fun() {
+    this.#picker_forbid_fun ??= option => {
+      for (const not_flag of option.not_flags)
+        if (this.flag_is_set(not_flag.flag))
+          return true;
+      return false;
+    };
+
+    return this.#picker_forbid_fun;
   }
   // -----------------------------------------------------------------------------------------------
   clone(obj = {}) {
