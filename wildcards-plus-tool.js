@@ -4563,13 +4563,16 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
-                            {?female #gender.female 
+@__set_gender_if_unset  = { {?female #gender.female 
                             |?male   #gender.male
                             |?neuter #gender.neuter    }
                             {3 !gender.#female #female
                             |2 !gender.#male   #male
-                            |1 !gender.#neuter #neuter } } 
+                            |1 !gender.#neuter #neuter } }
+
+@__set_gender_if_unset
+@__set_gender_if_unset
+
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -9726,7 +9729,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning', 
-  no_warn:           'no_warn',
+  unsafe:           'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9776,7 +9779,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.no_warn)
+          local_audit_semantics_mode === audit_semantics_modes.unsafe)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9889,14 +9892,14 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe
-              ? audit_semantics_modes.no_warn
+              ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode;
         
-        // // always do no_warn wask first to collect flags set inside:
-        // walk_children(thing, audit_semantics_modes.no_warn, warnings_arr);
+        // // always do unsafe wask first to collect flags set inside:
+        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
 
         // then, if needed, do a second walk to check guards:
-        // if (mode !== audit_semantics_modes.no_warn)
+        // if (mode !== audit_semantics_modes.unsafe)
         walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
