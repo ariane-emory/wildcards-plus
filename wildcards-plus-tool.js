@@ -3393,6 +3393,10 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+function get_indices_from_arr(indices, arr) {
+  return indices.map(i => arr[i]);
+}
+// -------------------------------------------------------------------------------------------------
 function indent_lines(indent, str, indent_str = "| ") {
   if (typeof str !== 'string')
     throw new Error(`not a string: ${inspect.fun(str)}`);
@@ -3923,7 +3927,11 @@ function unescape(str) {
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
     .replace(/\\(.)/g, '$1')
-};
+}
+// -------------------------------------------------------------------------------------------------
+function warning_str(str) {
+  return `\\<WARNING: ${str}!>`;
+}
 // =================================================================================================
 // END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
@@ -9012,10 +9020,6 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
       return ret;
     });
-  }
-  // -----------------------------------------------------------------------------------------------
-  function warning_str(str) {
-    return `\\<WARNING: ${str}!>`;
   }
   // -----------------------------------------------------------------------------------------------
   // const log = (guard_bool, msg, with_indentation = true) => { 
