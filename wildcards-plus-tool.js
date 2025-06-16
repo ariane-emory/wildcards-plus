@@ -4550,6 +4550,34 @@ class Context {
     this.configuration = munged_configuration;
   }
   // -----------------------------------------------------------------------------------------------
+  make_picker_allow_fun() {
+    return option  =>  {
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        for (const flag of check_flag.flags) 
+          if (this.flag_is_set(flag)) {
+            found = true;
+            break;
+          }
+        
+        if (!found)
+          return false;
+      }
+
+      return true;
+    };
+  }
+  // -----------------------------------------------------------------------------------------------
+  make_picker_forbid_fun() {
+    return option =>  {
+      for (const not_flag of option.not_flags)
+        if (this.flag_is_set(not_flag.flag))
+          return true;
+      return false;
+    };
+  }
+  // -----------------------------------------------------------------------------------------------
   toString() {
     return `Context<#${this.context_id}>`;
   }
@@ -8950,41 +8978,6 @@ function load_prelude(into_context = new Context()) {
 
 
 // =================================================================================================
-// FUNS TO MANUFACTURE picker_allow/forbid FUNCTIONS:
-// =================================================================================================
-function make_picker_allow_fun(context) {
-  return option  =>  {
-    for (const check_flag of option.check_flags) {
-      let found = false;
-      
-      for (const flag of check_flag.flags) 
-        if (context.flag_is_set(flag)) {
-          found = true;
-          break;
-        }
-      
-      if (!found)
-        return false;
-    }
-
-    return true;
-  };
-};
-// -----------------------------------------------------------------------------------------------
-function make_picker_forbid_fun(context) {
-  return option =>  {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
-};
-// =================================================================================================
-// END OF FUNS TO MANUFACTURE picker_allow/forbid FUNCTIONS.
-// =================================================================================================
-
-
-// =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
@@ -9001,8 +8994,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
-  const picker_allow  = make_picker_allow_fun(context);
-  const picker_forbid = make_picker_forbid_fun(context);
+  const picker_allow  = context.make_picker_allow_fun();
+  const picker_forbid = context.make_picker_forbid_fun();
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
