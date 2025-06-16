@@ -9888,6 +9888,18 @@ function audit_semantics(
              warnings_arr,
              new Set(visited))
       }
+      else if (thing instanceof ASTAnonWildcard) {
+        const mode = thing.unsafe
+              ? audit_semantics_modes.unsafe
+              : local_audit_semantics_mode;
+        
+        // // always do unsafe wask first to collect flags set inside:
+        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
+
+        // then, if needed, do a second walk to check guards:
+        // if (mode !== audit_semantics_modes.unsafe)
+        walk_children(thing, mode, warnings_arr);
+      }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
           const known_names = Array.from(dummy_context.scalar_variables.keys(), visited);
@@ -9933,18 +9945,6 @@ function audit_semantics(
       } 
       else if (thing instanceof ASTUnsetFlag) {
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
-      }
-      else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe
-              ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode;
-        
-        // // always do unsafe wask first to collect flags set inside:
-        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
-
-        // then, if needed, do a second walk to check guards:
-        // if (mode !== audit_semantics_modes.unsafe)
-        walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
