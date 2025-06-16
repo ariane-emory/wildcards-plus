@@ -3036,19 +3036,15 @@ class WeightedPicker {
     let ret = null;
     
     if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) {
+        priority === picker_priority.avoid_repetition_short) 
       ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    }
-    else if (priority === picker_priority.ensure_weighted_distribution) {
+    else if (priority === picker_priority.ensure_weighted_distribution) 
       ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    }
-    else if (priority === picker_priority.true_randomness) {
+    else if (priority === picker_priority.true_randomness) 
       ret = this.options[option_index].weight;
-    }
-    else {
+    else
       throw Error("unexpected priority");
-    }
-
+    
     if (log_picker_enabled)
       lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
     
@@ -3233,9 +3229,8 @@ function benchmark(thunk, {
   const start_time = performance.now();
 
   const fn = () => measure_time(() => {
-    for (let ix = 0; ix < reps_per_batch; ix++) {
+    for (let ix = 0; ix < reps_per_batch; ix++)
       result = thunk();
-    }
   });
   
   for (let oix = 0; oix < batch_count; oix++) {
@@ -3529,7 +3524,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const maybe_trap = () => {
     if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-  }
+  };
 
   maybe_trap();
   
@@ -4372,14 +4367,13 @@ class Context {
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     let res = false;
-
-    for (const flag of this.flags) {
+    
+    for (const flag of this.flags) 
       if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
         res = true;
         break;
       }
-    }
-    
+
     return res;
   }
   // -----------------------------------------------------------------------------------------------
@@ -4438,14 +4432,13 @@ class Context {
     this.scalar_variables = new Map();
     this.named_wildcards = new Map();
     
-    for (const [name, nwc] of this.named_wildcards) {
+    for (const [name, nwc] of this.named_wildcards)
       if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
            lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
-    }
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration() {
@@ -8974,12 +8967,11 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     for (const check_flag of option.check_flags) {
       let found = false;
       
-      for (const flag of check_flag.flags) {
+      for (const flag of check_flag.flags) 
         if (context.flag_is_set(flag)) {
           found = true;
           break;
         }
-      }
       
       if (!found)
         return false;
@@ -9660,15 +9652,12 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
         if (file.endsWith('.ckpt')) {
           // do nothing 
         }
-        else if (file.endsWith('_lora_f16')) {
+        else if (file.endsWith('_lora_f16'))
           file = `${file}.ckpt`;
-        }
-        else if (file.endsWith('_lora')) {
+        else if (file.endsWith('_lora'))
           file = `${file}_f16.ckpt`;
-        }
-        else {
+        else
           file = `${file}_lora_f16.ckpt`;
-        }
 
         const weight = weight_match_result.value;
         
