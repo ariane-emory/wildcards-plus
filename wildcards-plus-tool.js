@@ -9001,29 +9001,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
-  function picker_allow(option) {
-    for (const check_flag of option.check_flags) {
-      let found = false;
-      
-      for (const flag of check_flag.flags) 
-        if (context.flag_is_set(flag)) {
-          found = true;
-          break;
-        }
-      
-      if (!found)
-        return false;
-    }
-    
-    return true;
-  };
-  // -----------------------------------------------------------------------------------------------
-  function picker_forbid(option) {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
+  const picker_allow  = make_picker_allow_fun(context);
+  const picker_forbid = make_picker_forbid_fun(context);
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
@@ -9521,217 +9500,217 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
                                              { correct_articles: false }));
                 // ^ never correct here to avoid 'Euler An'
               }
-              else {
-                // probly won't work most of the time, but let's try anyhow, I guess:
+                                                  else {
+                                                    // probly won't work most of the time, but let's try anyhow, I guess:
 
-                if (log_level__expand_and_walk >= 2)
-                  lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
-                         `${inspect_fun(context.configuration[our_name])}, ` 
-                         `incrementing by unknown type value ${inspect_fun(value)}, ` +
-                         `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
+                                                    if (log_level__expand_and_walk >= 2)
+                                                      lm.log(`current value in key ${inspect_fun(our_name)} = ` + 
+                                                             `${inspect_fun(context.configuration[our_name])}, ` 
+                                                             `incrementing by unknown type value ${inspect_fun(value)}, ` +
+                                                             `total ${inspect_fun(context.configuration[our_name]??null + value)}`);
 
-                context.configuration[our_name] = (context.configuration[our_name]??null) + value;
-              }
-            }
+                                                    context.configuration[our_name] = (context.configuration[our_name]??null) + value;
+                                                  }
+                                                 }
 
-            if (log_configuration_enabled)
-              lm.indent(() => lm.log(`%${our_name} ` +
-                                     `${thing.assign ? '=' : '+='} ` +
-                                     `${inspect_fun(value, true)}`,
-                                     log_level__expand_and_walk));
-          }
+                                                           if (log_configuration_enabled)
+                                                             lm.indent(() => lm.log(`%${our_name} ` +
+                                                                                    `${thing.assign ? '=' : '+='} ` +
+                                                                                    `${inspect_fun(value, true)}`,
+                                                                                    log_level__expand_and_walk));
+                                                          }
 
-          throw new ThrownReturn(''); // produce nothing
-        }
-        finally {
-          context.munge_configuration();
-        }
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTSetPickSingle || 
-               thing instanceof ASTSetPickMultiple) {
-        const cur_key = thing instanceof ASTSetPickSingle
-              ? 'pick_one_priority'
-              : 'pick_multiple_priority';
-        const prior_key = thing instanceof ASTSetPickSingle
-              ? 'prior_pick_one_priority'
-              : 'prior_pick_multiple_priority';
-        const cur_val   = context[cur_key];
-        const prior_val = context[prior_key];
-        const walked    = picker_priority[lm.indent(() =>
-          expand_wildcards(thing.limited_content,
-                           context,
-                           { correct_articles: false })).toLowerCase()];
+                  throw new ThrownReturn(''); // produce nothing
+                 }
+                          finally {
+                            context.munge_configuration();
+                          }
+                         }
+                                             // -------------------------------------------------------------------------------------------
+                                             else if (thing instanceof ASTSetPickSingle || 
+                                                      thing instanceof ASTSetPickMultiple) {
+                                               const cur_key = thing instanceof ASTSetPickSingle
+                                                     ? 'pick_one_priority'
+                                                     : 'pick_multiple_priority';
+                                               const prior_key = thing instanceof ASTSetPickSingle
+                                                     ? 'prior_pick_one_priority'
+                                                     : 'prior_pick_multiple_priority';
+                                               const cur_val   = context[cur_key];
+                                               const prior_val = context[prior_key];
+                                               const walked    = picker_priority[lm.indent(() =>
+                                                 expand_wildcards(thing.limited_content,
+                                                                  context,
+                                                                  { correct_articles: false })).toLowerCase()];
 
-        if (! picker_priority_descriptions.includes(walked))
-          throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
+                                               if (! picker_priority_descriptions.includes(walked))
+                                                 throw new Error(`invalid priority value: ${inspect_fun(walked)}`);
 
-        context[prior_key] = context[cur_key];
-        context[cur_key]   = walked;
+                                               context[prior_key] = context[cur_key];
+                                               context[cur_key]   = walked;
 
-        if (log_level__expand_and_walk >= 2)
-          lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                                 `${inspect_fun(walked)}.`));
-        
-        throw new ThrownReturn(''); // produce nothing
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
-        const sub_prompt = thing instanceof ASTUIPrompt
-              ? { desc: 'UI prompt', text: ui_prompt }
-              : { desc: 'UI negative prompt', text: ui_neg_prompt };
-        
-        if (log_level__expand_and_walk >= 2)
-          lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
+                                               if (log_level__expand_and_walk >= 2)
+                                                 lm.indent(() => lm.log(`updated ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                                                        `${inspect_fun(walked)}.`));
+                                               
+                                               throw new ThrownReturn(''); // produce nothing
+                                             }
+                                             // -------------------------------------------------------------------------------------------
+                                             else if (thing instanceof ASTUIPrompt || thing instanceof ASTUINegPrompt) {
+                                               const sub_prompt = thing instanceof ASTUIPrompt
+                                                     ? { desc: 'UI prompt', text: ui_prompt }
+                                                     : { desc: 'UI negative prompt', text: ui_neg_prompt };
+                                               
+                                               if (log_level__expand_and_walk >= 2)
+                                                 lm.log(`expanding ${sub_prompt.desc} ${inspect_fun(sub_prompt.text)}`);
 
-        let res = null;
+                                               let res = null;
 
-        try {
-          res = Prompt.match(sub_prompt.text, 0, new Map());
-        }
-        catch(err) {
-          if (err instanceof FatalParseError)
-            throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
-          else
-            throw err;
-        }
+                                               try {
+                                                 res = Prompt.match(sub_prompt.text, 0, new Map());
+                                               }
+                                               catch(err) {
+                                                 if (err instanceof FatalParseError)
+                                                   throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} failed: ${err}`));
+                                                 else
+                                                   throw err;
+                                               }
 
-        if (!res || !res.is_finished)
-          throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
+                                               if (!res || !res.is_finished)
+                                                 throw new ThrownReturn(warning_str(`parsing ${sub_prompt.desc} did not finish`));
 
-        let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
-        
-        if (thing.trailer && str.length > 0)
-          str = smart_join([str, thing.trailer],
-                           { correct_articles: false });
-        
-        throw new ThrownReturn(str);
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTRevertPickSingle || 
-               thing instanceof ASTRevertPickMultiple) {
-        const cur_key = thing instanceof ASTRevertPickSingle
-              ? 'pick_one_priority'
-              : 'pick_multiple_priority';
-        const prior_key = thing instanceof ASTRevertPickSingle
-              ? 'pick_one_priority'
-              : 'pick_multiple_priority';
-        const cur_val   = context[cur_key];
-        const prior_val = context[prior_key];
-        
-        if (log_configuration_enabled)
-          lm.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
-                 `${inspect_fun(prior_val)}.`);
-        
-        context[cur_key]   = prior_val;
-        context[prior_key] = cur_val;
+                                               let str = lm.indent(() => walk(res.value, { correct_articles: correct_articles })); ;
+                                               
+                                               if (thing.trailer && str.length > 0)
+                                                 str = smart_join([str, thing.trailer],
+                                                                  { correct_articles: false });
+                                               
+                                               throw new ThrownReturn(str);
+                                             }
+                                             // -------------------------------------------------------------------------------------------
+                                             else if (thing instanceof ASTRevertPickSingle || 
+                                                      thing instanceof ASTRevertPickMultiple) {
+                                               const cur_key = thing instanceof ASTRevertPickSingle
+                                                     ? 'pick_one_priority'
+                                                     : 'pick_multiple_priority';
+                                               const prior_key = thing instanceof ASTRevertPickSingle
+                                                     ? 'pick_one_priority'
+                                                     : 'pick_multiple_priority';
+                                               const cur_val   = context[cur_key];
+                                               const prior_val = context[prior_key];
+                                               
+                                               if (log_configuration_enabled)
+                                                 lm.log(`Reverting ${cur_key} from ${inspect_fun(cur_val)} to ` +
+                                                        `${inspect_fun(prior_val)}.`);
+                                               
+                                               context[cur_key]   = prior_val;
+                                               context[prior_key] = cur_val;
 
-        throw new ThrownReturn(''); // produce nothing
-      }
-      // -------------------------------------------------------------------------------------------
-      // ASTLora:
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTLora) {
-        if (context.in_lora)
-          throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
+                                               throw new ThrownReturn(''); // produce nothing
+                                             }
+                                             // -------------------------------------------------------------------------------------------
+                                             // ASTLora:
+                                             // -------------------------------------------------------------------------------------------
+                                             else if (thing instanceof ASTLora) {
+                                               if (context.in_lora)
+                                                 throw new Error(`don't nest LoRA inclusions, it's needlessly confusing!`);
 
-        const in_lora_context = context.shallow_copy({ in_lora: true });
-        
-        let walked_file = null;
+                                               const in_lora_context = context.shallow_copy({ in_lora: true });
+                                               
+                                               let walked_file = null;
 
-        lm.indent(() => {
-          if (log_level__expand_and_walk)
-            lm.log(`Expanding LoRA file ` +
-                   `${thing_str_repr(thing.file,
+                                               lm.indent(() => {
+                                                 if (log_level__expand_and_walk)
+                                                   lm.log(`Expanding LoRA file ` +
+                                                          `${thing_str_repr(thing.file,
                                      { always_include_type_str: true, length: 200 })}`);
-          
-          walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
-                                                         { correct_articles: false })); // not walk!
+                                                 
+                                                 walked_file = lm.indent(() => expand_wildcards(thing.file, in_lora_context,
+                                                                                                { correct_articles: false })); // not walk!
 
-          if (log_level__expand_and_walk)
-            lm.log(`expanded LoRa file `+
-                   `${thing_str_repr(thing.file,
+                                                 if (log_level__expand_and_walk)
+                                                   lm.log(`expanded LoRa file `+
+                                                          `${thing_str_repr(thing.file,
                                      { always_include_type_str: true, length: 200 })}`+
-                   `is ` +
-                   `${thing_str_repr(walked_file,
+                                                          `is ` +
+                                                          `${thing_str_repr(walked_file,
                                      { always_include_type_str: true, length: 200 })} `);
-        });
-        
-        let walked_weight = null;
-        
-        lm.indent(() => {
-          if (log_level__expand_and_walk)
-            lm.log(`Expanding LoRA weight  ` +
-                   `${thing_str_repr(thing.weight,
+                                               });
+                                               
+                                               let walked_weight = null;
+                                               
+                                               lm.indent(() => {
+                                                 if (log_level__expand_and_walk)
+                                                   lm.log(`Expanding LoRA weight  ` +
+                                                          `${thing_str_repr(thing.weight,
                                      { always_include_type_str: true, length: 200 })}`);
-          
-          walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
-                                                           { correct_articles: false })); // not walk!
+                                                 
+                                                 walked_weight = lm.indent(() => expand_wildcards(thing.weight, in_lora_context,
+                                                                                                  { correct_articles: false })); // not walk!
 
-          if (log_level__expand_and_walk)
-            lm.log(`expanded LoRA weight ` +
-                   `${thing_str_repr(thing.weight,
+                                                 if (log_level__expand_and_walk)
+                                                   lm.log(`expanded LoRA weight ` +
+                                                          `${thing_str_repr(thing.weight,
                                      { always_include_type_str: true, length: 200 })} is ` +
-                   `${thing_str_repr(walked_weight,
+                                                          `${thing_str_repr(walked_weight,
                                      { always_include_type_str: true, length: 200 })}`);
-        });
+                                               });
 
-        const weight_match_result = json_number.match(walked_weight);
+                                               const weight_match_result = json_number.match(walked_weight);
 
-        if (!weight_match_result || !weight_match_result.is_finished)
-          throw new Error(`LoRA weight must be a number, got ` +
-                          `${inspect_fun(walked_weight)}`);
+                                               if (!weight_match_result || !weight_match_result.is_finished)
+                                                 throw new Error(`LoRA weight must be a number, got ` +
+                                                                 `${inspect_fun(walked_weight)}`);
 
-        let file = walked_file.toLowerCase();
+                                               let file = walked_file.toLowerCase();
 
-        if (file === '')
-          throw new Error(`LoRA file name is empty!`);
-        
-        if (file.endsWith('.ckpt')) {
-          // do nothing 
-        }
-        else if (file.endsWith('_lora_f16'))
-          file = `${file}.ckpt`;
-        else if (file.endsWith('_lora'))
-          file = `${file}_f16.ckpt`;
-        else
-          file = `${file}_lora_f16.ckpt`;
+                                               if (file === '')
+                                                 throw new Error(`LoRA file name is empty!`);
+                                               
+                                               if (file.endsWith('.ckpt')) {
+                                                 // do nothing 
+                                               }
+                                               else if (file.endsWith('_lora_f16'))
+                                                 file = `${file}.ckpt`;
+                                               else if (file.endsWith('_lora'))
+                                                 file = `${file}_f16.ckpt`;
+                                               else
+                                                 file = `${file}_lora_f16.ckpt`;
 
-        const weight = weight_match_result.value;
-        
-        context.add_lora_uniquely({ file: file, weight: weight });
-        
-        throw new ThrownReturn(''); // produce nothing
-      }
-      // ------------------------ -------------------------------------------------------------------
-      // uncrecognized type:
-      // -------------------------------------------------------------------------------------------
-      else {
-        throw new Error(`confusing thing: ` +
-                        (typeof thing === 'object'
-                         ? thing?.constructor.name
-                         : typeof thing) +
-                        ' ' +
-                        inspect_fun(thing));
-      }
-    }
-    catch (obj) {
-      if (! (obj instanceof ThrownReturn))
-        throw obj;
+                                               const weight = weight_match_result.value;
+                                               
+                                               context.add_lora_uniquely({ file: file, weight: weight });
+                                               
+                                               throw new ThrownReturn(''); // produce nothing
+                                             }
+                                             // ------------------------ -------------------------------------------------------------------
+                                             // uncrecognized type:
+                                             // -------------------------------------------------------------------------------------------
+                                             else {
+                                               throw new Error(`confusing thing: ` +
+                                                               (typeof thing === 'object'
+                                                                ? thing?.constructor.name
+                                                                : typeof thing) +
+                                                               ' ' +
+                                                               inspect_fun(thing));
+                                             }
+                                            }
+  catch (obj) {
+    if (! (obj instanceof ThrownReturn))
+      throw obj;
 
-      if (! obj.quiet)
-        if (log_level__expand_and_walk)
-          lm.log(`walking ` +
-                 `${thing_str_repr(thing, { always_include_type_str: true, length: 200})} ` + 
-                 //`in ${context} ` +
-                 `=> ` +
-                 `${thing_str_repr(obj.value, { always_include_type_str: true, length: 200 })}`);
+    if (! obj.quiet)
+      if (log_level__expand_and_walk)
+        lm.log(`walking ` +
+               `${thing_str_repr(thing, { always_include_type_str: true, length: 200})} ` + 
+               //`in ${context} ` +
+               `=> ` +
+               `${thing_str_repr(obj.value, { always_include_type_str: true, length: 200 })}`);
 
-      return obj.value;
-    }
+    return obj.value;
   }
+}
 
-  if (log_level__expand_and_walk)
+if (log_level__expand_and_walk)
     lm.log(`Expanding wildcards in ` +
            `${thing_str_repr(thing, { always_include_type_str: true, length: 200 })} `);
 
