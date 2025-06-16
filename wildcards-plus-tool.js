@@ -9888,7 +9888,6 @@ function audit_semantics(root_ast_node,
         const mode = thing.unsafe
               ? audit_semantics_modes.no_warn
               : local_audit_semantics_mode;
-        // ^ propagate local_audit_semantics_mode
         
         // // always do no_warn wask first to collect flags set inside:
         // walk_children(thing, audit_semantics_modes.no_warn, warnings_arr);
