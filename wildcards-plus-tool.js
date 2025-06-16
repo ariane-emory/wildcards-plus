@@ -9884,7 +9884,7 @@ function audit_semantics(
         }
 
         walk(got,
-             audit_semantics_modes.unsafe, // ???
+             audit_semantics_modes.speculate,
              warnings_arr,
              new Set(visited))
       }
@@ -9892,13 +9892,14 @@ function audit_semantics(
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode;
-        
-        // // always do unsafe wask first to collect flags set inside:
-        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
 
-        // then, if needed, do a second walk to check guards:
-        // if (mode !== audit_semantics_modes.unsafe)
-        walk_children(thing, mode, warnings_arr);
+        if (local_audit_semantics_mode === audit_semantics_modes.speculate) {
+
+          throw new Error("now what?");
+        }
+        else {
+          walk_children(thing, mode, warnings_arr);
+        }
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
