@@ -9772,7 +9772,7 @@ const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning', 
   unsafe:            'unsafe',
-  speculating:       'speculating',
+  speculate:         'speculate',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(
