@@ -9772,7 +9772,7 @@ const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning', 
   unsafe:            'unsafe',
-  speculate:         'speculate',
+  // speculate:         'speculate',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(
@@ -9884,22 +9884,19 @@ function audit_semantics(
         }
 
         walk(got,
-             audit_semantics_modes.speculate,
+             local_audit_semantics_mode,
              warnings_arr,
              new Set(visited))
       }
       else if (thing instanceof ASTAnonWildcard) {
+        if (thing.unsafe)
+          throw new Error("this happens");
+        
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode;
 
-        if (local_audit_semantics_mode === audit_semantics_modes.speculate) {
-
-          throw new Error("now what?");
-        }
-        else {
           walk_children(thing, mode, warnings_arr);
-        }
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
