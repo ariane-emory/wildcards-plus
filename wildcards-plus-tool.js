@@ -9851,9 +9851,9 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        const got = dummy_context.scalar_variables.get(thing.name);
+        // const got = dummy_context.scalar_variables.get(thing.name);
         
-        walk(got, local_audit_semantics_mode, warnings_arr);
+        // walk(got, local_audit_semantics_mode, warnings_arr);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
