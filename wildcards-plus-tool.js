@@ -9771,8 +9771,10 @@ function audit_semantics(root_ast_node,
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
-      if (dummy_context.flag_is_set(flag))
+      if (dummy_context.flag_is_set(flag)) {
+        lm.log(`flag ${flag} could be set by now`);
         return;
+      }
 
       const flag_str = flag.join(".").toLowerCase();
       const known_flags = dummy_context.flags.map(f => f.join("."));
