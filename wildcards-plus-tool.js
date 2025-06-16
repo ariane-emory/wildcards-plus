@@ -9732,23 +9732,27 @@ const audit_semantics_modes = Object.freeze({
   unsafe:            'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
-function audit_semantics(root_ast_node,
-                         { base_context = null, 
-                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
+function audit_semantics(
+  root_ast_node,
+  { base_context = null, 
+    audit_semantics_mode = audit_semantics_modes.collect_warnings,
+    /* visited */ } = {}) {
   if (root_ast_node === undefined      ||
       !base_context instanceof Context ||
       !Object.values(audit_semantics_modes).includes(audit_semantics_mode))
     throw new Error(`bad audit_semantics args: ` +
                     `${compress(inspect_fun(arguments))}, ` +
                     `this likely indicates a programmer error`);
-
-  const visited = new Set();
+  
+  
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, warnings_arr) {
+  function walk(thing, local_audit_semantics_mode, warnings_arr, visited) {
+    visited = visited ? new Set(visited) : new Set();
+
     if (thing == undefined ||
         !Object.values(audit_semantics_modes).includes(audit_semantics_mode) ||
         !Array.isArray(warnings_arr))
@@ -9762,7 +9766,7 @@ function audit_semantics(root_ast_node,
       const children = thing.direct_children().filter(child => !is_primitive(child));
 
       if (children.length > 0)
-        walk(children, mode, warnings_arr);      
+        walk(children, mode, warnings_arr, visited);      
     }
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw(msg, warnings_arr) {
@@ -9826,7 +9830,7 @@ function audit_semantics(root_ast_node,
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
-                        warnings_arr);
+                        warnings_arr, visited);
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
@@ -9841,12 +9845,15 @@ function audit_semantics(root_ast_node,
                         `${suggestion}`,
                         warnings_arr);
         }
-        
-        walk(got, audit_semantics_mode, warnings_arr) // don't propagate local_audit_semantics_mode
+
+        walk(got,
+             audit_semantics_modes.unsafe,
+             warnings_arr,
+             new Set(visited))
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
-          const known_names = Array.from(dummy_context.scalar_variables.keys());
+          const known_names = Array.from(dummy_context.scalar_variables.keys(), visited);
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a made typo or other error in your ` +
@@ -9856,7 +9863,7 @@ function audit_semantics(root_ast_node,
         
         // const got = dummy_context.scalar_variables.get(thing.name);
         
-        // walk(got, local_audit_semantics_mode, warnings_arr);
+        // walk(got, local_audit_semantics_mode, warnings_arr, visited);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
