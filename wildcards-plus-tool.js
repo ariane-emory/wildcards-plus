@@ -9726,7 +9726,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning', 
-  unsafe:            'unsafe',
+  no_warn:            'no_warn',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9773,7 +9773,7 @@ function audit_semantics(root_ast_node,
     // ---------------------------------------------------------------------------------------------
     function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
       if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.unsafe)
+          local_audit_semantics_mode === audit_semantics_modes.no_warn)
         return;
 
       const flag_str = flag.join(".").toLowerCase();
@@ -9886,16 +9886,16 @@ function audit_semantics(root_ast_node,
       }
       else if (thing instanceof ASTAnonWildcard) {
         const mode = thing.unsafe
-              ? audit_semantics_modes.unsafe
+              ? audit_semantics_modes.no_warn
               : local_audit_semantics_mode;
         // ^ propagate local_audit_semantics_mode
         
-        // // always do unsafe wask first to collect flags set inside:
-        // walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
+        // // always do no_warn wask first to collect flags set inside:
+        // walk_children(thing, audit_semantics_modes.no_warn, warnings_arr);
 
         // then, if needed, do a second walk to check guards:
-        // if (mode !== audit_semantics_modes.unsafe)
-          walk_children(thing, mode, warnings_arr);
+        // if (mode !== audit_semantics_modes.no_warn)
+        walk_children(thing, mode, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
