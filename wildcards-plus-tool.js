@@ -4280,7 +4280,29 @@ class Context {
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
     this.in_lora                      = in_lora;
-    
+    this.picker_allow_fun = option => {
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        for (const flag of check_flag.flags) 
+          if (this.flag_is_set(flag)) {
+            found = true;
+            break;
+          }
+        
+        if (!found)
+          return false;
+      }
+
+      return true;
+    };
+    this.picker_forbid_fun = option =>  {
+      for (const not_flag of option.not_flags)
+        if (this.flag_is_set(not_flag.flag))
+          return true;
+      return false;
+    };
+
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
   }
@@ -4548,34 +4570,6 @@ class Context {
     //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
     this.configuration = munged_configuration;
-  }
-  // -----------------------------------------------------------------------------------------------
-  make_picker_allow_fun() {
-    return option  =>  {
-      for (const check_flag of option.check_flags) {
-        let found = false;
-        
-        for (const flag of check_flag.flags) 
-          if (this.flag_is_set(flag)) {
-            found = true;
-            break;
-          }
-        
-        if (!found)
-          return false;
-      }
-
-      return true;
-    };
-  }
-  // -----------------------------------------------------------------------------------------------
-  make_picker_forbid_fun() {
-    return option =>  {
-      for (const not_flag of option.not_flags)
-        if (this.flag_is_set(not_flag.flag))
-          return true;
-      return false;
-    };
   }
   // -----------------------------------------------------------------------------------------------
   toString() {
@@ -8994,8 +8988,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     return thing;
   }
   // -----------------------------------------------------------------------------------------------
-  const picker_allow  = context.make_picker_allow_fun();
-  const picker_forbid = context.make_picker_forbid_fun();
+  const picker_allow  = context.picker_allow_fun;
+  const picker_forbid = context.picker_forbid_fun;
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
