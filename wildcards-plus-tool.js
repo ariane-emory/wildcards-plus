@@ -2983,6 +2983,11 @@ class WeightedPicker {
     return legal_option_indices;
   }
   // -----------------------------------------------------------------------------------------------
+  legal_options(allow_if, forbid_if) {
+    return get_indices_from_arr(this.__gather_legal_option_indices(allow_if, forbid_if),
+                                this.optiions);
+  }
+  // -----------------------------------------------------------------------------------------------
   __clear_used_indices() {
     this.used_indices.clear();
     this.last_pick_index = null;
