@@ -9726,15 +9726,17 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning', 
-  no_warn:            'no_warn',
+  no_warn:           'no_warn',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null, 
                            audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
-  if (root_ast_node === undefined)
+  if (root_ast_node === undefined      ||
+      !base_context instanceof Context ||
+      !Object.values(audit_semantics_modes).includes(audit_semantics_mode))
     throw new Error(`bad audit_semantics args: ` +
-                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `${compress(inspect_fun(arguments))}, ` +
                     `this likely indicates a programmer error`);
 
   const visited = new Set();
