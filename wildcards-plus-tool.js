@@ -9693,7 +9693,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     }
   }
 
-if (log_level__expand_and_walk)
+  if (log_level__expand_and_walk)
     lm.log(`Expanding wildcards in ` +
            `${thing_str_repr(thing, { always_include_type_str: true, length: 200 })} `);
 
