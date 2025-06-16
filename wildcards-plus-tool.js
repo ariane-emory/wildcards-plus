@@ -4563,7 +4563,7 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
+@__set_gender_if_unset  = { // just to make forcing an option a little terser:
                             {?female #gender.female 
                             |?male   #gender.male
                             |?neuter #gender.neuter    }
@@ -9888,6 +9888,10 @@ function audit_semantics(root_ast_node,
         const mode = thing.unsafe
               ? audit_semantics_modes.unsafe
               : local_audit_semantics_mode;
+
+        if (thing.unsafe)
+          throw new Error("this happens");
+        
         // ^ propagate local_audit_semantics_mode
         
         // // always do unsafe wask first to collect flags set inside:
@@ -10203,13 +10207,12 @@ class ASTLatchedNamedWildcard extends ASTNode {
 // ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe = false } = {}) {
+  constructor(options, { trailer = null } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -10222,9 +10225,6 @@ class ASTAnonWildcard extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '';
-
-    if (this.unsafe)
-      str += "unsafe ";
     
     str += '{';
 
@@ -10733,7 +10733,7 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
         const new_ASTAnonWildcard = arr =>
-              new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
+              new ASTAnonWildcard(arr[0], { trailer: arr[1] });
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
@@ -10744,8 +10744,7 @@ const make_AnonWildcard_rule            =
                         ? empty_value
                         : new_ASTAnonWildcard(arr));
         return xform(xform_fun,
-                     seq(optional('unsafe'),
-                         discarded_comments,
+                     seq(discarded_comments,
                          body_rule,
                          tail_rule));
       };
