@@ -2923,49 +2923,34 @@ class WeightedPicker {
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
-  add(weight, value) {
-    if (! value instanceof ASTAnonWildcardAlternative)
-      throw new Error(`bad value: ${inspect_fun(value)}`);
-    
-    this.options.push({weight: weight, value: value });
-  }
-  // -----------------------------------------------------------------------------------------------
-  __record_index_usage(index) {
-    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-    this.last_pick_index = index;
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never, each = id,
-       priority = null) {
-    if (!(typeof min_count === 'number'   && 
-          typeof max_count === 'number'   &&
-          typeof allow_if  === 'function' &&
-          typeof forbid_if === 'function' &&
-          typeof each      === 'function' &&
-          typeof priority  === 'string'))
-      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
-
-    // if (! priority)
-    //   throw new Error("no priority");
-
-    if ((min_count > 1 || max_count > 1) && 
-        priority === picker_priority.avoid_repetition_short)
-      this.__clear_used_indices();
-    
-    if (log_picker_enabled)
-      lm.log(`PICK ${min_count}-${max_count}`);
-    
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++)
-      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
 
     if (log_picker_enabled)
-      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-
-    return res;
+      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) 
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (priority === picker_priority.ensure_weighted_distribution) 
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    else if (priority === picker_priority.true_randomness) 
+      ret = this.options[option_index].weight;
+    else
+      throw Error("unexpected priority");
+    
+    if (log_picker_enabled)
+      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return Math.max(0, ret);
   }
   // -----------------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
@@ -2981,21 +2966,6 @@ class WeightedPicker {
     }
 
     return legal_option_indices;
-  }
-  // -----------------------------------------------------------------------------------------------
-  legal_options(allow_if, forbid_if) {
-    const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
-
-    return get_indices_from_arr(legal_option_indices,
-                                this.optiions);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __clear_used_indices() {
-    this.used_indices.clear();
-    this.last_pick_index = null;
-
-    if (log_picker_enabled)
-      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
@@ -3036,27 +3006,75 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -----------------------------------------------------------------------------------------------
-  __effective_weight(option_index, priority) {
-    if (! ((option_index || option_index === 0) && priority))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
     
-    let ret = null;
-    
-    if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) 
-      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    else if (priority === picker_priority.ensure_weighted_distribution) 
-      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    else if (priority === picker_priority.true_randomness) 
-      ret = this.options[option_index].weight;
-    else
-      throw Error("unexpected priority");
+    this.options.push({weight: weight, value: value });
+  }
+  // -----------------------------------------------------------------------------------------------
+  classified_options(allow_if, forbid_if) {
+    const legal_option_indices = new Set(this.__gather_legal_option_indices(allow_if, forbid_if));
+    const res = { illegal_options: [], legal_options: [] };
+
+    for (const [index, value] of this.options.entries()) 
+      (legal_option_indices.has(index) ? res.legal_options : res.illegal_options).push(value);
+
+    return res;
+  }
+  // // -----------------------------------------------------------------------------------------------
+  // illegal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions,
+  //                               { invert: true });
+  // }
+  // // -----------------------------------------------------------------------------------------------
+  // legal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions);
+  // }
+  // -----------------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = always, forbid_if = never, each = id,
+       priority = null) {
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
+
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
     
     if (log_picker_enabled)
-      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+      lm.log(`PICK ${min_count}-${max_count}`);
     
-    return Math.max(0, ret);
-  };
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++)
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
+
+    if (log_picker_enabled)
+      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+
+    return res;
+  }
   // -----------------------------------------------------------------------------------------------
   #pick_one(allow_if, forbid_if, priority) {
     if (!(typeof allow_if  === 'function' &&
@@ -3400,8 +3418,16 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
-function get_indices_from_arr(indices, arr) {
-  return indices.map(i => arr[i]);
+// function get_indices_from_arr(indices, arr, { invert = true } = {}) {
+//   return indices.map(i => arr[i]);
+// }
+function get_indices_from_arr(indices, arr, { invert = false } = {}) {
+  if (invert) {
+    const index_set = new Set(indices);
+    return arr.filter((_, i) => !index_set.has(i));
+  } else {
+    return indices.map(i => arr[i]);
+  }
 }
 // -------------------------------------------------------------------------------------------------
 function indent_lines(indent, str, indent_str = "| ") {
