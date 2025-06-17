@@ -9782,11 +9782,11 @@ function audit_semantics(root_ast_node,
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, mode, warnings_arr, speculate, visited, no_errors) {
+  function walk_children(thing, mode, warnings_arr, as_if_parallel, visited, no_errors) {
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(mode) &&
           Array.isArray(warnings_arr) &&
-          typeof speculate == 'boolean' &&
+          typeof as_if_parallel == 'boolean' &&
           visited instanceof Set && 
           typeof no_errors == 'boolean'))
       throw new Error(`bad walk_children args: ` +
@@ -9795,7 +9795,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, mode, warnings_arr, speculate, visited, no_errors); 
+      walk(children, mode, warnings_arr, as_if_parallel, visited, no_errors); 
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg, warnings_arr, mode, no_errors) {
@@ -9880,11 +9880,11 @@ function audit_semantics(root_ast_node,
     return str;
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors) { 
+  function walk(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors) { 
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           Array.isArray(warnings_arr) &&
-          typeof speculate == 'boolean' &&
+          typeof as_if_parallel == 'boolean' &&
           visited instanceof Set && 
           typeof no_errors == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
@@ -9903,25 +9903,25 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    // if (!speculate && // not sure if prudent
+    // if (!as_if_parallel && // not sure if prudent
     //     !no_errors)
     visited.add(hash);
 
     if (log_level__audit >= 2)
       lm.log(
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
-          `${speculate? 'speculatively ' : ''}audit semantics in ` +
+          `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
-      // ===========================================================================================
+      // ======================================g=====================================================
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+            walk(elem, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -9953,11 +9953,11 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
 
-        walk(got, local_audit_semantics_mode, warnings_arr, true, visited, no_errors); // start speculate
+        walk(got, local_audit_semantics_mode, warnings_arr, true, visited, no_errors); // start as_if_parallel
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        if (speculate) {
+        if (as_if_parallel) {
           const split_options =
                 thing.picker.split_options(dummy_context.picker_allow_fun,
                                            dummy_context.picker_forbid_fun);
@@ -9968,24 +9968,26 @@ function audit_semantics(root_ast_node,
           
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value),
-                               local_audit_semantics_mode,
-                               warnings_arr,
-                               speculate, // or maybe false?
-                               visited_copy,
-                               true));
+          lm.indent(() =>
+            walk(split_options.legal_options.map(x => x.value),
+                 local_audit_semantics_mode,
+                 warnings_arr,
+                 as_if_parallel, // or maybe false?
+                 visited_copy,
+                 true));
 
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing,
-                                        local_audit_semantics_mode,
-                                        warnings_arr,
-                                        false, // not 100% sure 'bout this yet but it seems to work.
-                                        visited,
-                                        no_errors)); 
+          lm.indent(() =>
+            walk(thing.picker.options.map(x => x.value),
+                 local_audit_semantics_mode,
+                 warnings_arr,
+                 false, // not 100% sure 'bout this yet but it seems to work.
+                 visited,
+                 no_errors)); 
         }
         else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+          walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         }
       }
       // -------------------------------------------------------------------------------------------
@@ -10008,14 +10010,14 @@ function audit_semantics(root_ast_node,
 
           // lm.log(`GOT: ${got}`);
           
-          walk(got, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors); // ??
+          walk(got, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors); // ??
           // ^ propagate local_audit_semantics_mode
         }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -10064,12 +10066,12 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ try allowing propagate here
         
         // lm.log(`won't propagate local mode through ${thing.constructor.name}`);
