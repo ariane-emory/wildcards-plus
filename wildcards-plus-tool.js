@@ -9891,7 +9891,8 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    if (local_audit_semantics_mode !== audit_semantics_modes.unsafe)
+    if (!speculate || // not sure if prudent
+        local_audit_semantics_mode !== audit_semantics_modes.unsafe)
       visited.add(hash);
 
     if (log_level__audit >= 2)
@@ -9900,15 +9901,16 @@ function audit_semantics(root_ast_node,
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
-      // -------------------------------------------------------------------------------------------
+      // ===========================================================================================
       // typecases:
-      // -------------------------------------------------------------------------------------------
+      // ===========================================================================================
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
             walk(elem, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (dummy_context.named_wildcards.has(thing.name))
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
@@ -9917,6 +9919,7 @@ function audit_semantics(root_ast_node,
 
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = dummy_context.named_wildcards.get(thing.name);
         
@@ -9931,6 +9934,7 @@ function audit_semantics(root_ast_node,
 
         walk(got, local_audit_semantics_mode, warnings_arr, true); // start speculate
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         if (speculate) {
           const split_options =
@@ -9952,6 +9956,7 @@ function audit_semantics(root_ast_node,
           // ^ propagate local_audit_semantics_mode
         }
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
           const known_names = Array.from(dummy_context.scalar_variables.keys());
@@ -9969,11 +9974,13 @@ function audit_semantics(root_ast_node,
         walk(got, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
         walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
           // undecided on whether this case deserves a warning... for now, let's avoid one:
@@ -9985,6 +9992,7 @@ function audit_semantics(root_ast_node,
                                                           local_audit_semantics_mode);
         }
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNotFlag) {
         if (thing.consequently_set_flag_tail)
           // undecided on whether this case deserves a warning... for now, let's avoid one:
@@ -9996,17 +10004,21 @@ function audit_semantics(root_ast_node,
           warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
                                                         local_audit_semantics_mode);
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
                                                       local_audit_semantics_mode);
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ try allowing propagate here
@@ -10015,6 +10027,7 @@ function audit_semantics(root_ast_node,
         // walk_children(thing, audit_semantics_mode, warnings_arr);
         // // ^ don't propagate local_audit_semantics_mode to other node types by default?
       }
+      // -------------------------------------------------------------------------------------------
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
       }
