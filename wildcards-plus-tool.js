@@ -9978,9 +9978,9 @@ function audit_semantics(root_ast_node,
           lm.indent(() => walk_children(thing,
                                         local_audit_semantics_mode,
                                         warnings_arr,
-                                        false,
+                                        false, // not 100% sure 'bout this yet but it seems to work.
                                         visited,
-                                        no_errors)); // not sure 'bout this...
+                                        no_errors)); 
         }
         else {
           walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
