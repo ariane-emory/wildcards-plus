@@ -9807,7 +9807,7 @@ function audit_semantics(root_ast_node,
     if (!(typeof msg === 'string' &&
           Array.isArray(warnings_arr) &&
           Object.values(audit_semantics_modes).includes(mode) &&
-          no_track === 'boolean'))
+          typeof no_track === 'boolean'))
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
 
