@@ -9958,7 +9958,12 @@ function audit_semantics(root_ast_node,
           
           if (log_level__audit >= 1)
             lm.log(`NO_TRACK PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate, visited, true));
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value),
+                               local_audit_semantics_mode,
+                               warnings_arr,
+                               speculate,
+                               new Set(visited),
+                               true));
           
           if (false) { // not sure 'bout this...
             if (log_level__audit >= 1)
