@@ -9817,7 +9817,8 @@ function audit_semantics(root_ast_node,
     if (mode == audit_semantics_mode.throw_error)
       throw new Error(msg);
     else if (mode == audit_semantics_modes.collect_warnings) {
-      lm.log(`PUSH WARNING '${msg}'`);
+      if (log_level__audit >= 2)
+        lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
     }
     else
@@ -9851,9 +9852,11 @@ function audit_semantics(root_ast_node,
   }
   // -----------------------------------------------------------------------------------------------
   function visited_hash(thing) {
-    const str = '';
+    let str = '';
 
     str += thing_str_repr(thing, { length: Infinity, always_include_type_str: true });
+    str += thing_str_repr(dummy_context.flags, { length: Infinity, always_include_type_str: true });
+    
     return str;
   }
   // ===============================================================================================
@@ -9867,7 +9870,9 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    if (visited.has(thing)) {
+    const hash = visited_hash(thing);
+    
+    if (visited.has(hash)) {
       if (log_level__audit >= 2)
         lm.log(`already audited ` +
                `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
@@ -9875,10 +9880,10 @@ function audit_semantics(root_ast_node,
       return;
     }
     
-    visited.add(thing);
+    visited.add(hash);
 
     if (log_level__audit >= 2)
-      lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
+                                lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9945,14 +9950,16 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        const got = dummy_context.named_wildcards.get(thing.name);
+        const got = dummy_context.scalar_variables.get(thing.name);
+
+        // lm.log(`GOT: ${got}`);
         
-        walk(got, local_audit_semantics_mode, warnings_arr);
+        walk(got, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
