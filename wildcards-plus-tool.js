@@ -306,7 +306,7 @@ let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
-let log_level__audit                   = 2;
+let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
@@ -9778,21 +9778,22 @@ function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
   if (root_ast_node === undefined)
-                               throw new Error(`bad audit_semantics args: ` +
-                                               `${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                                               `this likely indicates a programmer error`);
+    throw new Error(`bad audit_semantics args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
 
-                             const visited = new Set();
-                             let dummy_context = base_context
+  const visited = new Set();
+  let dummy_context = base_context
       ? base_context.clone()
       : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, mode, warnings_arr, speculate, no_track) {
+  function walk_children(thing, mode, warnings_arr, speculate, visited, no_track) {
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(mode) &&
           Array.isArray(warnings_arr) &&
           typeof speculate == 'boolean' &&
+          visited instanceof Set && 
           typeof no_track == 'boolean'))
       throw new Error(`bad walk_children args: ` +
                       `${inspect_fun(arguments)}`);
@@ -9800,7 +9801,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-          walk(children, mode, warnings_arr, speculate, no_track);      
+      walk(children, mode, warnings_arr, speculate, visited, no_track); 
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg, warnings_arr, mode, no_track) {
@@ -9837,11 +9838,12 @@ function audit_semantics(root_ast_node,
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, no_track) {
+  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, visited, no_track) {
     if (!(typeof verb == 'string' &&
           Array.isArray(flag) &&
           Array.isArray(warnings_arr) &&
           Object.values(audit_semantics_modes).includes(mode) &&
+          visited instanceof Set && 
           typeof no_track === 'boolean'))
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
@@ -9878,11 +9880,12 @@ function audit_semantics(root_ast_node,
     return str;
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate, no_track) {    
+  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_track) { 
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           Array.isArray(warnings_arr) &&
           typeof speculate == 'boolean' &&
+          visited instanceof Set && 
           typeof no_track == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
@@ -9955,7 +9958,7 @@ function audit_semantics(root_ast_node,
           // lm.log(`LASM: ${local_audit_semantics_mode}`);
           
           if (log_level__audit >= 1)
-                  lm.log(`NO_TRACK PASS (legal):`);
+            lm.log(`NO_TRACK PASS (legal):`);
           lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate, true));
           
           if (false) { // not sure 'bout this...
@@ -9990,9 +9993,9 @@ function audit_semantics(root_ast_node,
         else {
           const got = dummy_context.scalar_variables.get(thing.name);
 
-        // lm.log(`GOT: ${got}`);
+          // lm.log(`GOT: ${got}`);
           
-        walk(got, local_audit_semantics_mode, warnings_arr, speculate, no_track); // ??
+          walk(got, local_audit_semantics_mode, warnings_arr, speculate, no_track); // ??
           // ^ propagate local_audit_semantics_mode
         }
       }
@@ -10064,7 +10067,7 @@ function audit_semantics(root_ast_node,
 
   const warnings =  [];
 
-  walk(root_ast_node, audit_semantics_mode, warnings, false, false);
+  walk(root_ast_node, audit_semantics_mode, warnings, false, visited, false);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
