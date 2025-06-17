@@ -9812,7 +9812,7 @@ function audit_semantics(root_ast_node,
                       `${inspect_fun(arguments)}`);
 
     if (no_track)
-      return;
+      return; // only like 50% sure on this?
     
     // if (mode === audit_semantics_modes.no_track)
     //   mode = audit_semantics_modes.warnings;
@@ -9903,7 +9903,7 @@ function audit_semantics(root_ast_node,
     }
 
     if (!speculate && // not sure if prudent
-        local_audit_semantics_mode !== audit_semantics_modes.no_track)
+        !no_track)
       visited.add(hash);
 
     if (log_level__audit >= 2)
