@@ -21,6 +21,7 @@
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
 let abbreviate_str_repr_enabled        = true;
+let audit_disabled                     = true;
 let fire_and_forget_post_enabled       = false;
 let inspect_depth                      = 50;
 let log_configuration_enabled          = true;
@@ -9513,6 +9514,8 @@ function audit_semantics(root_ast_node,
       ? base_context.clone()
       : new Context();
 
+  if (audit_disabled)
+    return [ "audit_semantics is disabled" ];
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing, mode, warnings_arr, speculate, no_track) {
     if (!(thing &&
@@ -11164,7 +11167,13 @@ try {
   lm.log(`Job complete. Open the console to see the job report.`);
 }
 catch(ex) {
-  if (ex instanceof Error) {
+  if (ex instanceof FatalParseError) {
+    lm.error(`wildcards-plus caught a fatal parse error while ` +
+             `parsing your template, open the console to see the entire error: ` +
+             `${ex.message}\n` +
+             `${ex.stack}`);
+  }
+  else if (ex instanceof Error) {
     if (ex.message === 'cancelled')
       lm.error(`Cancelled.`);
     else

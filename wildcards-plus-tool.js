@@ -294,7 +294,8 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled        = true;
+let abbreviate_str_repr_enabled        = false;
+let audit_disabled                     = true;
 let fire_and_forget_post_enabled       = false;
 let inspect_depth                      = 50;
 let log_configuration_enabled          = true;
@@ -306,7 +307,7 @@ let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
-let log_level__audit                   = 0;
+let log_level__audit                   = 2;
 let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
@@ -9787,6 +9788,8 @@ function audit_semantics(root_ast_node,
       ? base_context.clone()
       : new Context();
 
+  if (audit_disabled)
+    return [ "audit_semantics is disabled" ];
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing, mode, warnings_arr, speculate, no_track) {
     if (!(thing &&
@@ -9800,7 +9803,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-          walk(children, mode, warnings_arr, speculate, no_track);      
+      walk(children, mode, warnings_arr, speculate, no_track);      
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg, warnings_arr, mode, no_track) {
@@ -9955,7 +9958,7 @@ function audit_semantics(root_ast_node,
           // lm.log(`LASM: ${local_audit_semantics_mode}`);
           
           if (log_level__audit >= 1)
-                  lm.log(`NO_TRACK PASS (legal):`);
+            lm.log(`NO_TRACK PASS (legal):`);
           lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate, true));
           
           if (false) { // not sure 'bout this...
@@ -9990,9 +9993,9 @@ function audit_semantics(root_ast_node,
         else {
           const got = dummy_context.scalar_variables.get(thing.name);
 
-        // lm.log(`GOT: ${got}`);
+          // lm.log(`GOT: ${got}`);
           
-        walk(got, local_audit_semantics_mode, warnings_arr, speculate, no_track); // ??
+          walk(got, local_audit_semantics_mode, warnings_arr, speculate, no_track); // ??
           // ^ propagate local_audit_semantics_mode
         }
       }
