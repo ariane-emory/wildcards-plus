@@ -9771,7 +9771,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
-  unsafe:            'unsafe',
+  no_track:            'no_track',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9814,18 +9814,18 @@ function audit_semantics(root_ast_node,
 
     msg = `${mode.toUpperCase()}: ${msg}`;
 
-    if (mode == audit_semantics_mode.throw_error)
+    if (mode === audit_semantics_mode.throw_error)
       throw new Error(msg);
-    else if (mode == audit_semantics_modes.collect_warnings) {
+    else if (mode === audit_semantics_modes.collect_warnings || mode === audit_semantics_modes.no_track) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
     }
-    // else if (mode == audit_semantics_modes.unsafe) {
+    // else if (mode == audit_semantics_modes.no_track) {
     //   // do nothing.
     // }
     else
-      throw new Error("what do?");
+      throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode) {
@@ -9836,11 +9836,11 @@ function audit_semantics(root_ast_node,
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
     
-    if (mode === audit_semantics_modes.unsafe) {
-      if (log_level__audit >= 1)
-        lm.log(`skip checking flag ${flag} because unsafe`);
-      return;
-    }
+    // if (mode === audit_semantics_modes.no_track) {
+    //   if (log_level__audit >= 1)
+    //     lm.log(`skip checking flag ${flag} because no_track`);
+    //   return;
+    // }
     
     if (dummy_context.flag_is_set(flag)) {
       if (log_level__audit >= 1)
@@ -9892,7 +9892,7 @@ function audit_semantics(root_ast_node,
     }
 
     if (!speculate || // not sure if prudent
-        local_audit_semantics_mode !== audit_semantics_modes.unsafe)
+        local_audit_semantics_mode !== audit_semantics_modes.no_track)
       visited.add(hash);
 
     if (log_level__audit >= 2)
@@ -9944,13 +9944,13 @@ function audit_semantics(root_ast_node,
                                            dummy_context.picker_forbid_fun);
 
           if (log_level__audit >= 1)
-            lm.log(`UNSAFE PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate));
+            lm.log(`NO_TRACK PASS (legal):`);
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.no_track, warnings_arr, speculate));
           
           if (false) { // not sure 'bout this...
             if (log_level__audit >= 1)
-              lm.log(`UNSAFE PASS (illegal):`);
-            lm.indent(() => walk(split_options.illegal_options.map(x => x.value), audit_semantics_modes.unsafe,   warnings_arr, speculate)); // not sure 'bout this...
+              lm.log(`NO_TRACK PASS (illegal):`);
+            lm.indent(() => walk(split_options.illegal_options.map(x => x.value), audit_semantics_modes.no_track, warnings_arr, speculate)); // not sure 'bout this...
           }
           
           if (log_level__audit >= 1)
