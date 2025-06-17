@@ -10767,11 +10767,11 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
 // -------------------------------------------------------------------------------------------------
 const SetFlag   =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
+            cutting_cadr(hash, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
+            cutting_cadr(shebang, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
