@@ -9957,6 +9957,8 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
+        const options = thing.picker.options.map(x => x.value);
+        
         if (as_if_parallel) {
           const split_options =
                 thing.picker.split_options(dummy_context.picker_allow_fun,
@@ -9979,7 +9981,7 @@ function audit_semantics(root_ast_node,
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() =>
-            walk(thing.picker.options.map(x => x.value),
+            walk(options,
                  local_audit_semantics_mode,
                  warnings_arr,
                  false, // not 100% sure 'bout this yet but it seems to work.
@@ -9987,7 +9989,7 @@ function audit_semantics(root_ast_node,
                  no_errors)); 
         }
         else {
-          walk(thing.picker.options.map(x => x.value),
+          walk(options,
                local_audit_semantics_mode,
                warnings_arr,
                as_if_parallel,
