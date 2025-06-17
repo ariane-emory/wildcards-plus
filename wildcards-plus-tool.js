@@ -9955,6 +9955,8 @@ function audit_semantics(root_ast_node,
                                            dummy_context.picker_forbid_fun);
 
           // lm.log(`LASM: ${local_audit_semantics_mode}`);
+
+          const tmp_visited = new Set(visited);
           
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
@@ -9962,24 +9964,31 @@ function audit_semantics(root_ast_node,
                                local_audit_semantics_mode,
                                warnings_arr,
                                speculate,
-                               new Set(visited),
+                               tmp_visited,
                                true));
           
           if (false) { // not sure 'bout this...
             if (log_level__audit >= 1)
               lm.log(`NO_ERRORS PASS (illegal):`);
-            lm.indent(() => walk(split_options.illegal_options.map(x => x.value), local_audit_semantics_modes, warnings_arr, speculate, visited, true)); // not sure 'bout this...
+            lm.indent(() => walk(split_options.illegal_options.map(x => x.value),
+                                 local_audit_semantics_modes,
+                                 warnings_arr,
+                                 speculate,
+                                 tmp_visited,
+                                 true)); // not sure 'bout this...
           }
           
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing, local_audit_semantics_mode, warnings_arr, false, visited, no_errors)); // not sure 'bout this...
-
-          // dummy_context = old_dummy_context; // probably don't do all this.
+          lm.indent(() => walk_children(thing,
+                                        local_audit_semantics_mode,
+                                        warnings_arr,
+                                        false,
+                                        visited,
+                                        no_errors)); // not sure 'bout this...
         }
         else {
           walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
-          // ^ propagate local_audit_semantics_mode
         }
       }
       // -------------------------------------------------------------------------------------------
