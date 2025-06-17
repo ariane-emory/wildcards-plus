@@ -306,7 +306,7 @@ let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
-let log_level__audit                   = 2;
+let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
@@ -9831,9 +9831,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    if (log_level__audit >= 1 &&
-        dummy_context.flag_is_set(flag)) {
-      lm.log(`flag ${flag} could be set by now`);
+    if (dummy_context.flag_is_set(flag)) {
+      if (log_level__audit >= 1)
+        lm.log(`flag ${flag} could be set by now`);
       return;
     }
     
