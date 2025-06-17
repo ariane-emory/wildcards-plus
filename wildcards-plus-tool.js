@@ -9937,9 +9937,9 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         if (speculate) {
-          const split_options =
-                thing.picker.split_options(dummy_context.picker_allow_fun,
-                                           dummy_context.picker_forbid_fun);
+          // const split_options =
+          //       thing.picker.split_options(dummy_context.picker_allow_fun,
+          //                                  dummy_context.picker_forbid_fun);
 
           // lm.log(`split_options: ${inspect_fun(split_options)}`);
 
