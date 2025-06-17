@@ -9842,7 +9842,6 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    
     // if (mode === audit_semantics_modes.no_track) {
     //   if (log_level__audit >= 1)
     //     lm.log(`skip checking flag ${flag} because no_track`);
