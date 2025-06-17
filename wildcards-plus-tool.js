@@ -9870,7 +9870,8 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    const hash = visited_hash(thing);
+    const hash = thing;
+    // const hash = visited_hash(thing);
     
     if (visited.has(hash)) {
       if (log_level__audit >= 2)
