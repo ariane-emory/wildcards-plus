@@ -9796,7 +9796,7 @@ function audit_semantics(root_ast_node,
           typeof no_track == 'boolean'))
       throw new Error(`bad walk_children args: ` +
                       `${inspect_fun(arguments)}`);
-
+    
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
@@ -9837,8 +9837,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode, no_track) {
-    if (!(Array.isArray(flag) &&
+  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, no_track) {
+    if (!(typeof verb == 'string' &&
+          Array.isArray(flag) &&
           Array.isArray(warnings_arr) &&
           Object.values(audit_semantics_modes).includes(mode) &&
           typeof no_track === 'boolean'))
@@ -9860,7 +9861,7 @@ function audit_semantics(root_ast_node,
     const flag_str = flag.join(".").toLowerCase();
     const known_flags = dummy_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
-    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+    warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
                   `a typo or other error in your template.${suggestion}`,
                   warnings_arr,
@@ -10009,7 +10010,8 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr,
+            warn_or_throw_unless_flag_could_be_set_by_now('checked',
+                                                          flag, warnings_arr,
                                                           local_audit_semantics_mode,
                                                           no_track);
         }
@@ -10023,7 +10025,8 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else  
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+          warn_or_throw_unless_flag_could_be_set_by_now('checked',
+                                                        thing.flag, warnings_arr,
                                                         local_audit_semantics_mode,
                                                         no_track);
       }
@@ -10033,7 +10036,8 @@ function audit_semantics(root_ast_node,
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+        warn_or_throw_unless_flag_could_be_set_by_now('unset',
+                                                      thing.flag, warnings_arr,
                                                       local_audit_semantics_mode,
                                                       no_track);
       }
@@ -10854,7 +10858,8 @@ const make_ASTAnonWildcardAlternative = arr => {
 };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardHeaderItems =
-      wst_star(choice(TestFlagInGuardPosition, discarded_comment, UnsetFlag, SetFlag))
+      // maybe remove last two choices?
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment/*, UnsetFlag, SetFlag*/))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = (content_rule,
