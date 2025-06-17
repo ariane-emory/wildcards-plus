@@ -9781,11 +9781,6 @@ function audit_semantics(root_ast_node,
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
-
-  const dummy_context = base_context
-        ? base_context.clone()
-        : new Context();
-
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing, mode, warnings_arr, speculate, visited, no_errors) {
     if (!(thing &&
@@ -9956,7 +9951,7 @@ function audit_semantics(root_ast_node,
 
           // lm.log(`LASM: ${local_audit_semantics_mode}`);
 
-          const tmp_visited = new Set(visited);
+          const visited_copy = new Set(visited);
           
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
@@ -9964,7 +9959,7 @@ function audit_semantics(root_ast_node,
                                local_audit_semantics_mode,
                                warnings_arr,
                                speculate,
-                               tmp_visited,
+                               visited_copy,
                                true));
           
           if (false) { // not sure 'bout this...
@@ -9974,7 +9969,7 @@ function audit_semantics(root_ast_node,
                                  local_audit_semantics_modes,
                                  warnings_arr,
                                  speculate,
-                                 tmp_visited,
+                                 visited_copy,
                                  true)); // not sure 'bout this...
           }
           
@@ -10081,6 +10076,9 @@ function audit_semantics(root_ast_node,
     });
   }
 
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
   const warnings =  [];
 
   walk(root_ast_node, audit_semantics_mode, warnings, false, new Set(), false);
