@@ -9987,7 +9987,12 @@ function audit_semantics(root_ast_node,
                  no_errors)); 
         }
         else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
+          walk(thing.picker.options.map(x => x.value),
+               local_audit_semantics_mode,
+               warnings_arr,
+               as_if_parallel,
+               visited,
+               no_errors);
         }
       }
       // -------------------------------------------------------------------------------------------
