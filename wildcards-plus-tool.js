@@ -9809,12 +9809,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    // if (mode instanceof Context)
-    //   throw new Error("got Context");
-
-    if (mode === audit_semantics_modes.no_track)
-      mode = audit_semantics_modes.collect_warnings;
-      
+    // if (mode === audit_semantics_modes.no_track)
+    //   mode = audit_semantics_modes.collect_warnings;
+    
     msg = `${mode.toUpperCase()}: ${msg}`;
 
     if (mode === audit_semantics_mode.throw_error) {
@@ -9825,12 +9822,12 @@ function audit_semantics(root_ast_node,
         lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
     }
-    // else if (mode == audit_semantics_modes.no_track) {
-    //   msg = `${mode.toUpperCase()}: ${msg}`;
-    //   if (log_level__audit >= 2)
-    //     lm.log(`PUSH WARNING '${msg}'`);
-    //   warnings_arr.push(msg);
-    // }
+    else if (mode == audit_semantics_modes.no_track) {
+      //   msg = `${mode.toUpperCase()}: ${msg}`;
+      //   if (log_level__audit >= 2)
+      //     lm.log(`PUSH WARNING '${msg}'`);
+      //   warnings_arr.push(msg);
+    }
     else
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
@@ -9897,7 +9894,7 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    if (!speculate || // not sure if prudent
+    if (!speculate && // not sure if prudent
         local_audit_semantics_mode !== audit_semantics_modes.no_track)
       visited.add(hash);
 
@@ -9960,13 +9957,13 @@ function audit_semantics(root_ast_node,
           }
           
           if (log_level__audit >= 1)
-                lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing, local_audit_semantics_mode,  warnings_arr, false)); // not sure 'bout this...
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+          lm.indent(() => walk_children(thing, local_audit_semantics_mode, warnings_arr, false)); // not sure 'bout this...
 
           // dummy_context = old_dummy_context; // probably don't do all this.
         }
         else {
-          walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
+          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
           // ^ propagate local_audit_semantics_mode
         }
       }
