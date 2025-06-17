@@ -9891,7 +9891,16 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
 
-        walk(got, local_audit_semantics_mode, warnings_arr, speculate); // start speculate
+        walk(got, local_audit_semantics_mode, warnings_arr, true); // start speculate
+      }
+      else if (thing instanceof ASTAnonWildcard) {
+        if (speculate) {
+          throw new Error('what now?');
+        }
+        else {
+          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
+          // ^ propagate local_audit_semantics_mode
+        }
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9938,15 +9947,6 @@ function audit_semantics(root_ast_node,
       } 
       else if (thing instanceof ASTUnsetFlag) {
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
-      }
-      else if (thing instanceof ASTAnonWildcard) {
-        if (speculate) {
-          throw new Error('what now?');
-        }
-        else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
-          // ^ propagate local_audit_semantics_mode
-        }
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
