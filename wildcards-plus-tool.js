@@ -9807,16 +9807,19 @@ function audit_semantics(root_ast_node,
                       `${inspect_fun(arguments)}`);
 
     if (no_errors)
-      return; // only like 80% sure on this?
+      throw new Error("trap");
     
-    // if (mode === audit_semantics_modes.no_errors)
-    //   mode = audit_semantics_modes.warnings;
-    
-    msg = `${mode.toUpperCase()}: ${msg}`;
+    if (no_errors)
+          return; // only like 80% sure on this?
+        
+        // if (mode === audit_semantics_modes.no_errors)
+        //   mode = audit_semantics_modes.warnings;
+        
+        msg = `${mode.toUpperCase()}: ${msg}`;
 
-    if (mode === audit_semantics_mode.throw_error) {
-      throw new Error(msg);
-    }
+        if (mode === audit_semantics_mode.throw_error) {
+          throw new Error(msg);
+        }
     else if (mode === audit_semantics_modes.warnings) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
@@ -9842,6 +9845,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
+    if (no_errors)
+      throw new Error("trap");
+    
     // if (mode === audit_semantics_modes.no_errors) {
     //   if (log_level__audit >= 1)
     //     lm.log(`skip checking flag ${flag} because no_errors`);
@@ -10019,7 +10025,7 @@ function audit_semantics(root_ast_node,
           // undecided on whether this case deserves a warning... for now, let's avoid one:
           dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
-        else {
+        else if (!no_errors) {
           for (const flag of thing.flags) 
             warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                           flag, warnings_arr,
@@ -10036,7 +10042,7 @@ function audit_semantics(root_ast_node,
         else if (thing.set_immediately) 
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
-        else  
+        else if (!no_errors)
           warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                         thing.flag, warnings_arr,
                                                         local_audit_semantics_mode,
