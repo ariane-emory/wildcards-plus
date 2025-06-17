@@ -9961,7 +9961,7 @@ function audit_semantics(root_ast_node,
           
           if (log_level__audit >= 1)
             lm.log(`UNSAFE PASS (illegal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.unsafe,   warnings_arr, speculate)); // not sure 'bout this...
+          lm.indent(() => walk(split_options.illegal_options.map(x => x.value), audit_semantics_modes.unsafe,   warnings_arr, speculate)); // not sure 'bout this...
 
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
