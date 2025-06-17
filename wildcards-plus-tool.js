@@ -9945,7 +9945,7 @@ function audit_semantics(root_ast_node,
 
           if (log_level__audit >= 1)
             lm.log(`UNSAFE PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.unsafe, warnings_arr, speculate));
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate));
           
           if (false) { // not sure 'bout this...
             if (log_level__audit >= 1)
@@ -9955,7 +9955,7 @@ function audit_semantics(root_ast_node,
           
           if (log_level__audit >= 1)
                 lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing, local_audit_semantics_mode,   warnings_arr, false)); // not sure 'bout this...
+          lm.indent(() => walk_children(thing, local_audit_semantics_mode,  warnings_arr, false)); // not sure 'bout this...
 
           // dummy_context = old_dummy_context; // probably don't do all this.
         }
