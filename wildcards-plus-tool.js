@@ -9771,6 +9771,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
+  unsafe:            'unsafe',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9793,7 +9794,7 @@ function audit_semantics(root_ast_node,
           Array.isArray(warnings_arr) &&
           typeof speculate == 'boolean'))
       throw new Error(`bad walk_children args: ` +
-                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+                      `${inspect_fun(arguments)}`);
 
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
@@ -9820,6 +9821,9 @@ function audit_semantics(root_ast_node,
         lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
     }
+    // else if (mode == audit_semantics_modes.unsafe) {
+    //   // do nothing.
+    // }
     else
       throw new Error("what do?");
   }
@@ -9831,6 +9835,13 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
+    
+    if (mode === audit_semantics_modes.unsafe) {
+      if (log_level__audit >= 1)
+        lm.log(`skip checking flag ${flag} because unsafe`);
+      return;
+    }
+    
     if (dummy_context.flag_is_set(flag)) {
       if (log_level__audit >= 1)
         lm.log(`flag ${flag} could be set by now`);
@@ -9879,8 +9890,9 @@ function audit_semantics(root_ast_node,
       
       return;
     }
-    
-    visited.add(hash);
+
+    if (local_audit_semantics_mode !== audit_semantics_modes.unsafe)
+      visited.add(hash);
 
     if (log_level__audit >= 2)
       lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
@@ -9927,11 +9939,13 @@ function audit_semantics(root_ast_node,
 
           // lm.log(`split_options: ${inspect_fun(split_options)}`);
 
-          for (const option of split_options.legal_options.map(x => x.value))
-            walk(option, local_audit_semantics_mode, warnings_arr, speculate);
+          // for (const option of split_options.legal_options.map(x => x.value))
+          //   walk(option, local_audit_semantics_mode, warnings_arr, speculate);
           
-          for (const option of split_options.illegal_options.map(x => x.value))
-            walk(option, local_audit_semantics_mode, warnings_arr, speculate)
+          // for (const option of split_options.illegal_options.map(x => x.value))
+          //   walk(option, local_audit_semantics_mode, warnings_arr, speculate)
+          walk_children(thing, audit_semantics_modes.unsafe, warnings_arr, speculate);
+          walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
         }
         else {
           walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
