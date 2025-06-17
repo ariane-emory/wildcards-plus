@@ -9949,12 +9949,11 @@ function audit_semantics(root_ast_node,
           //   walk(option, local_audit_semantics_mode, warnings_arr, speculate);
           
           // for (const option of split_options.illegal_options.map(x => x.value))
-          //   walk(option, local_audit_semantics_mode, warnings_arr, speculate)
+          // walk(option, local_audit_semantics_mode, warnings_arr, speculate)
           
-
-          // const cloned_dummy_context = dummy_context.clone();
-          // const old_dummy_context    = dummy_context;
-          // dummy_context              = cloned_dummy_context;
+          // const cloned_dummy_context = dummy_context.clone(); // probably don't do all this.
+          // const old_dummy_context    = dummy_context;         // "
+          // dummy_context              = cloned_dummy_context;  // "
           
           if (log_level__audit >= 1)
             lm.log(`UNSAFE PASS:`);
@@ -9964,7 +9963,7 @@ function audit_semantics(root_ast_node,
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() => walk_children(thing, local_audit_semantics_mode,   warnings_arr, false)); // not sure 'bout this...
 
-          // dummy_context = old_dummy_context;
+          // dummy_context = old_dummy_context; // probably don't do all this.
         }
         else {
           walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
