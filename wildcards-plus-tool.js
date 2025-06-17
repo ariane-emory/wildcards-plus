@@ -9926,18 +9926,25 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (dummy_context.named_wildcards.has(thing.name))
+        if (dummy_context.named_wildcards.has(thing.name)) {
+          if (no_errors)
+            return;
+          
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
                         warnings_arr);
-
+        }
+        
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-      }
+        }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = dummy_context.named_wildcards.get(thing.name);
         
         if (!got) {
+          if (no_errors)
+            return;
+          
           const known_names = Array.from(dummy_context.named_wildcards.keys());
           const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
