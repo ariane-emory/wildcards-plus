@@ -9896,9 +9896,11 @@ function audit_semantics(root_ast_node,
       visited.add(hash);
 
     if (log_level__audit >= 2)
-      lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
-             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-             `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+      lm.log(
+        `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
+          `${speculate? 'speculatively ' : ''}audit semantics in ` +
+          `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
+          `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
       // ===========================================================================================
@@ -9948,8 +9950,13 @@ function audit_semantics(root_ast_node,
           
           // for (const option of split_options.illegal_options.map(x => x.value))
           //   walk(option, local_audit_semantics_mode, warnings_arr, speculate)
-          walk_children(thing, audit_semantics_modes.unsafe, warnings_arr, speculate);
-          walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
+          if (log_level__audit >= 1)
+            lm.log(`UNSAFE PASS:`);
+          lm.indent(() => walk_children(thing, audit_semantics_modes.unsafe, warnings_arr, speculate));
+          
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+          lm.indent(() => walk_children(thing, local_audit_semantics_mode,   warnings_arr, false)); // not sure 'bout this...
         }
         else {
           walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
@@ -9971,7 +9978,7 @@ function audit_semantics(root_ast_node,
 
         // lm.log(`GOT: ${got}`);
         
-        walk(got, local_audit_semantics_mode, warnings_arr, speculate);
+        walk(got, local_audit_semantics_mode, warnings_arr, speculate); // ??
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
