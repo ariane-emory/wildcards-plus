@@ -10607,7 +10607,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 const comment_beginning       = raw`\/\/|\/\*`;
 const structural_chars            = '{|}';
-const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|(?=${comment_beginning}))`
+// const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|(?=${comment_beginning}))`
+const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|${comment_beginning})`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
