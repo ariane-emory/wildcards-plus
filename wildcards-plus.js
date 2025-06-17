@@ -9522,7 +9522,7 @@ function audit_semantics(root_ast_node,
           typeof no_track == 'boolean'))
       throw new Error(`bad walk_children args: ` +
                       `${inspect_fun(arguments)}`);
-
+    
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
@@ -9563,8 +9563,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode, no_track) {
-    if (!(Array.isArray(flag) &&
+  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, no_track) {
+    if (!(typeof verb == 'string' &&
+          Array.isArray(flag) &&
           Array.isArray(warnings_arr) &&
           Object.values(audit_semantics_modes).includes(mode) &&
           typeof no_track === 'boolean'))
@@ -9586,7 +9587,7 @@ function audit_semantics(root_ast_node,
     const flag_str = flag.join(".").toLowerCase();
     const known_flags = dummy_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
-    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+    warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
                   `a typo or other error in your template.${suggestion}`,
                   warnings_arr,
@@ -9735,7 +9736,8 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr,
+            warn_or_throw_unless_flag_could_be_set_by_now('checked',
+                                                          flag, warnings_arr,
                                                           local_audit_semantics_mode,
                                                           no_track);
         }
@@ -9749,7 +9751,8 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
         else  
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+          warn_or_throw_unless_flag_could_be_set_by_now('checked',
+                                                        thing.flag, warnings_arr,
                                                         local_audit_semantics_mode,
                                                         no_track);
       }
@@ -9759,7 +9762,8 @@ function audit_semantics(root_ast_node,
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+        warn_or_throw_unless_flag_could_be_set_by_now('unset',
+                                                      thing.flag, warnings_arr,
                                                       local_audit_semantics_mode,
                                                       no_track);
       }
@@ -10333,7 +10337,8 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 const comment_beginning       = raw`\/\/|\/\*`;
 const structural_chars            = '{|}';
-const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|(?=${comment_beginning}))`
+// const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|${comment_beginning})`
+const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|${comment_beginning}|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
@@ -10434,9 +10439,12 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
-                         arr => [arr[0], ...arr[1]]);
+const make_flag_ident_rule = (additional_choices = []) =>
+      xform(seq(additional_choices.length == 0 ? ident : choice(ident, ...additional_choices),
+                star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, ...additional_choices)))),
+            arr => [arr[0], ...arr[1]]);
+const flag_ident = make_flag_ident_rule('*');
+const flag_ident_no_wcs = make_flag_ident_rule();
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
                          flag_ident)),
@@ -10459,7 +10467,7 @@ const CheckFlagWithSetConsequent =
       xform(cutting_with_swb(seq(question,     // [0]
                                  flag_ident,   // [1]
                                  dot_hash,     // [2]
-                                 flag_ident)), // [3]
+                                 flag_ident_no_wcs)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
@@ -10478,7 +10486,7 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
-                        flag_ident,                   // [3]
+                        flag_ident_no_wcs,            // [3]
                         structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
@@ -10489,11 +10497,11 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
 // -------------------------------------------------------------------------------------------------
 const SetFlag   =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
+            cutting_cadr(hash, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
+            cutting_cadr(shebang, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -10576,7 +10584,8 @@ const make_ASTAnonWildcardAlternative = arr => {
 };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardHeaderItems =
-      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      // maybe remove last two choices?
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment/*, UnsetFlag, SetFlag*/))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = (content_rule,
