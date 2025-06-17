@@ -9971,21 +9971,10 @@ function audit_semantics(root_ast_node,
           lm.indent(() => walk(split_options.legal_options.map(x => x.value),
                                local_audit_semantics_mode,
                                warnings_arr,
-                               false, // // not sure 'bout this... was speculate
+                               speculate, // or maybe false?
                                visited_copy,
                                true));
-          
-          if (false) { // not sure 'bout this...
-            if (log_level__audit >= 1)
-              lm.log(`NO_ERRORS PASS (illegal):`);
-            lm.indent(() => walk(split_options.illegal_options.map(x => x.value),
-                                 local_audit_semantics_modes,
-                                 warnings_arr,
-                                 speculate,
-                                 visited_copy,
-                                 true)); // not sure 'bout this...
-          }
-          
+
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() => walk_children(thing,
