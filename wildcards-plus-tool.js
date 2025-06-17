@@ -9795,8 +9795,11 @@ function audit_semantics(root_ast_node,
           typeof speculate == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, mode, warnings_arr) {
-      if (typeof mode !== 'string')
+    function walk_children(thing, mode, warnings_arr, speculate) {
+      if (!(thing &&
+            Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+            Array.isArray(warnings_arr) &&
+            typeof speculate == 'boolean'))
         throw new Error(`bad walk_children mode: ` +
                         `${abbreviate(compress(inspect_fun(mode)))}`);
 
@@ -9889,8 +9892,6 @@ function audit_semantics(root_ast_node,
         }
 
         walk(got, local_audit_semantics_mode, warnings_arr, speculate); // start speculate
-        
-        // walk(got, audit_semantics_modes.speculative, warnings_arr) // switch modes
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9939,13 +9940,13 @@ function audit_semantics(root_ast_node,
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
       }
       else if (thing instanceof ASTAnonWildcard) {
-        // if (local_audit_semantics_mode == audit_semantics_mode.speculate) {
-        
-        // }
-        // else {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
-        // }
-        // ^ propagate local_audit_semantics_mode
+        if (speculate) {
+          throw new Error('what now?');
+        }
+        else {
+          walk_children(thing, local_audit_semantics_mode, warnings_arr);
+          // ^ propagate local_audit_semantics_mode
+        }
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
         walk_children(thing, local_audit_semantics_mode, warnings_arr);
