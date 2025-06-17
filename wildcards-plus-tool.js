@@ -306,7 +306,7 @@ let log_flags_enabled                  = false;
 let log_match_enabled                  = false;
 let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
-let log_level__audit                   = 0;
+let log_level__audit                   = 2;
 let log_level__expand_and_walk         = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
@@ -9939,9 +9939,9 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         if (speculate) {
-          // const split_options =
-          //       thing.picker.split_options(dummy_context.picker_allow_fun,
-          //                                  dummy_context.picker_forbid_fun);
+          const split_options =
+                thing.picker.split_options(dummy_context.picker_allow_fun,
+                                           dummy_context.picker_forbid_fun);
 
           // lm.log(`split_options: ${inspect_fun(split_options)}`);
 
@@ -9954,14 +9954,18 @@ function audit_semantics(root_ast_node,
           // const cloned_dummy_context = dummy_context.clone(); // probably don't do all this.
           // const old_dummy_context    = dummy_context;         // "
           // dummy_context              = cloned_dummy_context;  // "
+
+          if (log_level__audit >= 1)
+            lm.log(`UNSAFE PASS (legal):`);
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.unsafe, warnings_arr, speculate));
           
           if (log_level__audit >= 1)
-            lm.log(`UNSAFE PASS:`);
-          lm.indent(() => walk_children(thing, audit_semantics_modes.unsafe, warnings_arr, speculate));
-          
+            lm.log(`UNSAFE PASS (illegal):`);
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.unsafe,   warnings_arr, speculate)); // not sure 'bout this...
+
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing, local_audit_semantics_mode,   warnings_arr, false)); // not sure 'bout this...
+          lm.indent(() => walk(split_options.illegal_options.map(x => x.value), local_audit_semantics_mode,   warnings_arr, false)); // not sure 'bout this...
 
           // dummy_context = old_dummy_context; // probably don't do all this.
         }
