@@ -1,4 +1,10 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-@__set_gender_if_unset
+@gender \n
+@gender \n
+@gender \n
+@gender \n
+@gender \n
+@gender \n
+

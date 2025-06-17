@@ -9812,17 +9812,24 @@ function audit_semantics(root_ast_node,
     // if (mode instanceof Context)
     //   throw new Error("got Context");
 
+    if (mode === audit_semantics_modes.no_track)
+      mode = audit_semantics_modes.collect_warnings;
+      
     msg = `${mode.toUpperCase()}: ${msg}`;
 
-    if (mode === audit_semantics_mode.throw_error)
+    if (mode === audit_semantics_mode.throw_error) {
       throw new Error(msg);
-    else if (mode === audit_semantics_modes.collect_warnings || mode === audit_semantics_modes.no_track) {  
+    }
+    else if (mode === audit_semantics_modes.collect_warnings) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
     }
     // else if (mode == audit_semantics_modes.no_track) {
-    //   // do nothing.
+    //   msg = `${mode.toUpperCase()}: ${msg}`;
+    //   if (log_level__audit >= 2)
+    //     lm.log(`PUSH WARNING '${msg}'`);
+    //   warnings_arr.push(msg);
     // }
     else
       throw new Error(`what do?" ${inspect_fun(mode)}`);
