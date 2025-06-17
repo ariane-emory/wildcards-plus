@@ -9952,7 +9952,7 @@ function audit_semantics(root_ast_node,
           walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
         }
         else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
+          walk_children(thing, local_audit_semantics_mode,   warnings_arr, speculate);
           // ^ propagate local_audit_semantics_mode
         }
       }
