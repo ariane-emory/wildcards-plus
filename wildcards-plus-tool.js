@@ -10709,9 +10709,11 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
-                         arr => [arr[0], ...arr[1]]);
+const make_flag_ident_rule = (additional_choices = []) =>
+      xform(seq(choice(ident, ...additional_choices),
+                star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, ...additional_choices)))),
+            arr => [arr[0], ...arr[1]]);
+const flag_ident = make_flag_ident_rule('*');
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
                          flag_ident)),
