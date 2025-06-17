@@ -9949,8 +9949,8 @@ function audit_semantics(root_ast_node,
                 thing.picker.split_options(dummy_context.picker_allow_fun,
                                            dummy_context.picker_forbid_fun);
 
-          // lm.log(`LASM: ${local_audit_semantics_mode}`);
-
+          // to avoid infinite loops while performing the first pass, we'll use copy of visited.
+          // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
           
           if (log_level__audit >= 1)
