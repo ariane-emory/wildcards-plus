@@ -9771,7 +9771,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
-  no_track:            'no_track',
+  // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9803,13 +9803,17 @@ function audit_semantics(root_ast_node,
           walk(children, mode, warnings_arr, speculate, no_track);      
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw(msg, warnings_arr, mode) {
+  function warn_or_throw(msg, warnings_arr, mode, no_track) {
     if (!(typeof msg === 'string' &&
           Array.isArray(warnings_arr) &&
-          Object.values(audit_semantics_modes).includes(mode)))
+          Object.values(audit_semantics_modes).includes(mode) &&
+          no_track === 'boolean'))
       throw new Error(`bad warn_or_throw args: ` +
-                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+                      `${inspect_fun(arguments)}`);
 
+    if (no_track)
+      return;
+    
     // if (mode === audit_semantics_modes.no_track)
     //   mode = audit_semantics_modes.collect_warnings;
     
@@ -9948,14 +9952,16 @@ function audit_semantics(root_ast_node,
                 thing.picker.split_options(dummy_context.picker_allow_fun,
                                            dummy_context.picker_forbid_fun);
 
+          // lm.log(`LASM: ${local_audit_semantics_mode}`);
+          
           if (log_level__audit >= 1)
-            lm.log(`NO_TRACK PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value), audit_semantics_modes.no_track, warnings_arr, speculate, no_track));
+                  lm.log(`NO_TRACK PASS (legal):`);
+          lm.indent(() => walk(split_options.legal_options.map(x => x.value), local_audit_semantics_mode, warnings_arr, speculate, true));
           
           if (false) { // not sure 'bout this...
             if (log_level__audit >= 1)
               lm.log(`NO_TRACK PASS (illegal):`);
-            lm.indent(() => walk(split_options.illegal_options.map(x => x.value), audit_semantics_modes.no_track, warnings_arr, speculate, no_track)); // not sure 'bout this...
+            lm.indent(() => walk(split_options.illegal_options.map(x => x.value), local_audit_semantics_modes, warnings_arr, speculate, true)); // not sure 'bout this...
           }
           
           if (log_level__audit >= 1)
