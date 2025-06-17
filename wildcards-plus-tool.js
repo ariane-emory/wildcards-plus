@@ -4638,9 +4638,9 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = {  ?female   #gender.female 
-                          |  ?male     #gender.male
-                          |  ?neuter   #gender.neuter 
+@__set_gender_if_unset  = {  ?female           #gender.female 
+                          |  ?male             #gender.male
+                          |  ?neuter           #gender.neuter 
                           |3 !gender.#female   #female
                           |2 !gender.#male     #male
                           |1 !gender.#neuter   #neuter }
@@ -9788,60 +9788,60 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
+  function walk_children(thing, mode, warnings_arr, speculate) {
+    if (!(thing &&
+          Object.values(audit_semantics_modes).includes(mode) &&
+          Array.isArray(warnings_arr) &&
+          typeof speculate == 'boolean'))
+      throw new Error(`bad walk_children mode: ` +
+                      `${abbreviate(compress(inspect_fun(mode)))}`);
+
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children.length > 0)
+      walk(children, mode, warnings_arr, speculate);      
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw(msg, warnings_arr) {
+    if (local_audit_semantics_mode instanceof Context)
+      throw new Error("got Context");
+    
+    msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
+
+    if (audit_semantics_mode == audit_semantics_mode.throw_error)
+      throw new Error(msg);
+    else if (audit_semantics_mode == audit_semantics_modes.collect_warnings) {
+      lm.log(`PUSH WARNING '${msg}'`);
+      warnings_arr.push(msg);
+    }
+    else
+      throw new Error("what do?");
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
+    if (dummy_context.flag_is_set(flag)) {
+      lm.log(`flag ${flag} could be set by now`);
+      return;
+    }
+    
+    const flag_str = flag.join(".").toLowerCase();
+    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+                  `Maybe this was intentional, but it could suggest that you may made have ` +
+                  `a typo or other error in your template.` +
+                  (suggestion
+                   ? ` ${suggestion}`
+                   : ''),
+                  warnings_arr);
+  }
+  // ===============================================================================================
   function walk(thing, local_audit_semantics_mode, warnings_arr, speculate) {    
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           Array.isArray(warnings_arr) &&
           typeof speculate == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
-    // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, mode, warnings_arr, speculate) {
-      if (!(thing &&
-            Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-            Array.isArray(warnings_arr) &&
-            typeof speculate == 'boolean'))
-        throw new Error(`bad walk_children mode: ` +
-                        `${abbreviate(compress(inspect_fun(mode)))}`);
-
-      const children = thing.direct_children().filter(child => !is_primitive(child));
-
-      if (children.length > 0)
-        walk(children, mode, warnings_arr, speculate);      
-    }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg, warnings_arr) {
-      if (local_audit_semantics_mode instanceof Context)
-        throw new Error("got Context");
-      
-      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-      if (audit_semantics_mode == audit_semantics_mode.throw_error)
-        throw new Error(msg);
-      else if (audit_semantics_mode == audit_semantics_modes.collect_warnings) {
-        lm.log(`PUSH WARNING '${msg}'`);
-        warnings_arr.push(msg);
-      }
-      else
-        throw new Error("what do?");
-    }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
-      if (dummy_context.flag_is_set(flag)) {
-        lm.log(`flag ${flag} could be set by now`);
-        return;
-      }
-      
-      const flag_str = flag.join(".").toLowerCase();
-      const known_flags = dummy_context.flags.map(f => f.join("."));
-      const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
-                    `Maybe this was intentional, but it could suggest that you may made have ` +
-                    `a typo or other error in your template.` +
-                    (suggestion
-                     ? ` ${suggestion}`
-                     : ''),
-                    warnings_arr);
-    }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
       return;
