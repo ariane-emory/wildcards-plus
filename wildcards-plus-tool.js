@@ -9944,16 +9944,16 @@ function audit_semantics(root_ast_node,
           throw new Error('what now?');
         }
         else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr);
+          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
           // ^ propagate local_audit_semantics_mode
         }
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ try allowing propagate here
         
         // lm.log(`won't propagate local mode through ${thing.constructor.name}`);
