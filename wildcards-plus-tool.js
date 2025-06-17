@@ -9812,7 +9812,7 @@ function audit_semantics(root_ast_node,
                       `${inspect_fun(arguments)}`);
 
     if (no_track)
-      return; // only like 50% sure on this?
+      return; // only like 80% sure on this?
     
     // if (mode === audit_semantics_modes.no_track)
     //   mode = audit_semantics_modes.warnings;
