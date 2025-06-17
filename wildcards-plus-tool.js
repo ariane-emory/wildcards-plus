@@ -10851,7 +10851,7 @@ const make_ASTAnonWildcardAlternative = arr => {
 };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardHeaderItems =
-      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment, UnsetFlag, SetFlag))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = (content_rule,
