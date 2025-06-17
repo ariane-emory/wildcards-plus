@@ -9771,7 +9771,6 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
   collect_warnings:  'warning',
-  // speculate:         'speculate',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
@@ -9884,7 +9883,7 @@ function audit_semantics(root_ast_node,
     visited.add(hash);
 
     if (log_level__audit >= 2)
-                                lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
+      lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9928,13 +9927,11 @@ function audit_semantics(root_ast_node,
 
           // lm.log(`split_options: ${inspect_fun(split_options)}`);
 
-          for (const option of split_options.legal_options.map(x => x.value)) {
+          for (const option of split_options.legal_options.map(x => x.value))
             walk(option, local_audit_semantics_mode, warnings_arr, speculate);
-          }
           
-          for (const option of split_options.illegal_options.map(x => x.value)) {
+          for (const option of split_options.illegal_options.map(x => x.value))
             walk(option, local_audit_semantics_mode, warnings_arr, speculate)
-          }
         }
         else {
           walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
