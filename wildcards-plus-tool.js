@@ -10714,6 +10714,7 @@ const make_flag_ident_rule = (additional_choices = []) =>
                 star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, ...additional_choices)))),
             arr => [arr[0], ...arr[1]]);
 const flag_ident = make_flag_ident_rule('*');
+const flag_ident_no_wcs = make_flag_ident_rule();
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
                          flag_ident)),
