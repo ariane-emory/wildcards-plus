@@ -3896,7 +3896,7 @@ function suggest_closest(name, candidates) {
 
   // If it's reasonably close (adjust threshold as needed)
   return (closest && closest_distance <= 2)
-    ? `Did you mean '${closest}'?`
+    ? ` Did you mean '${closest}'?`
     : '';
 }
 // -------------------------------------------------------------------------------------------------
@@ -9778,12 +9778,12 @@ function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
   if (root_ast_node === undefined)
-    throw new Error(`bad audit_semantics args: ` +
-                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                    `this likely indicates a programmer error`);
+                               throw new Error(`bad audit_semantics args: ` +
+                                               `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                                               `this likely indicates a programmer error`);
 
-  const visited = new Set();
-  let dummy_context = base_context
+                             const visited = new Set();
+                             let dummy_context = base_context
       ? base_context.clone()
       : new Context();
 
@@ -9862,10 +9862,7 @@ function audit_semantics(root_ast_node,
     const suggestion = suggest_closest(flag_str, known_flags);
     warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
-                  `a typo or other error in your template.` +
-                  (suggestion
-                   ? ` ${suggestion}`
-                   : ''),
+                  `a typo or other error in your template.${suggestion}`,
                   warnings_arr,
                   mode,
                   no_track);
@@ -9940,7 +9937,7 @@ function audit_semantics(root_ast_node,
           const known_names = Array.from(dummy_context.named_wildcards.keys());
           const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
+                        `this suggests that you may have a typo or other error in your template.` +
                         `${suggestion}`,
                         warnings_arr);
         }
@@ -9984,16 +9981,19 @@ function audit_semantics(root_ast_node,
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a made typo or other error in your ` +
-                        `template. ${suggestion}`,
-                        warnings_arr);
+                        `template.${suggestion}`,
+                        warnings_arr,
+                        local_audit_semantics_mode,
+                        no_track);
         }
-        
-        const got = dummy_context.scalar_variables.get(thing.name);
+        else {
+          const got = dummy_context.scalar_variables.get(thing.name);
 
         // lm.log(`GOT: ${got}`);
-        
+          
         walk(got, local_audit_semantics_mode, warnings_arr, speculate, no_track); // ??
-        // ^ propagate local_audit_semantics_mode
+          // ^ propagate local_audit_semantics_mode
+        }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
