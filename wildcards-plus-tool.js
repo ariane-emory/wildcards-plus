@@ -4641,9 +4641,9 @@ const prelude_text = `
 @__set_gender_if_unset  = {  ?female   #gender.female 
                           |  ?male     #gender.male
                           |  ?neuter   #gender.neuter 
-                          |3 !female !male !neuter !gender.#female   #female
-                          |2 !female !male !neuter !gender.#male     #male
-                          |1 !female !male !neuter !gender.#neuter   #neuter }
+                          |3 !gender.#female   #female
+                          |2 !gender.#male     #male
+                          |1 !gender.#neuter   #neuter }
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -9857,7 +9857,7 @@ function audit_semantics(root_ast_node,
     visited.add(thing);
 
     if (log_level__audit >= 2)
-      lm.log(`audit semantics in ` +
+      lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9899,9 +9899,15 @@ function audit_semantics(root_ast_node,
                 thing.picker.split_options(dummy_context.picker_allow_fun,
                                            dummy_context.picker_forbid_fun);
 
-          lm.log(`split_options: ${inspect_fun(split_options)}`);
+          // lm.log(`split_options: ${inspect_fun(split_options)}`);
+
+          for (const option of split_options.legal_options.map(x => x.value)) {
+            walk(option, local_audit_semantics_mode, warnings_arr, speculate);
+          }
           
-          throw new Error('what now?');
+          for (const option of split_options.illegal_options.map(x => x.value)) {
+            walk(option, local_audit_semantics_mode, warnings_arr, speculate)
+          }
         }
         else {
           walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
