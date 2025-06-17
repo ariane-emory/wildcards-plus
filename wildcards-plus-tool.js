@@ -9806,20 +9806,20 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
 
-    if (no_errors)
-      throw new Error("trap");
+    // if (no_errors)
+    //   throw new Error("trap");
     
     if (no_errors)
-          return; // only like 80% sure on this?
-        
-        // if (mode === audit_semantics_modes.no_errors)
-        //   mode = audit_semantics_modes.warnings;
-        
-        msg = `${mode.toUpperCase()}: ${msg}`;
+      return; // only like 80% sure on this?
+    
+    // if (mode === audit_semantics_modes.no_errors)
+    //   mode = audit_semantics_modes.warnings;
+    
+    msg = `${mode.toUpperCase()}: ${msg}`;
 
-        if (mode === audit_semantics_mode.throw_error) {
-          throw new Error(msg);
-        }
+    if (mode === audit_semantics_mode.throw_error) {
+      throw new Error(msg);
+    }
     else if (mode === audit_semantics_modes.warnings) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
@@ -9845,8 +9845,8 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    if (no_errors)
-      throw new Error("trap");
+    // if (no_errors)
+    //   throw new Error("trap");
     
     // if (mode === audit_semantics_modes.no_errors) {
     //   if (log_level__audit >= 1)
@@ -9936,7 +9936,7 @@ function audit_semantics(root_ast_node,
         }
         
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-        }
+      }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = dummy_context.named_wildcards.get(thing.name);
@@ -9971,7 +9971,7 @@ function audit_semantics(root_ast_node,
           lm.indent(() => walk(split_options.legal_options.map(x => x.value),
                                local_audit_semantics_mode,
                                warnings_arr,
-                               speculate,
+                               false, // // not sure 'bout this... was speculate
                                visited_copy,
                                true));
           
@@ -10002,6 +10002,9 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
+          if (no_errors)
+            return;
+          
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
@@ -10062,6 +10065,8 @@ function audit_semantics(root_ast_node,
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
+        if (no_errors)
+          return;
         warn_or_throw_unless_flag_could_be_set_by_now('unset',
                                                       thing.flag, warnings_arr,
                                                       local_audit_semantics_mode,
