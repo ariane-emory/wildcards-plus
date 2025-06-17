@@ -10710,7 +10710,7 @@ const ExposedRjsonc =
 // flag-related rules:
 // =================================================================================================
 const make_flag_ident_rule = (additional_choices = []) =>
-      xform(seq(choice(ident, ...additional_choices),
+      xform(seq(additional_choices.length == 0 ? ident : choice(ident, ...additional_choices),
                 star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, ...additional_choices)))),
             arr => [arr[0], ...arr[1]]);
 const flag_ident = make_flag_ident_rule('*');
@@ -10737,7 +10737,7 @@ const CheckFlagWithSetConsequent =
       xform(cutting_with_swb(seq(question,     // [0]
                                  flag_ident,   // [1]
                                  dot_hash,     // [2]
-                                 flag_ident)), // [3]
+                                 flag_ident_no_wcs)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
@@ -10756,7 +10756,7 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
-                        flag_ident,                   // [3]
+                        flag_ident_no_wcs,            // [3]
                         structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
