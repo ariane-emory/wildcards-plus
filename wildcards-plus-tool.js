@@ -9769,14 +9769,14 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 // SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
-  throw_error:       'error',
-  collect_warnings:  'warning',
+  throw_error: 'error',
+  warnings:    'warnings',
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
-                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
@@ -9815,14 +9815,14 @@ function audit_semantics(root_ast_node,
       return;
     
     // if (mode === audit_semantics_modes.no_track)
-    //   mode = audit_semantics_modes.collect_warnings;
+    //   mode = audit_semantics_modes.warnings;
     
     msg = `${mode.toUpperCase()}: ${msg}`;
 
     if (mode === audit_semantics_mode.throw_error) {
       throw new Error(msg);
     }
-    else if (mode === audit_semantics_modes.collect_warnings) {  
+    else if (mode === audit_semantics_modes.warnings) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
       warnings_arr.push(msg);
@@ -9837,10 +9837,11 @@ function audit_semantics(root_ast_node,
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode) {
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode, no_track) {
     if (!(Array.isArray(flag) &&
           Array.isArray(warnings_arr) &&
-          Object.values(audit_semantics_modes).includes(mode)))
+          Object.values(audit_semantics_modes).includes(mode) &&
+          typeof no_track === 'boolean'))
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
@@ -9866,7 +9867,8 @@ function audit_semantics(root_ast_node,
                    ? ` ${suggestion}`
                    : ''),
                   warnings_arr,
-                  mode);
+                  mode,
+                  no_track);
   }
   // -----------------------------------------------------------------------------------------------
   function visited_hash(thing) {
@@ -10008,7 +10010,8 @@ function audit_semantics(root_ast_node,
         else {
           for (const flag of thing.flags) 
             warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr,
-                                                          local_audit_semantics_mode);
+                                                          local_audit_semantics_mode,
+                                                          no_track);
         }
       }
       // -------------------------------------------------------------------------------------------
@@ -10021,7 +10024,8 @@ function audit_semantics(root_ast_node,
           dummy_context.set_flag(thing.flag, false);
         else  
           warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
-                                                        local_audit_semantics_mode);
+                                                        local_audit_semantics_mode,
+                                                        no_track);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
@@ -10030,7 +10034,8 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
         warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
-                                                      local_audit_semantics_mode);
+                                                      local_audit_semantics_mode,
+                                                      no_track);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcardAlternative) {
