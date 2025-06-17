@@ -2408,10 +2408,12 @@ const flat                    = (rule, depth = Infinity) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
-const make_JsonArray_rule = value_rule => 
+const make_JsonArray_rule = (value_rule,
+                             trailing_separator_mode = trailing_separator_modes.forbidden) => 
       wst_cutting_enc(lsqr,
                       wst_star(value_rule,
-                               comma),
+                               comma,
+                               trailing_separator_mode),
                       rsqr);
 // -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
@@ -2503,13 +2505,15 @@ const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
                      choice_rule,
                      wst_star(comment_rule)));
 const make_JsoncArray_rule = (value_rule,
-                              comment_rule = () => jsonc_comment) => 
+                              comment_rule = () => jsonc_comment,
+                              trailing_separator_mode = trailing_separator_modes.forbidden) => 
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
 const make_JsoncObject_rule = (key_rule, value_rule,
                                { comment_rule = () => jsonc_comment,
-                                 sequence_combinator = wst_cutting_seq } = {}) => 
+                                 sequence_combinator = wst_cutting_seq,
+                                 trailing_separator_mode = trailing_separator_modes.forbidden } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2532,7 +2536,8 @@ const make_JsoncObject_rule = (key_rule, value_rule,
                                                         value_rule, 
                                                         wst_star(comment_rule)
                                                        )),
-                                          comma)),
+                                          comma,
+                                          trailing_separator_mode)),
                                )),
                 rbrc)))
 // -------------------------------------------------------------------------------------------------
@@ -2564,8 +2569,10 @@ const Rjsonc = make_Jsonc_rule(
   choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
          json_null,           json_true,
          json_false,          json_number));
-const RjsoncArray = make_JsoncArray_rule(Rjsonc);
-const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+const RjsoncArray = make_JsoncArray_rule(Rjsonc, trailing_separator_modes.allowed);
+const RjsoncObject =
+      make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc,
+                            { trailing_separator_mode: trailing_separator_modes.allowed });
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
@@ -2642,49 +2649,34 @@ class WeightedPicker {
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
-  add(weight, value) {
-    if (! value instanceof ASTAnonWildcardAlternative)
-      throw new Error(`bad value: ${inspect_fun(value)}`);
-    
-    this.options.push({weight: weight, value: value });
-  }
-  // -----------------------------------------------------------------------------------------------
-  __record_index_usage(index) {
-    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-    this.last_pick_index = index;
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never, each = id,
-       priority = null) {
-    if (!(typeof min_count === 'number'   && 
-          typeof max_count === 'number'   &&
-          typeof allow_if  === 'function' &&
-          typeof forbid_if === 'function' &&
-          typeof each      === 'function' &&
-          typeof priority  === 'string'))
-      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
-
-    // if (! priority)
-    //   throw new Error("no priority");
-
-    if ((min_count > 1 || max_count > 1) && 
-        priority === picker_priority.avoid_repetition_short)
-      this.__clear_used_indices();
-    
-    if (log_picker_enabled)
-      lm.log(`PICK ${min_count}-${max_count}`);
-    
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++)
-      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
 
     if (log_picker_enabled)
-      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-
-    return res;
+      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) 
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (priority === picker_priority.ensure_weighted_distribution) 
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    else if (priority === picker_priority.true_randomness) 
+      ret = this.options[option_index].weight;
+    else
+      throw Error("unexpected priority");
+    
+    if (log_picker_enabled)
+      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return Math.max(0, ret);
   }
   // -----------------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
@@ -2700,14 +2692,6 @@ class WeightedPicker {
     }
 
     return legal_option_indices;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __clear_used_indices() {
-    this.used_indices.clear();
-    this.last_pick_index = null;
-
-    if (log_picker_enabled)
-      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
@@ -2748,31 +2732,75 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -----------------------------------------------------------------------------------------------
-  __effective_weight(option_index, priority) {
-    if (! ((option_index || option_index === 0) && priority))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
     
-    let ret = null;
+    this.options.push({weight: weight, value: value });
+  }
+  // -----------------------------------------------------------------------------------------------
+  split_options(allow_if, forbid_if) {
+    const legal_option_indices = new Set(this.__gather_legal_option_indices(allow_if, forbid_if));
+    const res = { illegal_options: [], legal_options: [] };
+
+    for (const [index, value] of this.options.entries()) 
+      (legal_option_indices.has(index) ? res.legal_options : res.illegal_options).push(value);
+
+    return res;
+  }
+  // // -----------------------------------------------------------------------------------------------
+  // illegal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions,
+  //                               { invert: true });
+  // }
+  // // -----------------------------------------------------------------------------------------------
+  // legal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions);
+  // }
+  // -----------------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = undefined, forbid_if = undefined, each = id,
+       priority = null) {
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
+
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
     
-    if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) {
-      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    }
-    else if (priority === picker_priority.ensure_weighted_distribution) {
-      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    }
-    else if (priority === picker_priority.true_randomness) {
-      ret = this.options[option_index].weight;
-    }
-    else {
-      throw Error("unexpected priority");
-    }
+    if (log_picker_enabled)
+      lm.log(`PICK ${min_count}-${max_count}`);
+    
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++)
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
 
     if (log_picker_enabled)
-      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
-    
-    return Math.max(0, ret);
-  };
+      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+
+    return res;
+  }
   // -----------------------------------------------------------------------------------------------
   #pick_one(allow_if, forbid_if, priority) {
     if (!(typeof allow_if  === 'function' &&
@@ -2952,9 +2980,8 @@ function benchmark(thunk, {
   const start_time = performance.now();
 
   const fn = () => measure_time(() => {
-    for (let ix = 0; ix < reps_per_batch; ix++) {
+    for (let ix = 0; ix < reps_per_batch; ix++)
       result = thunk();
-    }
   });
   
   for (let oix = 0; oix < batch_count; oix++) {
@@ -3117,6 +3144,18 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+// function get_indices_from_arr(indices, arr, { invert = true } = {}) {
+//   return indices.map(i => arr[i]);
+// }
+function get_indices_from_arr(indices, arr, { invert = false } = {}) {
+  if (invert) {
+    const index_set = new Set(indices);
+    return arr.filter((_, i) => !index_set.has(i));
+  } else {
+    return indices.map(i => arr[i]);
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function indent_lines(indent, str, indent_str = "| ") {
   if (typeof str !== 'string')
     throw new Error(`not a string: ${inspect.fun(str)}`);
@@ -3248,7 +3287,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const maybe_trap = () => {
     if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-  }
+  };
 
   maybe_trap();
   
@@ -3647,7 +3686,11 @@ function unescape(str) {
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
     .replace(/\\(.)/g, '$1')
-};
+}
+// -------------------------------------------------------------------------------------------------
+function warning_str(str) {
+  return `\\<WARNING: ${str}!>`;
+}
 // =================================================================================================
 // END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
@@ -3975,14 +4018,16 @@ function get_next_context_id() {
 // -------------------------------------------------------------------------------------------------
 class Context {
   #configuration;
+  #picker_allow_fun;
+  #picker_forbid_fun;
   // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
     scalar_variables             = new Map(),
     named_wildcards              = new Map(),
     noisy                        = false,
-    files                        = [],
-    configuration                = {},
+    files                        = [], 
+    configuration                = {}, 
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_long,
@@ -4004,9 +4049,41 @@ class Context {
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
     this.in_lora                      = in_lora;
-    
+
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_allow_fun() {
+    this.#picker_allow_fun ??=  option => {
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        for (const flag of check_flag.flags) 
+          if (this.flag_is_set(flag)) {
+            found = true;
+            break;
+          }
+        
+        if (!found)
+          return false;
+      }
+
+      return true;
+    };
+    
+    return this.#picker_allow_fun;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_forbid_fun() {
+    this.#picker_forbid_fun ??= option => {
+      for (const not_flag of option.not_flags)
+        if (this.flag_is_set(not_flag.flag))
+          return true;
+      return false;
+    };
+
+    return this.#picker_forbid_fun;
   }
   // -----------------------------------------------------------------------------------------------
   clone(obj = {}) {
@@ -4014,15 +4091,15 @@ class Context {
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
-      scalar_variables:             new Map(this.scalar_variables), // slightly shared
-      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      scalar_variables:             new Map(this.scalar_variables), 
+      named_wildcards:              new Map(this.named_wildcards),  // some sharing
       noisy:                        this.noisy,
       files:                        structured_clone(this.files),
-      configuration:                this.configuration, 
+      configuration:                this.configuration,  // constructer calls settar that copies for us automatically
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
+      pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
 
@@ -4048,12 +4125,13 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.prior_pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
 
-    // avoid copying this by assigning to #configuration instead of using
-    // configuration argument to constructor:
+    // avoid copying this by assigning to '#configuration' instead of using
+    // configuration argument to constructor (which would use the 'set configuration' setter (which
+    // would ccopy it)
     copy.#configuration = this.configuration;
 
     Object.assign(copy, obj);
@@ -4090,14 +4168,13 @@ class Context {
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
     let res = false;
-
-    for (const flag of this.flags) {
+    
+    for (const flag of this.flags) 
       if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
         res = true;
         break;
       }
-    }
-    
+
     return res;
   }
   // -----------------------------------------------------------------------------------------------
@@ -4151,18 +4228,18 @@ class Context {
     //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  reset_temporaries() {
+  reset_variables() {
     this.flags = [];
     this.scalar_variables = new Map();
-
-    for (const [name, nwc] of this.named_wildcards) {
+    this.named_wildcards = new Map();
+    
+    for (const [name, nwc] of this.named_wildcards)
       if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
            lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
-    }
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration() {
@@ -4287,13 +4364,12 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
-                            {?female #gender.female 
-                            |?male   #gender.male
-                            |?neuter #gender.neuter    }
-                            {3 !gender.#female #female
-                            |2 !gender.#male   #male
-                            |1 !gender.#neuter #neuter } } 
+@__set_gender_if_unset  = {  ?female           #gender.female 
+                          |  ?male             #gender.male
+                          |  ?neuter           #gender.neuter 
+                          |3 !gender.#female   #female
+                          |2 !gender.#male     #male
+                          |1 !gender.#neuter   #neuter }
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -8676,7 +8752,7 @@ function load_prelude(into_context = new Context()) {
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
 function expand_wildcards(thing, context, { correct_articles = true } = {}) {
-  if (thing === undefined ||
+  if (thing === undefined           ||
       !(context instanceof Context) || 
       typeof correct_articles !== 'boolean')
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
@@ -8686,31 +8762,6 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
       lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
-  // -----------------------------------------------------------------------------------------------
-  function picker_allow(option) {
-    for (const check_flag of option.check_flags) {
-      let found = false;
-      
-      for (const flag of check_flag.flags) {
-        if (context.flag_is_set(flag)) {
-          found = true;
-          break;
-        }
-      }
-      
-      if (!found)
-        return false;
-    }
-    
-    return true;
-  };
-  // -----------------------------------------------------------------------------------------------
-  function picker_forbid(option) {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
@@ -8724,10 +8775,6 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
       return ret;
     });
-  }
-  // -----------------------------------------------------------------------------------------------
-  function warning_str(str) {
-    return `\\<WARNING: ${str}!>`;
   }
   // -----------------------------------------------------------------------------------------------
   // const log = (guard_bool, msg, with_indentation = true) => { 
@@ -8820,13 +8867,10 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        // let str = smart_join(thing.pick(1, 1,
-        //                                 picker_allow, picker_forbid, picker_each, 
-        //                                 context.pick_one_priority)[0],
-        //                      { correct_articles: correct_articles })
-        
         let str = thing.pick(1, 1,
-                             picker_allow, picker_forbid, picker_each, 
+                             context.picker_allow_fun,
+                             context.picker_forbid_fun,
+                             picker_each, 
                              context.pick_one_priority)[0];
 
         if (log_level__expand_and_walk)
@@ -8864,9 +8908,11 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res           = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                             picker_allow, picker_forbid, picker_each, 
-                                             picker_priority);
+          res = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                   context.picker_allow_fun,
+                                   context.picker_forbid_fun,
+                                   picker_each, 
+                                   picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
@@ -9377,15 +9423,12 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
         if (file.endsWith('.ckpt')) {
           // do nothing 
         }
-        else if (file.endsWith('_lora_f16')) {
+        else if (file.endsWith('_lora_f16'))
           file = `${file}.ckpt`;
-        }
-        else if (file.endsWith('_lora')) {
+        else if (file.endsWith('_lora'))
           file = `${file}_f16.ckpt`;
-        }
-        else {
+        else
           file = `${file}_lora_f16.ckpt`;
-        }
 
         const weight = weight_match_result.value;
         
@@ -9453,12 +9496,12 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 // =================================================================================================
 const audit_semantics_modes = Object.freeze({
   throw_error:       'error',
-  collect_warnings:  'warning', 
-  unsafe:            'unsafe',
+  collect_warnings:  'warning',
+  // speculate:         'speculate',
 });
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
-                         { base_context = null, 
+                         { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
   if (root_ast_node === undefined)
     throw new Error(`bad audit_semantics args: ` +
@@ -9471,55 +9514,92 @@ function audit_semantics(root_ast_node,
         : new Context();
 
   // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
-    if (typeof local_audit_semantics_mode !== 'string' ||
-        !Array.isArray(warnings_arr))
+  function walk_children(thing, mode, warnings_arr, speculate) {
+    if (!(thing &&
+          Object.values(audit_semantics_modes).includes(mode) &&
+          Array.isArray(warnings_arr) &&
+          typeof speculate == 'boolean'))
+      throw new Error(`bad walk_children args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children.length > 0)
+      walk(children, mode, warnings_arr, speculate);      
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw(msg, warnings_arr, mode) {
+    if (!(typeof msg === 'string' &&
+          Array.isArray(warnings_arr) &&
+          Object.values(audit_semantics_modes).includes(mode)))
+      throw new Error(`bad warn_or_throw args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // if (mode instanceof Context)
+    //   throw new Error("got Context");
+
+    msg = `${mode.toUpperCase()}: ${msg}`;
+
+    if (mode == audit_semantics_mode.throw_error)
+      throw new Error(msg);
+    else if (mode == audit_semantics_modes.collect_warnings) {
+      if (log_level__audit >= 2)
+        lm.log(`PUSH WARNING '${msg}'`);
+      warnings_arr.push(msg);
+    }
+    else
+      throw new Error("what do?");
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr, mode) {
+    if (!(Array.isArray(flag) &&
+          Array.isArray(warnings_arr) &&
+          Object.values(audit_semantics_modes).includes(mode)))
+      throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    if (dummy_context.flag_is_set(flag)) {
+      if (log_level__audit >= 1)
+        lm.log(`flag ${flag} could be set by now`);
+      return;
+    }
+    
+    const flag_str = flag.join(".").toLowerCase();
+    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+    warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
+                  `Maybe this was intentional, but it could suggest that you may made have ` +
+                  `a typo or other error in your template.` +
+                  (suggestion
+                   ? ` ${suggestion}`
+                   : ''),
+                  warnings_arr,
+                  mode);
+  }
+  // -----------------------------------------------------------------------------------------------
+  function visited_hash(thing) {
+    let str = '';
+
+    str += thing_str_repr(thing, { length: Infinity, always_include_type_str: true });
+    str += thing_str_repr(dummy_context.flags, { length: Infinity, always_include_type_str: true });
+    
+    return str;
+  }
+  // ===============================================================================================
+  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate) {    
+    if (!(thing &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+          Array.isArray(warnings_arr) &&
+          typeof speculate == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
-    // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, mode, warnings_arr) {
-      if (typeof mode !== 'string')
-        throw new Error(`bad walk_children mode: ` +
-                        `${abbreviate(compress(inspect_fun(mode)))}`);
-
-      const children = thing.direct_children().filter(child => !is_primitive(child));
-
-      if (children.length > 0)
-        walk(children, mode, warnings_arr);      
-    }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg, warnings_arr) {
-      if (local_audit_semantics_mode instanceof Context)
-        throw new Error("got Context");
-      
-      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
-        throw new Error(msg);
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
-        warnings_arr.push(msg);
-    }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
-      if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.unsafe)
-        return;
-
-      const flag_str = flag.join(".").toLowerCase();
-      const known_flags = dummy_context.flags.map(f => f.join("."));
-      const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
-                    `Maybe this was intentional, but it could suggest that you may made have ` +
-                    `a typo or other error in your template.` +
-                    (suggestion
-                     ? ` ${suggestion}`
-                     : ''),
-                    warnings_arr);
-    }
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
       return;
 
-    if (visited.has(thing)) {
+    const hash = thing;
+    // const hash = visited_hash(thing);
+    
+    if (visited.has(hash)) {
       if (log_level__audit >= 2)
         lm.log(`already audited ` +
                `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
@@ -9527,10 +9607,10 @@ function audit_semantics(root_ast_node,
       return;
     }
     
-    visited.add(thing);
+    visited.add(hash);
 
     if (log_level__audit >= 2)
-      lm.log(`audit semantics in ` +
+      lm.log(`${speculate? 'speculatively ' : ''}audit semantics in ` +
              `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
              `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
@@ -9541,7 +9621,7 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr)
+            walk(elem, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNamedWildcardDefinition) {
@@ -9563,8 +9643,29 @@ function audit_semantics(root_ast_node,
                         `${suggestion}`,
                         warnings_arr);
         }
-        
-        walk(got, audit_semantics_mode, warnings_arr) // don't propagate local_audit_semantics_mode
+
+        walk(got, local_audit_semantics_mode, warnings_arr, true); // start speculate
+      }
+      else if (thing instanceof ASTAnonWildcard) {
+        if (speculate) {
+          const split_options =
+                thing.picker.split_options(dummy_context.picker_allow_fun,
+                                           dummy_context.picker_forbid_fun);
+
+          // lm.log(`split_options: ${inspect_fun(split_options)}`);
+
+          for (const option of split_options.legal_options.map(x => x.value)) {
+            walk(option, local_audit_semantics_mode, warnings_arr, speculate);
+          }
+          
+          for (const option of split_options.illegal_options.map(x => x.value)) {
+            walk(option, local_audit_semantics_mode, warnings_arr, speculate)
+          }
+        }
+        else {
+          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
+          // ^ propagate local_audit_semantics_mode
+        }
       }
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
@@ -9576,15 +9677,17 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
         
-        const got = dummy_context.named_wildcards.get(thing.name);
+        const got = dummy_context.scalar_variables.get(thing.name);
+
+        // lm.log(`GOT: ${got}`);
         
-        walk(got, local_audit_semantics_mode, warnings_arr);
+        walk(got, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
+        // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
@@ -9593,7 +9696,8 @@ function audit_semantics(root_ast_node,
         }
         else {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr);
+            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr,
+                                                          local_audit_semantics_mode);
         }
       }
       else if (thing instanceof ASTNotFlag) {
@@ -9603,35 +9707,28 @@ function audit_semantics(root_ast_node,
         else if (thing.set_immediately) 
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
-        else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
+        else  
+          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+                                                        local_audit_semantics_mode);
       }
       else if (thing instanceof ASTSetFlag) {
         dummy_context.set_flag(thing.flag, false);
       } 
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
-      }
-      else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe
-              ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode;
-        // ^ propagate local_audit_semantics_mode
-        
-        // always do unsafe wask first to collect flags set inside:
-        walk_children(thing, audit_semantics_modes.unsafe, warnings_arr);
-
-        // then, if needed, do a second walk to check guards:
-        if (mode !== audit_semantics_modes.unsafe)
-          walk_children(thing, mode,                  warnings_arr);
+        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr,
+                                                      local_audit_semantics_mode);
       }
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
         // ^ propagate local_audit_semantics_mode
       }
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode to other node types by default.
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate);
+        // ^ try allowing propagate here
+        
+        // lm.log(`won't propagate local mode through ${thing.constructor.name}`);
+        // walk_children(thing, audit_semantics_mode, warnings_arr);
+        // // ^ don't propagate local_audit_semantics_mode to other node types by default?
       }
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
@@ -9640,8 +9737,8 @@ function audit_semantics(root_ast_node,
   }
 
   const warnings =  [];
-  
-  walk(root_ast_node, audit_semantics_mode, warnings);
+
+  walk(root_ast_node, audit_semantics_mode, warnings, false);
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
@@ -9931,13 +10028,12 @@ class ASTLatchedNamedWildcard extends ASTNode {
 // ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe = false } = {}) {
+  constructor(options, { trailer = null } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9950,9 +10046,6 @@ class ASTAnonWildcard extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '';
-
-    if (this.unsafe)
-      str += "unsafe ";
     
     str += '{';
 
@@ -10461,7 +10554,7 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
         const new_ASTAnonWildcard = arr =>
-              new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
+              new ASTAnonWildcard(arr[0], { trailer: arr[1] });
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
@@ -10472,8 +10565,7 @@ const make_AnonWildcard_rule            =
                         ? empty_value
                         : new_ASTAnonWildcard(arr));
         return xform(xform_fun,
-                     seq(optional('unsafe'),
-                         discarded_comments,
+                     seq(discarded_comments,
                          body_rule,
                          tail_rule));
       };
