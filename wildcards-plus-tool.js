@@ -10096,7 +10096,6 @@ function phase3(root_ast_node, { context } = {}) {
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
-  return;
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing) {
     if (!(thing instanceof ASTNode))
@@ -10110,8 +10109,6 @@ function phase3(root_ast_node, { context } = {}) {
   }
   // ===============================================================================================
   function walk(thing) { 
-    throw new Error("trap 2");
-
     if (!thing)
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
 
@@ -10137,7 +10134,7 @@ function phase3(root_ast_node, { context } = {}) {
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
-        for (const elem of thing.filter(x => !is_primitive(ix)))
+        for (const elem of thing.filter(elem => !is_primitive(elem)))
           walk(elem);
       }
       // -------------------------------------------------------------------------------------------
@@ -10162,7 +10159,8 @@ function phase3(root_ast_node, { context } = {}) {
     });
   }
   // ===============================================================================================
-
+  const visited = new Set();
+  
   walk(root_ast_node);
 }
 // =================================================================================================
