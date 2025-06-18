@@ -4473,24 +4473,28 @@ class Context {
 
     //if (replace_existing)
     {
-      const new_flag_head = new_flag.slice(0, -1);
-
       this.flags = this.flags.filter(existing_flag => {
-        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-          // if (log_flags_enabled)
-          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-          //          `new flag ${compress(inspect_fun(new_flag))}`);
-          return false;
-        }
+        // if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
+        //   // if (log_flags_enabled)
+        //   //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
+        //   //          `new flag ${compress(inspect_fun(new_flag))}`);
+        //   return false;
+        // }
 
-        if (replace_existing)
-          if (new_flag_head.length != 0 &&
-              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-            // if (log_flags_enabled)
-            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
-            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-            return false; 
-          }
+        if (replace_existing &&
+            existing_flag[0] === new_flag[0])
+          return false;
+        
+        //const new_flag_head = new_flag.slice(0, -1);
+
+        // if (replace_existing)
+        //   if (new_flag_head.length != 0 &&
+        //       arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+        //     // if (log_flags_enabled)
+        //     //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
+        //     //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
+        //     return false; 
+        //   }
         
         return true;
       });
