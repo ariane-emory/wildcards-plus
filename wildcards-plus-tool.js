@@ -5019,7 +5019,7 @@ const prelude_text = `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
+  #xl_magic.aspect_ratio.1.1
   #xl_magic_size.medium
 }
 // {
