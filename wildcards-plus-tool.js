@@ -9829,13 +9829,12 @@ function audit_semantics(root_ast_node,
       throw new Error(`what do?" ${inspect_fun(mode)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, visited, undef) {
+  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, warnings_arr, mode, visited) {
     if (!(typeof verb == 'string' &&
           Array.isArray(flag) &&
           Array.isArray(warnings_arr) &&
           Object.values(audit_semantics_modes).includes(mode) &&
-          visited instanceof Set && 
-          undef === undefined))
+          visited instanceof Set))
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
@@ -9873,13 +9872,12 @@ function audit_semantics(root_ast_node,
     return str;
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, undef) { 
+  function walk(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited) { 
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           Array.isArray(warnings_arr) &&
           typeof as_if_parallel == 'boolean' &&
-          visited instanceof Set &&
-          undef === undefined ))
+          visited instanceof Set))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
