@@ -9783,20 +9783,6 @@ function audit_semantics(root_ast_node,
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, mode, as_if_parallel, visited) {
-    if (!(thing &&
-          Object.values(audit_semantics_modes).includes(mode) &&
-          typeof as_if_parallel == 'boolean' &&
-          visited instanceof Set))
-      throw new Error(`bad walk_children args: ` +
-                      `${abbreviate(compress(inspect_fun(arguments)))}`);
-    
-    const children = thing.direct_children().filter(child => !is_primitive(child));
-
-    if (children.length > 0)
-      walk(children, mode, as_if_parallel, visited); 
-  }
-  // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg, mode) {
     if (!(typeof msg === 'string' &&
           Object.values(audit_semantics_modes).includes(mode)))
@@ -9859,13 +9845,18 @@ function audit_semantics(root_ast_node,
                   mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function visited_hash(thing) {
-    let str = '';
-
-    str += thing_str_repr(thing, { length: Infinity, always_include_type_str: true });
-    str += thing_str_repr(dummy_context.flags, { length: Infinity, always_include_type_str: true });
+  function walk_children(thing, mode, as_if_parallel, visited) {
+    if (!(thing &&
+          Object.values(audit_semantics_modes).includes(mode) &&
+          typeof as_if_parallel == 'boolean' &&
+          visited instanceof Set))
+      throw new Error(`bad walk_children args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
     
-    return str;
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children.length > 0)
+      walk(children, mode, as_if_parallel, visited); 
   }
   // ===============================================================================================
   function walk(thing, local_audit_semantics_mode, as_if_parallel, visited) { 
