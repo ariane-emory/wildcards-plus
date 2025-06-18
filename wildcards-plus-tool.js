@@ -3227,7 +3227,7 @@ const arr_is_prefix_of_arr = (() => {
 
   return function(prefix_arr, full_arr,
                   { prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED,
-                    alt_equivelancy_fun } = {}) {
+                    alt_equivalancy_fun } = {}) {
     if (prefix_arr.length > full_arr.length)
       return false;
 
@@ -3236,7 +3236,7 @@ const arr_is_prefix_of_arr = (() => {
           prefix_arr[ix] === prefix_wildcard_value)
         continue;
 
-      if (alt_equivelancy_fun && 
+      if (alt_equivalancy_fun && 
           alt_equivalency_fun(prefix_arr[ix], full_arr[ix], ix))
         continue;
       
@@ -4485,7 +4485,11 @@ class Context {
 
         if (replace_existing)
           if (new_flag_head.length != 0 &&
-              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
+              arr_is_prefix_of_arr(new_flag_head, existing_flag,
+                                   { alt_equivalency_fun: (left, right, ix) =>
+                                     (ix !== 0 &&
+                                      (typeof left === 'number' ||
+                                       typeof right === 'number'))})) {
             // if (log_flags_enabled)
             //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
             //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
