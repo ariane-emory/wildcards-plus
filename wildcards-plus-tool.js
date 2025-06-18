@@ -10095,14 +10095,14 @@ class FatalPhase1Error extends WildcardsPlusError {
 
 
 // =================================================================================================
-// THE NEW PHASE 2 (INITIALIZE SCALARS) FUNCTION.
+// THE NEW PHASE 3 (INITIALIZE SCALARS) FUNCTION.
 // =================================================================================================
 function phase3(root_ast_node, { context } = {}) {
-    if (!(Array.isArray(root_ast_node) &&
-          context instanceof Context))
-      throw new Error(`bad phase3 args: ` +
-                      `${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                      `this likely indicates a programmer error`);
+  if (!(Array.isArray(root_ast_node) &&
+        context instanceof Context))
+    throw new Error(`bad phase3 args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
 
   return;
   // -----------------------------------------------------------------------------------------------
@@ -10149,148 +10149,17 @@ function phase3(root_ast_node, { context } = {}) {
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTNamedWildcardDefinition) {
-        // do nothing.
-        
-        // if (dummy_context.named_wildcards.has(thing.name)) {
-        //   if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
-        //     return;
-
-        //   throw new FatalSemanticError(`WARNING: redefining named wildcard @${thing.name}, ` +
-        //                                `is not permitted!`);
-        // }
-        
-        // dummy_context.named_wildcards.set(thing.name, thing.wildcard);
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTNamedWildcardReference) {
-        const got = dummy_context.named_wildcards.get(thing.name);
-        
-        if (!got) 
-          throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
-        else 
-          walk(got, local_audit_semantics_mode, true, visited); // start as_if_parallel
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTAnonWildcard) {
-        const all_options = thing.picker.options.map(x => x.value);
-        
-        if (as_if_parallel) {
-          const currently_legal_options =
-                thing.picker
-                .split_options(dummy_context.picker_allow_fun,
-                               dummy_context.picker_forbid_fun)
-                .legal_options.map(x => x.value);
-
-          // to avoid infinite loops while performing the first pass, we'll use copy of visited.
-          // then, for the second pass we'll switch back to the original to allow revisiting:
-          const visited_copy = new Set(visited);
-          
-          if (log_level__audit >= 1)
-            lm.log(`NO_ERRORS PASS (legal):`);
-          lm.indent(() =>
-            walk(currently_legal_options,
-                 // switch to no_errors mode: some things that would look sus during this pass might 
-                 // not look sus afterwards, f.e. { ?foo whatever | # foo }.
-                 audit_semantics_modes.no_errors, 
-                 true, // or maybe false? nah, i think this is corect... any children could also
-                 // get evaluated twice and so should judg it as_if_parralel, right?
-                 visited_copy));
-
-          if (log_level__audit >= 1)
-            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() =>
-            walk(all_options,
-                 local_audit_semantics_mode,
-                 false, // not 100% sure 'bout this yet but it seems to work.
-                 visited)); 
-        }
-        else {
-          walk(all_options,
-               local_audit_semantics_mode,
-               as_if_parallel,
-               visited);
-        }
-      }
-      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
-        if (!dummy_context.scalar_variables.has(thing.name)) {
-          if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
-            return;
-          
-          const known_names = Array.from(dummy_context.scalar_variables.keys());
-          const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a made typo or other error in your ` +
-                        `template.${suggestion}`,
-                        warnings,
-                        local_audit_semantics_mode);
-        }
-        else {
-          // const got = dummy_context.scalar_variables.get(thing.name);
-
-          // lm.log(`GOT: ${got}`);
-
-          // why, it's just a string, this is totally unnecessary:
-          // walk(got, local_audit_semantics_mode, as_if_parallel, visited); // ??
-          // ^ propagate local_audit_semantics_mode
-        }
+        context.scalar_variables.set(thing.name, '')
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
-        // ^ propagate local_audit_semantics_mode
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTCheckFlags) {
-        if (thing.consequently_set_flag_tail) {
-          // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
-        }
-        else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
-          for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now('checked',
-                                                          flag,
-                                                          local_audit_semantics_mode,
-                                                          visited);
-        }
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTNotFlag) {
-        if (thing.consequently_set_flag_tail)
-          // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
-        else if (thing.set_immediately) 
-          // this case probably doesn't deserve a warning, avoid one:
-          dummy_context.set_flag(thing.flag, false);
-        else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
-          warn_or_throw_unless_flag_could_be_set_by_now('checked',
-                                                        thing.flag,
-                                                        local_audit_semantics_mode,
-                                                        visited);
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTSetFlag) {
-        dummy_context.set_flag(thing.flag, false);
-      } 
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTUnsetFlag) {
-        if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
-          return;
-        warn_or_throw_unless_flag_could_be_set_by_now('unset',
-                                                      thing.flag,
-                                                      local_audit_semantics_mode,
-                                                      visited);
-      }
-      // -------------------------------------------------------------------------------------------
-      else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
-        // ^ propagate local_audit_semantics_mode
+        context.scalar_variables.set(thing.destination.name, '');
+        walk_children(thing);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing);
       }
       // -------------------------------------------------------------------------------------------
       else {
