@@ -9892,7 +9892,7 @@ function audit_semantics(root_ast_node,
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
-        for (const elem of thing)
+        for (const elem of thing.filter(elem => !is_primitive(elem)))
           if (!is_primitive(elem))
             walk(elem, local_audit_semantics_mode, as_if_parallel, visited);
         // ^ propagate local_audit_semantics_mode
