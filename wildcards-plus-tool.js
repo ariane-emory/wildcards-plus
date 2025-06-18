@@ -8969,13 +8969,13 @@ function load_prelude(into_context = new Context()) {
     const ignored = expand_wildcards(prelude_parse_result.value, into_context,
                                      { correct_articles: true });
 
-                                          
+    
     log_flags_enabled = old_log_flags_enabled;
 
     // log_flags_enabled = true;
     
     if (ignored === undefined)
-             throw new Error("crap");
+      throw new Error("crap");
 
     // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
