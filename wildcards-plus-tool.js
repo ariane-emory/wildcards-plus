@@ -9957,12 +9957,14 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        const options = thing.picker.options.map(x => x.value);
+        const all_options = thing.picker.options.map(x => x.value);
         
         if (as_if_parallel) {
-          const split_options =
-                thing.picker.split_options(dummy_context.picker_allow_fun,
-                                           dummy_context.picker_forbid_fun);
+          const currently_legal_options =
+                thing.picker
+                .split_options(dummy_context.picker_allow_fun,
+                               dummy_context.picker_forbid_fun)
+                .legal_options.map(x => x.value);
 
           // to avoid infinite loops while performing the first pass, we'll use copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
@@ -9971,7 +9973,7 @@ function audit_semantics(root_ast_node,
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
           lm.indent(() =>
-            walk(split_options.legal_options.map(x => x.value),
+            walk(currently_legal_options,
                  local_audit_semantics_mode,
                  warnings_arr,
                  as_if_parallel, // or maybe false?
@@ -9981,7 +9983,7 @@ function audit_semantics(root_ast_node,
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() =>
-            walk(options,
+            walk(all_options,
                  local_audit_semantics_mode,
                  warnings_arr,
                  false, // not 100% sure 'bout this yet but it seems to work.
@@ -9989,7 +9991,7 @@ function audit_semantics(root_ast_node,
                  no_errors)); 
         }
         else {
-          walk(options,
+          walk(all_options,
                local_audit_semantics_mode,
                warnings_arr,
                as_if_parallel,
