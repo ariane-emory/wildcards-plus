@@ -11085,13 +11085,26 @@ try {
   base_context.pick_one_priority      = user_selected_pick_one_priority;
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
-  // delete base_context.configuration["negativeOriginalImageHeight"];
-  // delete base_context.configuration["negativeOriginalImageWidth"];
-  // delete base_context.configuration["originalImageHeight"];
-  // delete base_context.configuration["originalImageWidth"];
-  // delete base_context.configuration["targetImageHeight"];
-  // delete base_context.configuration["targetImageWidth"];
+  // -----------------------------------------------------------------------------------------------
+  // audit flags:
+  let audit_elapsed, audit_warnings;
 
+  lm.log(`auditing...`);
+  lm.indent(() => {
+    audit_elapsed = measure_time(() =>
+      audit_warnings = audit_semantics(AST, { base_context: base_context }));
+  });
+  lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
+
+  const audit_warning_counts = count_occurrences(audit_warnings);
+  
+  for (let [warning, count] of audit_warning_counts)
+    lm.log((count > 1
+            ? `${warning} (${count} times)`
+            : warning),
+           false);
+
+  // -----------------------------------------------------------------------------------------------
   LOG_LINE();
   lm.log(`pipeline.configuration is:`);
   LOG_LINE();
