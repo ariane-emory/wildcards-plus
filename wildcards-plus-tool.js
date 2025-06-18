@@ -8958,26 +8958,25 @@ function load_prelude(into_context = new Context()) {
     
     if (! prelude_parse_result) {
       const old_log_match_enabled = log_match_enabled;
-      log_match_enabled = false; 
-      prelude_parse_result = Prompt.match(prelude_text);
-      log_match_enabled = old_log_match_enabled;
+      try {
+        log_match_enabled = false; 
+        prelude_parse_result = Prompt.match(prelude_text);
+      }
+      finally {
+        log_match_enabled = old_log_match_enabled;
+      }
     }
 
-    phase1(prelude_parse_result.value, { context: into_context });
+    lm.indent(() => {
+      phase1(prelude_parse_result.value, { context: into_context });
 
-    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
-                                     { correct_articles: true });
+      // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+      const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                       { correct_articles: true });
+      if (ignored === undefined)
+        throw new Error("crap");
 
-    
-    log_flags_enabled = old_log_flags_enabled;
-
-    // log_flags_enabled = true;
-    
-    if (ignored === undefined)
-      throw new Error("crap");
-
-    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+    });
   });
   
   if (log_loading_prelude) {
@@ -9918,20 +9917,10 @@ function audit_semantics(root_ast_node,
       else if (thing instanceof ASTNamedWildcardReference) {
         const got = dummy_context.named_wildcards.get(thing.name);
         
-        if (!got) {
-          if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
-            return;
-          
-          const known_names = Array.from(dummy_context.named_wildcards.keys());
-          const suggestion  = suggest_closest(thing.name, known_names);
-          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template.` +
-                        `${suggestion}`,
-                        local_audit_semantics_mode);
-        }
-        else {
+        if (!got) 
+          throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
+        else 
           walk(got, local_audit_semantics_mode, true, visited); // start as_if_parallel
-        }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
