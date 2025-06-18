@@ -8993,7 +8993,23 @@ function load_prelude(into_context = new Context()) {
 // =================================================================================================
 // LOCAL EXCEPTION TYPES:
 // =================================================================================================
-class WildcardsPlusError extends Error { }
+class WildcardsPlusError extends Error {
+  constructor(message) {
+    super(message);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class FatalExpansionError extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class FatalSemanticError extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
 // =================================================================================================
 // END OF LOCAL EXCEPTION TYPES.
 // =================================================================================================
