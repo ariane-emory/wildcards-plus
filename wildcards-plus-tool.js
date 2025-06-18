@@ -9911,8 +9911,8 @@ function audit_semantics(root_ast_node,
           if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
             return;
 
-          throw new FatalExpansionError(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                        `is not permitted!`);
+          throw new FatalSemanticError(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                       `is not permitted!`);
         }
         
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
