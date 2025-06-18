@@ -3226,8 +3226,7 @@ const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
   return function(prefix_arr, full_arr,
-                  { prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED,
-                    alt_equivelancy_fun } = {}) {
+                  { prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED } = {}) {
     if (prefix_arr.length > full_arr.length)
       return false;
 
@@ -3236,10 +3235,6 @@ const arr_is_prefix_of_arr = (() => {
           prefix_arr[ix] === prefix_wildcard_value)
         continue;
 
-      if (alt_equivelancy_fun && 
-          alt_equivalency_fun(prefix_arr[ix], full_arr[ix], ix))
-        continue;
-      
       if (prefix_arr[ix] !== full_arr[ix])
         return false;
     }
@@ -4447,18 +4442,8 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    // let res = false;
-
     return this.flags.some(existing_flag => arr_is_prefix_of_arr(test_flag, existing_flag,
                                                                  { prefix_wildcard_value: '*' }));
-    
-    // for (const flag of this.flags) 
-    //   if (arr_is_prefix_of_arr(test_flag, flag, { prefix_wildcard_value: '*' })) {
-    //     res = true;
-    //     break;
-    //   }
-
-    // return res;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag, replace_existing = true) {
@@ -4476,11 +4461,12 @@ class Context {
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
-  unset_flag(flag) {
+  unset_flag(unset_flag) {
     // if (log_flags_enabled)
-    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    //   lm.log(`BEFORE UNSET ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
-    this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
+    this.flags = this.flags.filter(existing_flag => !arr_is_prefix_of_arr(unset_flag,
+                                                                          existing_flag));
 
     // if (log_flags_enabled)
     //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
