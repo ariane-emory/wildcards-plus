@@ -308,6 +308,7 @@ let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
+let log_level__phase1                  = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
@@ -10064,12 +10065,12 @@ function audit_semantics(root_ast_node,
 
 
 // =================================================================================================
-// THE NEW PHASE 1 FUNCTION.
+// THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
 // =================================================================================================
 function phase1(root_ast_node, { context } ={}) {
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
-    throw new Error(`bad phase_1 args: ` +
+    throw new Error(`bad phase1 args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
@@ -10080,7 +10081,8 @@ function phase1(root_ast_node, { context } ={}) {
                                    `is not permitted!`);
       
       context.named_wildcards.set(thing.name, thing.wildcard);
-      lm.log(`defined @${thing.name}`);
+      if (log_level__phase1 >= 1)
+        lm.log(`defined @${thing.name}`);
     }
   }
 }
@@ -10092,6 +10094,21 @@ class FatalPhase1Error extends WildcardsPlusError {
 }
 // =================================================================================================
 // END OF THE NEW PHASE 1 FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// THE NEW PHASE 2 (INITIALIZE SCALARS) FUNCTION.
+// =================================================================================================
+function phase2(root_ast_node, { context } = {}) {
+  if (!(Array.isArray(root_ast_node) &&
+        context instanceof Context))
+    throw new Error(`bad phase, args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`)
+}
+// =================================================================================================
+// END OF THE NEW PHASE 2 FUNCTION.
 // =================================================================================================
 
 
