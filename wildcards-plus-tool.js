@@ -9741,7 +9741,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 const audit_semantics_modes = Object.freeze({
   no_errors:   'no_errors',
   throw_error: 'error',
-  warnings:    'warnings',
+  warnings:    'warning',
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
