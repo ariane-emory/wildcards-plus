@@ -10084,8 +10084,8 @@ function phase1(root_ast_node, { context } ={}) {
                     `this likely indicates a programmer error`);
 
   for (const thing of root_ast_node) {
-    if (thing instanceof NamedWildcardDefinition) {
-      if (dummy_context.named_wildcards.has(thing.name))
+    if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.name))
         throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
                                    `is not permitted!`);
       
@@ -11399,6 +11399,13 @@ const NamedWildcardReference  =
              audit_warnings = audit_semantics(AST, { base_context: base_context }));
          });
          lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
+
+         lm.log(`phase1...`);
+         lm.indent(() => {
+           audit_elapsed = measure_time(() =>
+             phase1(AST, { context: base_context }));
+         });
+         lm.log(`phasem ${audit_elapsed.toFixed(2)} ms`);
 
          const audit_warning_counts = count_occurrences(audit_warnings);
          
