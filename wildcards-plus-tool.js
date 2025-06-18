@@ -9972,7 +9972,6 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a made typo or other error in your ` +
                         `template.${suggestion}`,
-                        warnings,
                         local_audit_semantics_mode);
         }
         else {
