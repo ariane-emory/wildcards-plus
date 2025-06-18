@@ -4447,16 +4447,18 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    let res = false;
-    
-    for (const flag of this.flags) 
-      if (arr_is_prefix_of_arr(test_flag, flag,
-                               { prefix_wildcard_value: '*' })) {
-        res = true;
-        break;
-      }
+    // let res = false;
 
-    return res;
+    return this.flags.some(existing_flag => arr_is_prefix_of_arr(test_flag, existing_flag,
+                                                                 { prefix_wildcard_value: '*' }));
+    
+    // for (const flag of this.flags) 
+    //   if (arr_is_prefix_of_arr(test_flag, flag, { prefix_wildcard_value: '*' })) {
+    //     res = true;
+    //     break;
+    //   }
+
+    // return res;
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag, replace_existing = true) {
