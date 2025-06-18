@@ -10100,9 +10100,9 @@ class FatalPhase1Error extends WildcardsPlusError {
 function phase3(root_ast_node, { context } = {}) {
     if (!(Array.isArray(root_ast_node) &&
           context instanceof Context))
-    throw new Error(`bad phase, args: ` +
-                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                    `this likely indicates a programmer error`);
+      throw new Error(`bad phase3 args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                      `this likely indicates a programmer error`);
 
   return;
   // -----------------------------------------------------------------------------------------------
