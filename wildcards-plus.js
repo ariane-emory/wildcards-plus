@@ -9507,17 +9507,12 @@ function audit_semantics(root_ast_node,
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
-
-  const dummy_context = base_context
-        ? base_context.clone()
-        : new Context();
-
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, mode, warnings_arr, speculate, visited, no_errors) {
+  function walk_children(thing, mode, warnings_arr, as_if_parallel, visited, no_errors) {
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(mode) &&
           Array.isArray(warnings_arr) &&
-          typeof speculate == 'boolean' &&
+          typeof as_if_parallel == 'boolean' &&
           visited instanceof Set && 
           typeof no_errors == 'boolean'))
       throw new Error(`bad walk_children args: ` +
@@ -9526,7 +9521,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, mode, warnings_arr, speculate, visited, no_errors); 
+      walk(children, mode, warnings_arr, as_if_parallel, visited, no_errors); 
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw(msg, warnings_arr, mode, no_errors) {
@@ -9537,6 +9532,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
 
+    // if (no_errors)
+    //   throw new Error("trap");
+    
     if (no_errors)
       return; // only like 80% sure on this?
     
@@ -9573,6 +9571,9 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
+    // if (no_errors)
+    //   throw new Error("trap");
+    
     // if (mode === audit_semantics_modes.no_errors) {
     //   if (log_level__audit >= 1)
     //     lm.log(`skip checking flag ${flag} because no_errors`);
@@ -9605,11 +9606,11 @@ function audit_semantics(root_ast_node,
     return str;
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors) { 
+  function walk(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors) { 
     if (!(thing &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           Array.isArray(warnings_arr) &&
-          typeof speculate == 'boolean' &&
+          typeof as_if_parallel == 'boolean' &&
           visited instanceof Set && 
           typeof no_errors == 'boolean'))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
@@ -9628,34 +9629,38 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    // if (!speculate && // not sure if prudent
+    // if (!as_if_parallel && // not sure if prudent
     //     !no_errors)
     visited.add(hash);
 
     if (log_level__audit >= 2)
       lm.log(
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
-          `${speculate? 'speculatively ' : ''}audit semantics in ` +
+          `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
-      // ===========================================================================================
+      // ======================================g=====================================================
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+            walk(elem, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (dummy_context.named_wildcards.has(thing.name))
+        if (dummy_context.named_wildcards.has(thing.name)) {
+          if (no_errors)
+            return;
+          
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
                         warnings_arr);
-
+        }
+        
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
       // -------------------------------------------------------------------------------------------
@@ -9663,6 +9668,9 @@ function audit_semantics(root_ast_node,
         const got = dummy_context.named_wildcards.get(thing.name);
         
         if (!got) {
+          if (no_errors)
+            return;
+          
           const known_names = Array.from(dummy_context.named_wildcards.keys());
           const suggestion  = suggest_closest(thing.name, known_names);
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
@@ -9671,55 +9679,58 @@ function audit_semantics(root_ast_node,
                         warnings_arr);
         }
 
-        walk(got, local_audit_semantics_mode, warnings_arr, true, visited, no_errors); // start speculate
+        walk(got, local_audit_semantics_mode, warnings_arr, true, visited, no_errors); // start as_if_parallel
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        if (speculate) {
-          const split_options =
-                thing.picker.split_options(dummy_context.picker_allow_fun,
-                                           dummy_context.picker_forbid_fun);
+        const all_options = thing.picker.options.map(x => x.value);
+        
+        if (as_if_parallel) {
+          const currently_legal_options =
+                thing.picker
+                .split_options(dummy_context.picker_allow_fun,
+                               dummy_context.picker_forbid_fun)
+                .legal_options.map(x => x.value);
 
-          // lm.log(`LASM: ${local_audit_semantics_mode}`);
-
-          const tmp_visited = new Set(visited);
+          // to avoid infinite loops while performing the first pass, we'll use copy of visited.
+          // then, for the second pass we'll switch back to the original to allow revisiting:
+          const visited_copy = new Set(visited);
           
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
-          lm.indent(() => walk(split_options.legal_options.map(x => x.value),
-                               local_audit_semantics_mode,
-                               warnings_arr,
-                               speculate,
-                               tmp_visited,
-                               true));
-          
-          if (false) { // not sure 'bout this...
-            if (log_level__audit >= 1)
-              lm.log(`NO_ERRORS PASS (illegal):`);
-            lm.indent(() => walk(split_options.illegal_options.map(x => x.value),
-                                 local_audit_semantics_modes,
-                                 warnings_arr,
-                                 speculate,
-                                 tmp_visited,
-                                 true)); // not sure 'bout this...
-          }
-          
+          lm.indent(() =>
+            walk(currently_legal_options,
+                 local_audit_semantics_mode,
+                 warnings_arr,
+                 as_if_parallel, // or maybe false?
+                 visited_copy,
+                 true));
+
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => walk_children(thing,
-                                        local_audit_semantics_mode,
-                                        warnings_arr,
-                                        false,
-                                        visited,
-                                        no_errors)); // not sure 'bout this...
+          lm.indent(() =>
+            walk(all_options,
+                 local_audit_semantics_mode,
+                 warnings_arr,
+                 false, // not 100% sure 'bout this yet but it seems to work.
+                 visited,
+                 no_errors)); 
         }
         else {
-          walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+          walk(all_options,
+               local_audit_semantics_mode,
+               warnings_arr,
+               as_if_parallel,
+               visited,
+               no_errors);
         }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         if (!dummy_context.scalar_variables.has(thing.name)) {
+          if (no_errors)
+            return;
+          
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
@@ -9734,14 +9745,14 @@ function audit_semantics(root_ast_node,
 
           // lm.log(`GOT: ${got}`);
           
-          walk(got, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors); // ??
+          walk(got, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors); // ??
           // ^ propagate local_audit_semantics_mode
         }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -9750,7 +9761,7 @@ function audit_semantics(root_ast_node,
           // undecided on whether this case deserves a warning... for now, let's avoid one:
           dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
-        else {
+        else if (!no_errors) {
           for (const flag of thing.flags) 
             warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                           flag, warnings_arr,
@@ -9767,7 +9778,7 @@ function audit_semantics(root_ast_node,
         else if (thing.set_immediately) 
           // this case probably doesn't deserve a warning, avoid one:
           dummy_context.set_flag(thing.flag, false);
-        else  
+        else if (!no_errors)
           warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                         thing.flag, warnings_arr,
                                                         local_audit_semantics_mode,
@@ -9780,6 +9791,8 @@ function audit_semantics(root_ast_node,
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
+        if (no_errors)
+          return;
         warn_or_throw_unless_flag_could_be_set_by_now('unset',
                                                       thing.flag, warnings_arr,
                                                       local_audit_semantics_mode,
@@ -9788,12 +9801,12 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr, speculate, visited, no_errors);
+        walk_children(thing, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited, no_errors);
         // ^ try allowing propagate here
         
         // lm.log(`won't propagate local mode through ${thing.constructor.name}`);
@@ -9807,6 +9820,9 @@ function audit_semantics(root_ast_node,
     });
   }
 
+  const dummy_context = base_context
+        ? base_context.clone()
+        : new Context();
   const warnings =  [];
 
   walk(root_ast_node, audit_semantics_mode, warnings, false, new Set(), false);
