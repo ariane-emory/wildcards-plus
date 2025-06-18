@@ -9963,9 +9963,12 @@ function audit_semantics(root_ast_node,
             lm.log(`NO_ERRORS PASS (legal):`);
           lm.indent(() =>
             walk(currently_legal_options,
-                 audit_semantics_modes.no_errors,
+                 // switch to no_errors mode: some things that would look sus during this pass might 
+                 // not look sus afterwards, f.e. { ?foo whatever | # foo }.
+                 audit_semantics_modes.no_errors, 
                  warnings_arr,
-                 as_if_parallel, // or maybe false?
+                 true, // or maybe false? nah, i think this is corect... any children could also
+                 // get evaluated twice and so should judg it as_if_parralel, right?
                  visited_copy));
 
           if (log_level__audit >= 1)
