@@ -9310,12 +9310,14 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
-          if (true)
-            lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
-                   `you may not have intended to do this, check your template!`,
-                   log_level__expand_and_walk);
+          throw new FatalExpansionError(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                        `is not permitted`);
+        // if (true)
+        //   lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
+          //          `you may not have intended to do this, check your template!`,
+          //          log_level__expand_and_walk);
 
-        context.named_wildcards.set(thing.name, thing.wildcard);
+          context.named_wildcards.set(thing.name, thing.wildcard);
 
         throw new ThrownReturn(''); // produce nothing
       }
