@@ -4486,10 +4486,15 @@ class Context {
         if (replace_existing)
           if (new_flag_head.length != 0 &&
               arr_is_prefix_of_arr(new_flag_head, existing_flag,
-                                   { alt_equivalency_fun: (left, right, ix) =>
-                                     (ix !== 0 &&
-                                      (typeof left === 'number' ||
-                                       typeof right === 'number'))})) {
+                                   { alt_equivalency_fun: (left, right, ix) => {
+                                     const ret = (ix !== 0 &&
+                                                  (typeof left === 'number' ||
+                                                   typeof right === 'number'));
+                                     throw new Error("trap");
+                                     lm.log(`${inspect_fun(arguments)} => ${ret}`);
+
+                                     return ret;
+                                   }})) {
             // if (log_flags_enabled)
             //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
             //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
@@ -4649,1204 +4654,1204 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = {  ?female           #gender.female 
-                          |  ?male             #gender.male
-                          |  ?neuter           #gender.neuter 
-                          |3 !gender.#female   #female
-                          |2 !gender.#male     #male
-                          |1 !gender.#neuter   #neuter }
-@gender                 = {@__set_gender_if_unset
-                           {?gender.female woman
-                           |?gender.male   man
-                           |?gender.neuter androgyne }}
-@pro_3rd_subj           = {@__set_gender_if_unset
-                           {?gender.female she
-                           |?gender.male   he
-                           |?gender.neuter it        }}
-@pro_3rd_obj            = {@__set_gender_if_unset
-                           {?gender.female her
-                           |?gender.male   him
-                           |?gender.neuter it        }}
-@pro_pos_adj            = {@__set_gender_if_unset
-                           {?gender.female her
-                           |?gender.male   his
-                           |?gender.neuter its       }}
-@pro_pos                = {@__set_gender_if_unset
-                           {?gender.female hers
-                           |?gender.male   his
-                           |?gender.neuter its       }}
-
-@digit                  = {\\0|\\1|\\2|\\3|\\4
-                          |\\5|\\6|\\7|\\8|\\9}
-@low_digit              = {\\0|\\1|\\2|\\3|\\4}
-@high_digit             = {\\5|\\6|\\7|\\8|\\9}
-
-@low_random_weight      = {0.< @low_digit  }
-@lt1_random_weight      = {0.< @digit      } 
-@lowish_random_weight   = {0.< @high_digit }
-@random_weight          = {1.< @digit      }
-@highish_random_weight  = {1.< @low_digit  }
-@gt1_random_weight      = {1.< @digit      }
-@high_random_weight     = {1.< @high_digit }
-
-@pony_score_9           = { score_9,                                                             }
-@pony_score_8_up        = { score_9, score_8_up,                                                 }
-@pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
-@pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                         }
-@pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
-@pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
-
-@colors = { brown  | red    | orange | yellow | green  | blue    | indigo
-          | violet | purple | black  | grey   | white  | silver  | gold }
-
-@pony_scores =
-{0
-|@pony score_4_up
-|@pony score_5_up
-|@pony score_6_up
-|@pony score_7_up
-|@pony score_8_up
-|@pony score_9
-}
-
-@high_pony_scores =
-{0
-|@pony_score_7_up
-|@pony_score_8_up
-|@pony_score_9
-}
-
-@aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
-                            high depth of field, ultra high resolution, detailed background,
-                            wide shot,}
-
-
-// =================================================================================================
-// content based on XL Magic Config:
-// =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-// small
-// -------------------------------------------------------------------------------------------------
-
-@xl_magic_small_1_to_1 =
-{ %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1024; %th   = 768;   
-  %nw   = 1792; %nh   = 1344;  
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 512,
-// "height": 512,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_1_to_1_os6 =
-{ %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 512,
-// "height": 512,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_2 =
-{ %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1024; %th   = 768;   
-  %nw   = 1792; %nh   = 1344;  
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 768,
-// "height": 512,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_2_os6 =
-{ %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 512,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_2_to_3 =
-{ %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;
-  %tw   = 768;  %th   = 1024;
-  %nw   = 1344; %nh   = 1792;
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 512,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_2_to_3_os6 =
-{ %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 512,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_4_to_3 =
-{ %w   = 768;  %h     = 576;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1024; %th    = 768;    
-  %nw  = 1792; %nh    = 1344;   
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 768,
-// "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_4_to_3_os6 = 
-{ %w   = 768;  %h     = 576;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_4 =
-{ %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;
-  %tw  = 768; %th    = 1024;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 576,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_4_os6 = 
-{ %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;
-  %tw  = 1152; %th    = 1536;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 576,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_16_to_9 =
-{ %w   = 1024;  %h    = 576;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 1024,
-// "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_16_to_9_os6 = 
-{ %w   = 1024;  %h    = 576;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1024,
-// "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_9_to_16 =
-{ %w   = 576;  %h     = 1024;   
-  %ow  = 576;  %oh    = 768;
-  %tw  = 768;  %th    = 1024;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 576,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_9_to_16_os6 = 
-{ %w   = 576;  %h     = 1024;   
-  %ow  = 576;  %oh    = 768;
-  %tw  = 1152; %th    = 1536;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 576,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-// -------------------------------------------------------------------------------------------------
-// medium:
-// -------------------------------------------------------------------------------------------------
-
-@xl_magic_medium_1_to_1 =
-{ %h   = 1024;  %w    = 1024;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
-  #xl_magic_size.medium
-}
-// {
-// "width": 1024,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_1_to_1_os6 =
-{ %h   = 1024;  %w    = 1024;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1024,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_2_to_3 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 768;   %th   = 1024;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 832,
-// "height": 1216,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHei// "hiresFix": false
-// }
-
-@xl_magic_medium_2_to_3_os6 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 832,
-// "height": 1216,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_3_to_2 =
-{ %w   = 1216;  %h    = 832;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 1216,
-// "height": 832,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_3_to_2_os6 =
-{ %w   = 1216;  %h    = 832; 
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1216,
-// "height": 832,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_3_to_4 =
-{ %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 768;   %th   = 1024;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 896,
-// "height": 1152,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_4_to_3 =
-{ %w    = 1152; %h    = 896;    
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 1152,
-// "height": 896,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_4_to_3_os6 =
-{ %w    = 1152; %h    = 896;     
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1536; %th   = 1152 
-  %nw   = 1792; %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1152,
-// "height": 896,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_3_to_4_os6 =
-{ %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 896,
-// "height": 1152,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_9_to_16 =
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 768;   %th   = 1024;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 768,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_9_to_16_os6 = 
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_16_to_9 =
-{ %w   = 1344;  %h    = 768;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 1344,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_16_to_9_os6 =
-{ %w   = 1344;  %h    = 768;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1344,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-// -------------------------------------------------------------------------------------------------
-// large:
-// -------------------------------------------------------------------------------------------------
-
-@xl_magic_large_1_to_1 = 
-{ %w    = 1536; %h    = 1536;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 512;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_2_to_3 =
-{ %w    = 1280; %h    = 1920;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 512;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_3_to_2 =
-{ %w    = 1920; %h    = 1280;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_3_to_4 =
-{ %w    = 1344; %h    = 1792;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 576;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_4_to_3 =
-{ %w    = 1792; %h    = 1344;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_9_to_16 =
-{ %w    = 1152; %h    = 2048;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 576;  %hrfh = 1024;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_16_to_9 =
-{ %w    = 2048; %h    = 1152;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-
-@xl_magic_large_1_to_1_os6 =
-{ %w    = 1536: %h    = 1536;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 512;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl.magic_object_scaling.6
-}
-// 1:1 os6
-// {
-// "width": 1536,
-// "height": 1536,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 512,
-// "hiresFixHeight": 512,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_2_to_3_os6 =
-{ %w    = 1280: %h    = 1920;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 512;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl.magic_object_scaling.6
-}
-// 2:3 os6
-// {
-// "width": 1280,
-// "height": 1920,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 512,
-// "hiresFixHeight": 768,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_3_to_2_os6 =
-{ %w    = 1920: %h    = 1280;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl.magic_object_scaling.6
-}
-// 3:2 os6
-// {
-// "width": 1920,
-// "height": 1280,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 768,
-// "hiresFixHeight": 512,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_3_to_4_os6 =
-{ %w    = 1344: %h    = 1796;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 576;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl.magic_object_scaling.6
-}
-// 3:4 os6
-// {
-// "width": 1344,
-// "height": 1796,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 576,
-// "hiresFixHeight": 768,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_4_to_3_os6 = 
-{ %w    = 1792; %h    = 1344;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 768;  %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscale
-  #xl_magic_aspect_ratio.4.3
-  #xl.magic_object_scaling.6
-
-}
-// {
-// "width": 1792,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 768,
-// "hiresFixHeight": 576,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_9_to_16_os6 =
-{ %w    = 1152: %h    = 2048;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 576;  %hrfh = 1024;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl.magic_object_scaling.6
-}
-// 9:16 os6
-// {
-// "width": 1152,
-// "height": 2048,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 576,
-// "hiresFixHeight": 1024,
-// "hiresFixStrength": 0.6
-// }
-
-@xl_magic_large_16_to_9_os6 =
-{ %w    = 2048: %h    = 1152;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl.magic_object_scaling.6
-}
-// 16:9 os6
-// {
-// "width": 2048,
-// "height": 1152,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 1024,
-// "hiresFixHeight": 576,
-// "hiresFixStrength": 0.6
-// }
-
-
-// --------------------------------------------------------------------------------------------------
-// pickers:
-// -------------------------------------------------------------------------------------------------
-
-@xl_magic_small_random =
-{ @xl_magic_small_1_to_1
-| @xl_magic_small_2_to_3
-| @xl_magic_small_3_to_2
-| @xl_magic_small_3_to_4
-| @xl_magic_small_4_to_3
-| @xl_magic_small_9_to_16
-| @xl_magic_small_16_to_9
-}
-
-@xl_magic_small_random_os6 = 
-{ @xl_magic_small_1_to_1_os6
-| @xl_magic_small_2_to_3_os6
-| @xl_magic_small_3_to_2_os6
-| @xl_magic_small_3_to_4_os6
-| @xl_magic_small_4_to_3_os6
-| @xl_magic_small_9_to_16_os6
-| @xl_magic_small_16_to_9_os6
-}
-
-@xl_magic_medium_random =
-{ @xl_magic_medium_1_to_1
-| @xl_magic_medium_2_to_3
-| @xl_magic_medium_3_to_2
-| @xl_magic_medium_3_to_4
-| @xl_magic_medium_4_to_3
-| @xl_magic_medium_9_to_16
-| @xl_magic_medium_16_to_9
-}
-
-@xl_magic_medium_random_os6 =
-{ @xl_magic_medium_1_to_1_os6
-| @xl_magic_medium_2_to_3_os6
-| @xl_magic_medium_3_to_2_os6
-| @xl_magic_medium_3_to_4_os6
-| @xl_magic_medium_4_to_3_os6
-| @xl_magic_medium_9_to_16_os6
-| @xl_magic_medium_16_to_9_os6
-}
-
-@xl_magic_large_random =
-{ @xl_magic_large_1_to_1
-| @xl_magic_large_2_to_3
-| @xl_magic_large_3_to_2
-| @xl_magic_large_3_to_4
-| @xl_magic_large_4_to_3
-| @xl_magic_large_9_to_16
-| @xl_magic_large_16_to_9
-}
-
-@xl_magic_large_random_os6 =
-{ @xl_magic_large_1_to_1_os6
-| @xl_magic_large_2_to_3_os6
-| @xl_magic_large_3_to_2_os6
-| @xl_magic_large_3_to_4_os6
-| @xl_magic_large_4_to_3_os6
-| @xl_magic_large_9_to_16_os6
-| @xl_magic_large_16_to_9_os6
-}
-
-//--------------------------------------------------------------------------------------------------
-// Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
-// Artist Summoning':
-//--------------------------------------------------------------------------------------------------
-
-@__set_wizards_artists_artist_if_unset =
-{ !wizards_artist.#zacharias_martin_aagaard
-| !wizards_artist.#slim_aarons
-| !wizards_artist.#elenore_abbott
-| !wizards_artist.#tomma_abts
-| !wizards_artist.#vito_acconci
-| !wizards_artist.#andreas_achenbach
-| !wizards_artist.#ansel_adams
-| !wizards_artist.#josh_adamski
-| !wizards_artist.#charles_addams
-| !wizards_artist.#etel_adnan
-| !wizards_artist.#alena_aenami
-| !wizards_artist.#leonid_afremov
-| !wizards_artist.#petros_afshar
-| !wizards_artist.#yaacov_agam
-| !wizards_artist.#eileen_agar
-| !wizards_artist.#craigie_aitchison
-| !wizards_artist.#ivan_aivazovsky
-| !wizards_artist.#francesco_albani
-| !wizards_artist.#alessio_albi
-| !wizards_artist.#miles_aldridge
-| !wizards_artist.#john_white_alexander
-| !wizards_artist.#alessandro_allori
-| !wizards_artist.#mike_allred
-| !wizards_artist.#lawrence_alma_tadema
-| !wizards_artist.#lilia_alvarado
-| !wizards_artist.#tarsila_do_amaral
-| !wizards_artist.#ghada_amer
-| !wizards_artist.#cuno_amiet
-| !wizards_artist.#el_anatsui
-| !wizards_artist.#helga_ancher
-| !wizards_artist.#sarah_andersen
-| !wizards_artist.#richard_anderson
-| !wizards_artist.#sophie_gengembre_anderson
-| !wizards_artist.#wes_anderson
-| !wizards_artist.#alex_andreev
-| !wizards_artist.#sofonisba_anguissola
-| !wizards_artist.#louis_anquetin
-| !wizards_artist.#mary_jane_ansell
-| !wizards_artist.#chiho_aoshima
-| !wizards_artist.#sabbas_apterus
-| !wizards_artist.#hirohiko_araki
-| !wizards_artist.#howard_arkley
-| !wizards_artist.#rolf_armstrong
-| !wizards_artist.#gerd_arntz
-| !wizards_artist.#guy_aroch
-| !wizards_artist.#miki_asai
-| !wizards_artist.#clemens_ascher
-| !wizards_artist.#henry_asencio
-| !wizards_artist.#andrew_atroshenko
-| !wizards_artist.#deborah_azzopardi
-| !wizards_artist.#lois_van_baarle
-| !wizards_artist.#ingrid_baars
-| !wizards_artist.#anne_bachelier
-| !wizards_artist.#francis_bacon
-| !wizards_artist.#firmin_baes
-| !wizards_artist.#tom_bagshaw
-| !wizards_artist.#karol_bak
-| !wizards_artist.#christopher_balaskas
-| !wizards_artist.#benedick_bana
-| !wizards_artist.#banksy
-| !wizards_artist.#george_barbier
-| !wizards_artist.#cicely_mary_barker
-| !wizards_artist.#wayne_barlowe
-| !wizards_artist.#will_barnet
-| !wizards_artist.#matthew_barney
-| !wizards_artist.#angela_barrett
-| !wizards_artist.#jean_michel_basquiat
-| !wizards_artist.#lillian_bassman
-| !wizards_artist.#pompeo_batoni
-| !wizards_artist.#casey_baugh
-| !wizards_artist.#chiara_bautista
-| !wizards_artist.#herbert_bayer
-| !wizards_artist.#mary_beale
-| !wizards_artist.#alan_bean
-| !wizards_artist.#romare_bearden
-| !wizards_artist.#cecil_beaton
-| !wizards_artist.#cecilia_beaux
-| !wizards_artist.#jasmine_becket_griffith
-| !wizards_artist.#vanessa_beecroft
-| !wizards_artist.#beeple
-| !wizards_artist.#zdzislaw_beksinski
-| !wizards_artist.#katerina_belkina
-| !wizards_artist.#julie_bell
-| !wizards_artist.#vanessa_bell
-| !wizards_artist.#bernardo_bellotto
-| !wizards_artist.#ambrosius_benson
-| !wizards_artist.#stan_berenstain
-| !wizards_artist.#laura_berger
-| !wizards_artist.#jody_bergsma
-| !wizards_artist.#john_berkey
-| !wizards_artist.#gian_lorenzo_bernini
-| !wizards_artist.#marta_bevacqua
-| !wizards_artist.#john_t_biggers
-| !wizards_artist.#enki_bilal
-| !wizards_artist.#ivan_bilibin
-| !wizards_artist.#butcher_billy
-| !wizards_artist.#george_caleb_bingham
-| !wizards_artist.#ed_binkley
+                                     @__set_gender_if_unset  = {  ?female           #gender.female 
+                                                                  |  ?male             #gender.male
+                                                                  |  ?neuter           #gender.neuter 
+                                                                  |3 !gender.#female   #female
+                                                                  |2 !gender.#male     #male
+                                                                  |1 !gender.#neuter   #neuter }
+                                     @gender                 = {@__set_gender_if_unset
+                                                                {?gender.female woman
+                                                                 |?gender.male   man
+                                                                 |?gender.neuter androgyne }}
+                                     @pro_3rd_subj           = {@__set_gender_if_unset
+                                                                {?gender.female she
+                                                                 |?gender.male   he
+                                                                 |?gender.neuter it        }}
+                                     @pro_3rd_obj            = {@__set_gender_if_unset
+                                                                {?gender.female her
+                                                                 |?gender.male   him
+                                                                 |?gender.neuter it        }}
+                                     @pro_pos_adj            = {@__set_gender_if_unset
+                                                                {?gender.female her
+                                                                 |?gender.male   his
+                                                                 |?gender.neuter its       }}
+                                     @pro_pos                = {@__set_gender_if_unset
+                                                                {?gender.female hers
+                                                                 |?gender.male   his
+                                                                 |?gender.neuter its       }}
+
+                                     @digit                  = {\\0|\\1|\\2|\\3|\\4
+                                                                |\\5|\\6|\\7|\\8|\\9}
+                                     @low_digit              = {\\0|\\1|\\2|\\3|\\4}
+                                     @high_digit             = {\\5|\\6|\\7|\\8|\\9}
+
+                                     @low_random_weight      = {0.< @low_digit  }
+                                     @lt1_random_weight      = {0.< @digit      } 
+                                     @lowish_random_weight   = {0.< @high_digit }
+                                     @random_weight          = {1.< @digit      }
+                                     @highish_random_weight  = {1.< @low_digit  }
+                                     @gt1_random_weight      = {1.< @digit      }
+                                     @high_random_weight     = {1.< @high_digit }
+
+                                     @pony_score_9           = { score_9,                                                             }
+                                     @pony_score_8_up        = { score_9, score_8_up,                                                 }
+                                     @pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
+                                     @pony_score_6_up        = { score_9, score_8_up, score_7_up, score_6_up,                         }
+                                     @pony_score_5_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up,             }
+                                     @pony_score_4_up        = { score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, }
+
+                                     @colors = { brown  | red    | orange | yellow | green  | blue    | indigo
+                                                 | violet | purple | black  | grey   | white  | silver  | gold }
+
+                                     @pony_scores =
+                                       {0
+                                        |@pony score_4_up
+                                        |@pony score_5_up
+                                        |@pony score_6_up
+                                        |@pony score_7_up
+                                        |@pony score_8_up
+                                        |@pony score_9
+                                       }
+
+                                     @high_pony_scores =
+                                       {0
+                                        |@pony_score_7_up
+                                        |@pony_score_8_up
+                                        |@pony_score_9
+                                       }
+
+                                     @aris_defaults          = { masterpiece, best quality, absurdres, aesthetic, 8k,
+                                                                 high depth of field, ultra high resolution, detailed background,
+                                                                 wide shot,}
+
+
+                                     // =================================================================================================
+                                     // content based on XL Magic Config:
+                                     // =================================================================================================
+
+                                     // -------------------------------------------------------------------------------------------------
+                                     // small
+                                     // -------------------------------------------------------------------------------------------------
+
+                                     @xl_magic_small_1_to_1 =
+                                       { %w    = 512;  %h    = 512;   
+                                         %ow   = 768;  %oh   = 576;
+                                         %tw   = 1024; %th   = 768;   
+                                         %nw   = 1792; %nh   = 1344;  
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.square
+                                         #xl_magic_aspect_ratio.1.1
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 512,
+                                     // "height": 512,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_1_to_1_os6 =
+                                       { %w    = 512;  %h    = 512;   
+                                         %ow   = 768;  %oh   = 576;   
+                                         %tw   = 1536; %th   = 1152;  
+                                         %nw   = 1792; %nh   = 1344;  
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.square
+                                         #xl_magic_aspect_ratio.1.1
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 512,
+                                     // "height": 512,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_3_to_2 =
+                                       { %w    = 768;  %h    = 512;   
+                                         %ow   = 768;  %oh   = 576;   
+                                         %tw   = 1024; %th   = 768;   
+                                         %nw   = 1792; %nh   = 1344;  
+                                         %hrf  = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 512,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_3_to_2_os6 =
+                                       { %w    = 768;  %h    = 512;   
+                                         %ow   = 768;  %oh   = 576;   
+                                         %tw   = 1536; %th   = 1152;  
+                                         %nw   = 1792; %nh   = 1344;  
+                                         %hrf  = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 512,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_2_to_3 =
+                                       { %w    = 512;  %h    = 768;   
+                                         %ow   = 576;  %oh   = 768;
+                                         %tw   = 768;  %th   = 1024;
+                                         %nw   = 1344; %nh   = 1792;
+                                         %hrf  = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 512,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_2_to_3_os6 =
+                                       { %w    = 512;  %h    = 768;   
+                                         %ow   = 576;  %oh   = 768;
+                                         %tw   = 1152; %th   = 1536;
+                                         %nw   = 1344; %nh   = 1792;
+                                         %hrf  = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 512,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_4_to_3 =
+                                       { %w   = 768;  %h     = 576;    
+                                         %ow  = 768;  %oh    = 576;    
+                                         %tw  = 1024; %th    = 768;    
+                                         %nw  = 1792; %nh    = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 576,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_4_to_3_os6 = 
+                                       { %w   = 768;  %h     = 576;    
+                                         %ow  = 768;  %oh    = 576;    
+                                         %tw  = 1536; %th    = 1152;   
+                                         %nw  = 1792; %nh    = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 576,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_3_to_4 =
+                                       { %w   = 576;  %h     = 768;    
+                                         %ow  = 576;  %oh    = 768;
+                                         %tw  = 768; %th    = 1024;
+                                         %nw  = 1344; %nh    = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 576,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_3_to_4_os6 = 
+                                       { %w   = 576;  %h     = 768;    
+                                         %ow  = 576;  %oh    = 768;
+                                         %tw  = 1152; %th    = 1536;
+                                         %nw  = 1344; %nh    = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 576,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_16_to_9 =
+                                       { %w   = 1024;  %h    = 576;    
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1024;  %th   = 768;    
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 1024,
+                                     // "height": 576,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_16_to_9_os6 = 
+                                       { %w   = 1024;  %h    = 576;    
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1536;  %th   = 1152;   
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 1024,
+                                     // "height": 576,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_9_to_16 =
+                                       { %w   = 576;  %h     = 1024;   
+                                         %ow  = 576;  %oh    = 768;
+                                         %tw  = 768;  %th    = 1024;
+                                         %nw  = 1344; %nh    = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 576,
+                                     // "height": 1024,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_small_9_to_16_os6 = 
+                                       { %w   = 576;  %h     = 1024;   
+                                         %ow  = 576;  %oh    = 768;
+                                         %tw  = 1152; %th    = 1536;
+                                         %nw  = 1344; %nh    = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.small
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 576,
+                                     // "height": 1024,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     // -------------------------------------------------------------------------------------------------
+                                     // medium:
+                                     // -------------------------------------------------------------------------------------------------
+
+                                     @xl_magic_medium_1_to_1 =
+                                       { %h   = 1024;  %w    = 1024;   
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1024;  %th   = 768;    
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic.aspect_ratio_1_to_1
+                                         #xl_magic_size.medium
+                                       }
+                                     // {
+                                     // "width": 1024,
+                                     // "height": 1024,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_1_to_1_os6 =
+                                       { %h   = 1024;  %w    = 1024;   
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1536;  %th   = 1152;
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.square
+                                         #xl_magic_aspect_ratio.1.1
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 1024,
+                                     // "height": 1024,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_2_to_3 =
+                                       { %w   = 832;   %h    = 1216;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 768;   %th   = 1024;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 832,
+                                     // "height": 1216,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHei// "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_2_to_3_os6 =
+                                       { %w   = 832;   %h    = 1216;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 1152;  %th   = 1536;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 832,
+                                     // "height": 1216,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_3_to_2 =
+                                       { %w   = 1216;  %h    = 832;    
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1024;  %th   = 768;    
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 1216,
+                                     // "height": 832,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_3_to_2_os6 =
+                                       { %w   = 1216;  %h    = 832; 
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1536;  %th   = 1152;   
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 1216,
+                                     // "height": 832,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_3_to_4 =
+                                       { %w   = 896;   %h    = 1152;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 768;   %th   = 1024;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 896,
+                                     // "height": 1152,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_4_to_3 =
+                                       { %w    = 1152; %h    = 896;    
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1024; %th   = 768;    
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 1152,
+                                     // "height": 896,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_4_to_3_os6 =
+                                       { %w    = 1152; %h    = 896;     
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1536; %th   = 1152 
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 1152,
+                                     // "height": 896,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_3_to_4_os6 =
+                                       { %w   = 896;   %h    = 1152;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 1152;  %th   = 1536;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 896,
+                                     // "height": 1152,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_9_to_16 =
+                                       { %w   = 768;   %h    = 1344;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 768;   %th   = 1024;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 1344,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_9_to_16_os6 = 
+                                       { %w   = 768;   %h    = 1344;   
+                                         %ow  = 576;   %oh   = 768;
+                                         %tw  = 1152;  %th   = 1536;
+                                         %nw  = 1344;  %nh   = 1792;
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 768,
+                                     // "height": 1344,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_16_to_9 =
+                                       { %w   = 1344;  %h    = 768;    
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1024;  %th   = 768;    
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl_magic_object_scaling.4
+                                       }
+                                     // {
+                                     // "width": 1344,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1024,
+                                     // "targetImageHeight": 768,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     @xl_magic_medium_16_to_9_os6 =
+                                       { %w   = 1344;  %h    = 768;    
+                                         %ow  = 768;   %oh   = 576;    
+                                         %tw  = 1536;  %th   = 1152    
+                                         %nw  = 1792;  %nh   = 1344;   
+                                         %hrf = false;
+                                         #xl_magic_size.medium
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl_magic_object_scaling.6
+                                       }
+                                     // {
+                                     // "width": 1344,
+                                     // "height": 768,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": false
+                                     // }
+
+                                     // -------------------------------------------------------------------------------------------------
+                                     // large:
+                                     // -------------------------------------------------------------------------------------------------
+
+                                     @xl_magic_large_1_to_1 = 
+                                       { %w    = 1536; %h    = 1536;   
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1024; %th   = 768;    
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrfw = 512;  %hrfh = 512;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.square
+                                         #xl_magic_aspect_ratio.1.1
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_2_to_3 =
+                                       { %w    = 1280; %h    = 1920;   
+                                         %ow   = 576;  %oh   = 768;    
+                                         %tw   = 768;  %th   = 1024;   
+                                         %nw   = 1344; %nh   = 1792;   
+                                         %hrfw = 512;  %hrfh = 768;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_3_to_2 =
+                                       { %w    = 1920; %h    = 1280;   
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1024; %th   = 768;    
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrfw = 768;  %hrfh = 512;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_3_to_4 =
+                                       { %w    = 1344; %h    = 1792;   
+                                         %ow   = 576;  %oh   = 768;    
+                                         %tw   = 768;  %th   = 1024;   
+                                         %nw   = 1344; %nh   = 1792;   
+                                         %hrfw = 576;  %hrfh = 768;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_4_to_3 =
+                                       { %w    = 1792; %h    = 1344;   
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1024; %th   = 768;    
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrfw = 768;  %hrfh = 576;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_9_to_16 =
+                                       { %w    = 1152; %h    = 2048;   
+                                         %ow   = 576;  %oh   = 768;    
+                                         %tw   = 768;  %th   = 1024;   
+                                         %nw   = 1344; %nh   = 1792;   
+                                         %hrfw = 576;  %hrfh = 1024;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_16_to_9 =
+                                       { %w    = 2048; %h    = 1152;   
+                                         %ow   = 768;  %oh   = 576;    
+                                         %tw   = 1024; %th   = 768;    
+                                         %nw   = 1792; %nh   = 1344;   
+                                         %hrfw = 1024; %hrfh = 576;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl_magic_object_scaling.4
+                                       }
+
+                                     @xl_magic_large_1_to_1_os6 =
+                                       { %w    = 1536: %h    = 1536;
+                                         %ow   = 768;  %oh   = 576;
+                                         %tw   = 1536; %th   = 1152;
+                                         %nw   = 1792; %nh   = 1344;
+                                         %hrfw = 512;  %hrfh = 512;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.square
+                                         #xl_magic_aspect_ratio.1.1
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 1:1 os6
+                                     // {
+                                     // "width": 1536,
+                                     // "height": 1536,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 512,
+                                     // "hiresFixHeight": 512,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_2_to_3_os6 =
+                                       { %w    = 1280: %h    = 1920;
+                                         %ow   = 576;  %oh   = 768;
+                                         %tw   = 1152; %th   = 1536;
+                                         %nw   = 1344; %nh   = 1792;
+                                         %hrfw = 512;  %hrfh = 768;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.2.3
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 2:3 os6
+                                     // {
+                                     // "width": 1280,
+                                     // "height": 1920,
+                                     // "originalImageWidth": 576,
+                                     // "originalImageHeight": 768,
+                                     // "targetImageWidth": 1152,
+                                     // "targetImageHeight": 1536,
+                                     // "negativeOriginalImageWidth": 1344,
+                                     // "negativeOriginalImageHeight": 1792,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 512,
+                                     // "hiresFixHeight": 768,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_3_to_2_os6 =
+                                       { %w    = 1920: %h    = 1280;
+                                         %ow   = 768;  %oh   = 576;
+                                         %tw   = 1536; %th   = 1152;
+                                         %nw   = 1792; %nh   = 1344;
+                                         %hrfw = 768;  %hrfh = 512;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.3.2
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 3:2 os6
+                                     // {
+                                     // "width": 1920,
+                                     // "height": 1280,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 768,
+                                     // "hiresFixHeight": 512,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_3_to_4_os6 =
+                                       { %w    = 1344: %h    = 1796;
+                                         %ow   = 576;  %oh   = 768;
+                                         %tw   = 1152; %th   = 1536;
+                                         %nw   = 1344; %nh   = 1792;
+                                         %hrfw = 576;  %hrfh = 768;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.3.4
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 3:4 os6
+                                     // {
+                                     // "width": 1344,
+                                     // "height": 1796,
+                                     // "originalImageWidth": 576,
+                                     // "originalImageHeight": 768,
+                                     // "targetImageWidth": 1152,
+                                     // "targetImageHeight": 1536,
+                                     // "negativeOriginalImageWidth": 1344,
+                                     // "negativeOriginalImageHeight": 1792,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 576,
+                                     // "hiresFixHeight": 768,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_4_to_3_os6 = 
+                                       { %w    = 1792; %h    = 1344;
+                                         %ow   = 768;  %oh   = 576;
+                                         %tw   = 1536; %th   = 1152;
+                                         %nw   = 1792; %nh   = 1344;
+                                         %hrfw = 768;  %hrfh = 576;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscale
+                                         #xl_magic_aspect_ratio.4.3
+                                         #xl.magic_object_scaling.6
+
+                                       }
+                                     // {
+                                     // "width": 1792,
+                                     // "height": 1344,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 768,
+                                     // "hiresFixHeight": 576,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_9_to_16_os6 =
+                                       { %w    = 1152: %h    = 2048;
+                                         %ow   = 576;  %oh   = 768;
+                                         %tw   = 1152; %th   = 1536;
+                                         %nw   = 1344; %nh   = 1792;
+                                         %hrfw = 576;  %hrfh = 1024;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.portrait
+                                         #xl_magic_aspect_ratio.9.16
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 9:16 os6
+                                     // {
+                                     // "width": 1152,
+                                     // "height": 2048,
+                                     // "originalImageWidth": 576,
+                                     // "originalImageHeight": 768,
+                                     // "targetImageWidth": 1152,
+                                     // "targetImageHeight": 1536,
+                                     // "negativeOriginalImageWidth": 1344,
+                                     // "negativeOriginalImageHeight": 1792,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 576,
+                                     // "hiresFixHeight": 1024,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+                                     @xl_magic_large_16_to_9_os6 =
+                                       { %w    = 2048: %h    = 1152;
+                                         %ow   = 768;  %oh   = 576;
+                                         %tw   = 1536; %th   = 1152;
+                                         %nw   = 1792; %nh   = 1344;
+                                         %hrfw = 1024; %hrfh = 576;
+                                         %hrf  = true;
+                                         %hrf_strength = 0.6;
+                                         #xl_magic_size.large
+                                         #xl_magic_orientation.landscape
+                                         #xl_magic_aspect_ratio.16.9
+                                         #xl.magic_object_scaling.6
+                                       }
+                                     // 16:9 os6
+                                     // {
+                                     // "width": 2048,
+                                     // "height": 1152,
+                                     // "originalImageWidth": 768,
+                                     // "originalImageHeight": 576,
+                                     // "targetImageWidth": 1536,
+                                     // "targetImageHeight": 1152,
+                                     // "negativeOriginalImageWidth": 1792,
+                                     // "negativeOriginalImageHeight": 1344,
+                                     // "hiresFix": true,
+                                     // "hiresFixWidth": 1024,
+                                     // "hiresFixHeight": 576,
+                                     // "hiresFixStrength": 0.6
+                                     // }
+
+
+                                     // --------------------------------------------------------------------------------------------------
+                                     // pickers:
+                                     // -------------------------------------------------------------------------------------------------
+
+                                     @xl_magic_small_random =
+                                       { @xl_magic_small_1_to_1
+                                         | @xl_magic_small_2_to_3
+                                         | @xl_magic_small_3_to_2
+                                         | @xl_magic_small_3_to_4
+                                         | @xl_magic_small_4_to_3
+                                         | @xl_magic_small_9_to_16
+                                         | @xl_magic_small_16_to_9
+                                       }
+
+                                     @xl_magic_small_random_os6 = 
+                                       { @xl_magic_small_1_to_1_os6
+                                         | @xl_magic_small_2_to_3_os6
+                                         | @xl_magic_small_3_to_2_os6
+                                         | @xl_magic_small_3_to_4_os6
+                                         | @xl_magic_small_4_to_3_os6
+                                         | @xl_magic_small_9_to_16_os6
+                                         | @xl_magic_small_16_to_9_os6
+                                       }
+
+                                     @xl_magic_medium_random =
+                                       { @xl_magic_medium_1_to_1
+                                         | @xl_magic_medium_2_to_3
+                                         | @xl_magic_medium_3_to_2
+                                         | @xl_magic_medium_3_to_4
+                                         | @xl_magic_medium_4_to_3
+                                         | @xl_magic_medium_9_to_16
+                                         | @xl_magic_medium_16_to_9
+                                       }
+
+                                     @xl_magic_medium_random_os6 =
+                                       { @xl_magic_medium_1_to_1_os6
+                                         | @xl_magic_medium_2_to_3_os6
+                                         | @xl_magic_medium_3_to_2_os6
+                                         | @xl_magic_medium_3_to_4_os6
+                                         | @xl_magic_medium_4_to_3_os6
+                                         | @xl_magic_medium_9_to_16_os6
+                                         | @xl_magic_medium_16_to_9_os6
+                                       }
+
+                                     @xl_magic_large_random =
+                                       { @xl_magic_large_1_to_1
+                                         | @xl_magic_large_2_to_3
+                                         | @xl_magic_large_3_to_2
+                                         | @xl_magic_large_3_to_4
+                                         | @xl_magic_large_4_to_3
+                                         | @xl_magic_large_9_to_16
+                                         | @xl_magic_large_16_to_9
+                                       }
+
+                                     @xl_magic_large_random_os6 =
+                                       { @xl_magic_large_1_to_1_os6
+                                         | @xl_magic_large_2_to_3_os6
+                                         | @xl_magic_large_3_to_2_os6
+                                         | @xl_magic_large_3_to_4_os6
+                                         | @xl_magic_large_4_to_3_os6
+                                         | @xl_magic_large_9_to_16_os6
+                                         | @xl_magic_large_16_to_9_os6
+                                       }
+
+                                     //--------------------------------------------------------------------------------------------------
+                                     // Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+                                     // Artist Summoning':
+                                     //--------------------------------------------------------------------------------------------------
+
+                                     @__set_wizards_artists_artist_if_unset =
+                                       { !wizards_artist.#zacharias_martin_aagaard
+                                         | !wizards_artist.#slim_aarons
+                                         | !wizards_artist.#elenore_abbott
+                                         | !wizards_artist.#tomma_abts
+                                         | !wizards_artist.#vito_acconci
+                                         | !wizards_artist.#andreas_achenbach
+                                         | !wizards_artist.#ansel_adams
+                                         | !wizards_artist.#josh_adamski
+                                         | !wizards_artist.#charles_addams
+                                         | !wizards_artist.#etel_adnan
+                                         | !wizards_artist.#alena_aenami
+                                         | !wizards_artist.#leonid_afremov
+                                         | !wizards_artist.#petros_afshar
+                                         | !wizards_artist.#yaacov_agam
+                                         | !wizards_artist.#eileen_agar
+                                         | !wizards_artist.#craigie_aitchison
+                                         | !wizards_artist.#ivan_aivazovsky
+                                         | !wizards_artist.#francesco_albani
+                                         | !wizards_artist.#alessio_albi
+                                         | !wizards_artist.#miles_aldridge
+                                         | !wizards_artist.#john_white_alexander
+                                         | !wizards_artist.#alessandro_allori
+                                         | !wizards_artist.#mike_allred
+                                         | !wizards_artist.#lawrence_alma_tadema
+                                         | !wizards_artist.#lilia_alvarado
+                                         | !wizards_artist.#tarsila_do_amaral
+                                         | !wizards_artist.#ghada_amer
+                                         | !wizards_artist.#cuno_amiet
+                                         | !wizards_artist.#el_anatsui
+                                         | !wizards_artist.#helga_ancher
+                                         | !wizards_artist.#sarah_andersen
+                                         | !wizards_artist.#richard_anderson
+                                         | !wizards_artist.#sophie_gengembre_anderson
+                                         | !wizards_artist.#wes_anderson
+                                         | !wizards_artist.#alex_andreev
+                                         | !wizards_artist.#sofonisba_anguissola
+                                         | !wizards_artist.#louis_anquetin
+                                         | !wizards_artist.#mary_jane_ansell
+                                         | !wizards_artist.#chiho_aoshima
+                                         | !wizards_artist.#sabbas_apterus
+                                         | !wizards_artist.#hirohiko_araki
+                                         | !wizards_artist.#howard_arkley
+                                         | !wizards_artist.#rolf_armstrong
+                                         | !wizards_artist.#gerd_arntz
+                                         | !wizards_artist.#guy_aroch
+                                         | !wizards_artist.#miki_asai
+                                         | !wizards_artist.#clemens_ascher
+                                         | !wizards_artist.#henry_asencio
+                                         | !wizards_artist.#andrew_atroshenko
+                                         | !wizards_artist.#deborah_azzopardi
+                                         | !wizards_artist.#lois_van_baarle
+                                         | !wizards_artist.#ingrid_baars
+                                         | !wizards_artist.#anne_bachelier
+                                         | !wizards_artist.#francis_bacon
+                                         | !wizards_artist.#firmin_baes
+                                         | !wizards_artist.#tom_bagshaw
+                                         | !wizards_artist.#karol_bak
+                                         | !wizards_artist.#christopher_balaskas
+                                         | !wizards_artist.#benedick_bana
+                                         | !wizards_artist.#banksy
+                                         | !wizards_artist.#george_barbier
+                                         | !wizards_artist.#cicely_mary_barker
+                                         | !wizards_artist.#wayne_barlowe
+                                         | !wizards_artist.#will_barnet
+                                         | !wizards_artist.#matthew_barney
+                                         | !wizards_artist.#angela_barrett
+                                         | !wizards_artist.#jean_michel_basquiat
+                                         | !wizards_artist.#lillian_bassman
+                                         | !wizards_artist.#pompeo_batoni
+                                         | !wizards_artist.#casey_baugh
+                                         | !wizards_artist.#chiara_bautista
+                                         | !wizards_artist.#herbert_bayer
+                                         | !wizards_artist.#mary_beale
+                                         | !wizards_artist.#alan_bean
+                                         | !wizards_artist.#romare_bearden
+                                         | !wizards_artist.#cecil_beaton
+                                         | !wizards_artist.#cecilia_beaux
+                                         | !wizards_artist.#jasmine_becket_griffith
+                                         | !wizards_artist.#vanessa_beecroft
+                                         | !wizards_artist.#beeple
+                                         | !wizards_artist.#zdzislaw_beksinski
+                                         | !wizards_artist.#katerina_belkina
+                                         | !wizards_artist.#julie_bell
+                                         | !wizards_artist.#vanessa_bell
+                                         | !wizards_artist.#bernardo_bellotto
+                                         | !wizards_artist.#ambrosius_benson
+                                         | !wizards_artist.#stan_berenstain
+                                         | !wizards_artist.#laura_berger
+                                         | !wizards_artist.#jody_bergsma
+                                         | !wizards_artist.#john_berkey
+                                         | !wizards_artist.#gian_lorenzo_bernini
+                                         | !wizards_artist.#marta_bevacqua
+                                         | !wizards_artist.#john_t_biggers
+                                         | !wizards_artist.#enki_bilal
+                                         | !wizards_artist.#ivan_bilibin
+                                         | !wizards_artist.#butcher_billy
+                                         | !wizards_artist.#george_caleb_bingham
+                                         | !wizards_artist.#ed_binkley
 | !wizards_artist.#george_birrell
 | !wizards_artist.#robert_bissell
 | !wizards_artist.#charles_blackman
