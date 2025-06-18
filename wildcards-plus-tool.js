@@ -10087,7 +10087,9 @@ class FatalPhase1Error extends WildcardsPlusError {
 // =================================================================================================
 // THE NEW PHASE 3 (INITIALIZE SCALARS) FUNCTION.
 // =================================================================================================
-function phase3(root_ast_node, { context } = {}) {
+function phase3(root_ast_node, { context } = {}) { 
+  // throw new Error("trap 1");
+  
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
     throw new Error(`bad phase3 args: ` +
@@ -10108,6 +10110,8 @@ function phase3(root_ast_node, { context } = {}) {
   }
   // ===============================================================================================
   function walk(thing) { 
+    throw new Error("trap 2");
+
     if (!thing)
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
 
@@ -10133,10 +10137,8 @@ function phase3(root_ast_node, { context } = {}) {
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
-        for (const elem of thing)
-          if (!is_primitive(elem))
-            walk(elem);
-        // ^ propagate local_audit_semantics_mode
+        for (const elem of thing.filter(x => !is_primitive(ix)))
+          walk(elem);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
