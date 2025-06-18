@@ -11149,7 +11149,8 @@ try {
       LOG_LINE();
       lm.log(`Flags after:`);
       LOG_LINE();
-      lm.log(`${inspect_fun(context.flags)}`);
+      for (const flag of context.flags)
+        lm.log(`  #${flag.join('.')}`);
     }
     
     if (context.scalar_variables.size > 0) {
