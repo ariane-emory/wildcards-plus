@@ -8958,13 +8958,9 @@ function load_prelude(into_context = new Context()) {
     
     if (! prelude_parse_result) {
       const old_log_match_enabled = log_match_enabled;
-      try {
-        log_match_enabled = false; 
-        prelude_parse_result = Prompt.match(prelude_text);
-      }
-      finally {
-        log_match_enabled = old_log_match_enabled;
-      }
+      log_match_enabled = false; 
+      prelude_parse_result = Prompt.match(prelude_text);
+      log_match_enabled = old_log_match_enabled;
     }
 
     lm.indent(() => {
