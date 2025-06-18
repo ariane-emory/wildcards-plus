@@ -10086,8 +10086,8 @@ function phase1(root_ast_node, { context } ={}) {
   for (const thing of root_ast_node) {
     if (thing instanceof NamedWildcardDefinition) {
       if (dummy_context.named_wildcards.has(thing.name))
-        throw new FatalSemanticError(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                     `is not permitted!`);
+        throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                   `is not permitted!`);
       
       
       context.named_wildcards.set(thing.name, thing.wildcard);
