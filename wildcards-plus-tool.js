@@ -9815,13 +9815,13 @@ function audit_semantics(root_ast_node,
     else if (mode === audit_semantics_modes.warnings) {  
       if (log_level__audit >= 2)
         lm.log(`PUSH WARNING '${msg}'`);
-      warnings_arr.push(msg);
+      warnings.push(msg);
     }
     // else if (mode == audit_semantics_modes.no_errors) {
     //   //   msg = `${mode.toUpperCase()}: ${msg}`;
     //   //   if (log_level__audit >= 2)
     //   //     lm.log(`PUSH WARNING '${msg}'`);
-    //   //   warnings_arr.push(msg);
+    //   //   warnings.push(msg);
     // }
     else
       throw new Error(`what do?" ${inspect_fun(mode)}`);
@@ -9916,7 +9916,7 @@ function audit_semantics(root_ast_node,
           
           warn_or_throw(`redefining named wildcard @${thing.name}, ` +
                         `you may not have intended to do this, check your template!`,
-                        warnings_arr);
+                        warnings);
         }
         
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
@@ -9934,7 +9934,7 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
                         `this suggests that you may have a typo or other error in your template.` +
                         `${suggestion}`,
-                        warnings_arr);
+                        warnings);
         }
 
         walk(got, local_audit_semantics_mode, true, visited); // start as_if_parallel
@@ -9991,7 +9991,7 @@ function audit_semantics(root_ast_node,
           warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
                         `this suggests that you may have a made typo or other error in your ` +
                         `template.${suggestion}`,
-                        warnings_arr,
+                        warnings,
                         local_audit_semantics_mode);
         }
         else {
@@ -10070,14 +10070,14 @@ function audit_semantics(root_ast_node,
   const dummy_context = base_context
         ? base_context.clone()
         : new Context();
-  const warnings_arr = [];
+  const warnings = [];
 
   walk(root_ast_node, audit_semantics_mode, false, new Set());
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return warnings_arr;
+  return warnings;
 }
 // =================================================================================================
 // END OF THE SEMANTICS AUDITING FUNCTION.
