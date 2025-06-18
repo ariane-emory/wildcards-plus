@@ -9973,15 +9973,6 @@ function audit_semantics(root_ast_node,
                         `template.${suggestion}`,
                         local_audit_semantics_mode);
         }
-        else {
-          // const got = dummy_context.scalar_variables.get(thing.name);
-
-          // lm.log(`GOT: ${got}`);
-
-          // why, it's just a string, this is totally unnecessary:
-          // walk(got, local_audit_semantics_mode, as_if_parallel, visited); // ??
-          // ^ propagate local_audit_semantics_mode
-        }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
