@@ -3225,7 +3225,9 @@ class WeightedPicker {
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
-  return function(prefix_arr, full_arr, prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED) {
+  return function(prefix_arr, full_arr,
+                  { prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED,
+                    alt_equivelancy_fun } = {}) {
     if (prefix_arr.length > full_arr.length)
       return false;
 
@@ -3234,6 +3236,10 @@ const arr_is_prefix_of_arr = (() => {
           prefix_arr[ix] === prefix_wildcard_value)
         continue;
 
+      if (alt_equivelancy_fun && 
+          alt_equivalency_fun(prefix_arr[ix], full_arr[ix], ix))
+        continue;
+      
       if (prefix_arr[ix] !== full_arr[ix])
         return false;
     }
@@ -4444,7 +4450,8 @@ class Context {
     let res = false;
     
     for (const flag of this.flags) 
-      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
+      if (arr_is_prefix_of_arr(test_flag, flag,
+                               { prefix_wildcard_value: '*' })) {
         res = true;
         break;
       }
@@ -9845,9 +9852,18 @@ function audit_semantics(root_ast_node,
                   mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, mode, as_if_parallel, visited) {
+  function visited_hash(thing) {
+    let str = '';
+
+    str += thing_str_repr(thing, { length: Infinity, always_include_type_str: true });
+    str += thing_str_repr(dummy_context.flags, { length: Infinity, always_include_type_str: true });
+    
+    return str;
+  }
+  // -----------------------------------------------------------------------------------------------
+  function walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited) {
     if (!(thing &&
-          Object.values(audit_semantics_modes).includes(mode) &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           typeof as_if_parallel == 'boolean' &&
           visited instanceof Set))
       throw new Error(`bad walk_children args: ` +
@@ -9856,7 +9872,7 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, mode, as_if_parallel, visited); 
+      walk(children, local_audit_semantics_mode, as_if_parallel, visited); 
   }
   // ===============================================================================================
   function walk(thing, local_audit_semantics_mode, as_if_parallel, visited) { 
@@ -9890,7 +9906,7 @@ function audit_semantics(root_ast_node,
           `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
 
     lm.indent(() => {
-      // ======================================g=====================================================
+      // ===========================================================================================
       // typecases:
       // ===========================================================================================
       if (Array.isArray(thing)) {
