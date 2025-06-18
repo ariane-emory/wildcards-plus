@@ -9004,12 +9004,6 @@ class FatalExpansionError extends WildcardsPlusError {
     super(message);
   }
 }
-// -------------------------------------------------------------------------------------------------
-class FatalPhase1Error extends WildcardsPlusError {
-  constructor(message) {
-    super(message);
-  }
-}
 // =================================================================================================
 // END OF LOCAL EXCEPTION TYPES.
 // =================================================================================================
@@ -10076,7 +10070,13 @@ function audit_semantics(root_ast_node,
 // =================================================================================================
 // THE NEW PHASE 1 FUNCTION.
 // =================================================================================================
-function phase_1(root_ast_node, { context } ={}) {
+class FatalPhase1Error extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function phase1(root_ast_node, { context } ={}) {
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
     throw new Error(`bad phase_1 args: ` +
@@ -10085,7 +10085,12 @@ function phase_1(root_ast_node, { context } ={}) {
 
   for (const thing of root_ast_node) {
     if (thing instanceof NamedWildcardDefinition) {
-       
+      if (dummy_context.named_wildcards.has(thing.name))
+        throw new FatalSemanticError(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                     `is not permitted!`);
+      
+      
+      context.named_wildcards.set(thing.name, thing.wildcard);
     }
   }
 }
