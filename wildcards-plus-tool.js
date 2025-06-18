@@ -8963,16 +8963,19 @@ function load_prelude(into_context = new Context()) {
       log_match_enabled = old_log_match_enabled;
     }
 
+    phase1(prelude_parse_result.value, { context: into_context });
+
     // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
     const ignored = expand_wildcards(prelude_parse_result.value, into_context,
                                      { correct_articles: true });
-    
+
+                                          
     log_flags_enabled = old_log_flags_enabled;
 
     // log_flags_enabled = true;
     
     if (ignored === undefined)
-      throw new Error("crap");
+             throw new Error("crap");
 
     // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
   });
@@ -10078,12 +10081,6 @@ function audit_semantics(root_ast_node,
 // =================================================================================================
 // THE NEW PHASE 1 FUNCTION.
 // =================================================================================================
-class FatalPhase1Error extends WildcardsPlusError {
-  constructor(message) {
-    super(message);
-  }
-}
-// -------------------------------------------------------------------------------------------------
 function phase1(root_ast_node, { context } ={}) {
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
@@ -10097,9 +10094,15 @@ function phase1(root_ast_node, { context } ={}) {
         throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
                                    `is not permitted!`);
       
-      
       context.named_wildcards.set(thing.name, thing.wildcard);
+      lm.log(`defined @${thing.name}`);
     }
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class FatalPhase1Error extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
   }
 }
 // =================================================================================================
