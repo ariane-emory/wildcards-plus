@@ -10014,7 +10014,7 @@ function audit_semantics(root_ast_node,
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
+        if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
           return;
         warn_or_throw_unless_flag_could_be_set_by_now('unset',
                                                       thing.flag,
