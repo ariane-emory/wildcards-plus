@@ -4471,7 +4471,7 @@ class Context {
       lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
              `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-    //if (replace_existing)
+    if (replace_existing)
     {
       this.flags = this.flags.filter(existing_flag => {
         // if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
@@ -4481,8 +4481,7 @@ class Context {
         //   return false;
         // }
 
-        if (replace_existing &&
-            existing_flag[0] === new_flag[0])
+        if (existing_flag[0] === new_flag[0])
           return false;
         
         //const new_flag_head = new_flag.slice(0, -1);
