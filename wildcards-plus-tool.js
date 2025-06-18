@@ -10003,11 +10003,11 @@ function audit_semantics(root_ast_node,
                         local_audit_semantics_mode);
         }
         else {
-          const got = dummy_context.scalar_variables.get(thing.name);
+          // const got = dummy_context.scalar_variables.get(thing.name);
 
           // lm.log(`GOT: ${got}`);
 
-          // why, this is totally unnecessary:
+          // why, it's just a string, this is totally unnecessary:
           // walk(got, local_audit_semantics_mode, warnings_arr, as_if_parallel, visited); // ??
           // ^ propagate local_audit_semantics_mode
         }
