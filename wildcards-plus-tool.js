@@ -10098,13 +10098,13 @@ class FatalPhase1Error extends WildcardsPlusError {
 // THE NEW PHASE 2 (INITIALIZE SCALARS) FUNCTION.
 // =================================================================================================
 function phase3(root_ast_node, { context } = {}) {
-  return;
-  
-  if (!(Array.isArray(root_ast_node) &&
-        context instanceof Context))
+    if (!(Array.isArray(root_ast_node) &&
+          context instanceof Context))
     throw new Error(`bad phase, args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
+
+  return;
   // -----------------------------------------------------------------------------------------------
   function walk_children(thing) {
     if (!(thing instanceof ASTNode))
