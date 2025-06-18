@@ -10144,16 +10144,18 @@ function phase3(root_ast_node, { context } = {}) {
       if (Array.isArray(thing)) {
         for (const elem of thing)
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, as_if_parallel, visited);
+            walk(elem);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
         context.scalar_variables.set(thing.name, '')
+        lm.log(`initialized $${thing.name}}`);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         context.scalar_variables.set(thing.destination.name, '');
+        lm.log(`initialized $${thing.destination.name}}`);
         walk_children(thing);
       }
       // -------------------------------------------------------------------------------------------
