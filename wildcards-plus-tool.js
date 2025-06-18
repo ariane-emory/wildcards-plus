@@ -9314,10 +9314,10 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
                                         `is not permitted!`);
         // if (true)
         //   lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
-          //          `you may not have intended to do this, check your template!`,
-          //          log_level__expand_and_walk);
+        //          `you may not have intended to do this, check your template!`,
+        //          log_level__expand_and_walk);
 
-          context.named_wildcards.set(thing.name, thing.wildcard);
+        context.named_wildcards.set(thing.name, thing.wildcard);
 
         throw new ThrownReturn(''); // produce nothing
       }
@@ -9775,7 +9775,9 @@ const audit_semantics_modes = Object.freeze({
 function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
-  if (root_ast_node === undefined)
+  if (!(root_ast_node &&
+        base_context instanceof Context &&
+        Object.values(audit_semantics_modes).includes(audit_semantics_mode)))
     throw new Error(`bad audit_semantics args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
