@@ -9311,7 +9311,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
       else if (thing instanceof ASTNamedWildcardDefinition) {
         if (context.named_wildcards.has(thing.name))
           throw new FatalExpansionError(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                        `is not permitted`);
+                                        `is not permitted!`);
         // if (true)
         //   lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
           //          `you may not have intended to do this, check your template!`,
@@ -9910,10 +9910,9 @@ function audit_semantics(root_ast_node,
         if (dummy_context.named_wildcards.has(thing.name)) {
           if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
             return;
-          
-          warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                        `you may not have intended to do this, check your template!`,
-                        warnings);
+
+          throw new FatalExpansionError(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                        `is not permitted!`);
         }
         
         dummy_context.named_wildcards.set(thing.name, thing.wildcard);
