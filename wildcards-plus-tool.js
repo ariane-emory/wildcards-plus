@@ -309,6 +309,7 @@ let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
 let log_level__phase1                  = 0;
+let log_level__phase3                  = 2;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
@@ -10096,7 +10097,9 @@ class FatalPhase1Error extends WildcardsPlusError {
 // =================================================================================================
 // THE NEW PHASE 2 (INITIALIZE SCALARS) FUNCTION.
 // =================================================================================================
-function phase2(root_ast_node, { context } = {}) {
+function phase3(root_ast_node, { context } = {}) {
+  return;
+  
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
     throw new Error(`bad phase, args: ` +
@@ -10114,35 +10117,26 @@ function phase2(root_ast_node, { context } = {}) {
       walk(children); 
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, as_if_parallel, visited) { 
-    if (!(thing &&
-          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-          typeof as_if_parallel == 'boolean' &&
-          visited instanceof Set))
+  function walk(thing) { 
+    if (!thing)
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
-    // ---------------------------------------------------------------------------------------------
+
     if (is_primitive(thing))
       return;
 
-    const hash = thing;
-    // const hash = visited_hash(thing);
-    
-    if (visited.has(hash)) {
+    if (visited.has(thing)) {
       if (log_level__audit >= 2)
-        lm.log(`already audited ` +
+        lm.log(`already phase3ed ` +
                `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
       
       return;
     }
 
-    visited.add(hash);
+    visited.add(thing);
 
-    if (log_level__audit >= 2)
-      lm.log(
-        `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
-          `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
-          `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-          `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+    if (log_level__phase3 >= 2)
+      lm.log(`do phase3 on ` +
+             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
 
     lm.indent(() => {
       // ===========================================================================================
@@ -11604,15 +11598,15 @@ async function main() {
     // lm.log(`${JSON.stringify(AST)}`);
   }
 
+  // phase1:
   let phase1_elapsed;
-  
-  // phasem:
+
   lm.log(`phase1...`);
   lm.indent(() => {
     phase1_elapsed = measure_time(() =>
       phase1(AST, { context: base_context }));
   });
-  lm.log(`phas1m ${phase1_elapsed.toFixed(2)} ms`);
+  lm.log(`phase1 took ${phase1_elapsed.toFixed(2)} ms`);
 
   // audit flags:
   let audit_elapsed, audit_warnings;
@@ -11632,6 +11626,17 @@ async function main() {
             : warning),
            false);
 
+  // phase3:
+  let phase3_elapsed;
+
+  lm.log(`phase3...`);
+  lm.indent(() => {
+    phase3_elapsed = measure_time(() =>
+      phase3(AST, { context: base_context }));
+  });
+  lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
+
+  // -----------------------------------------------------------------------------------------------
   let posted_count        = 0;
   let prior_prompt        = null;
   let prior_configuration = null;
