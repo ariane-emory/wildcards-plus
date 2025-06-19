@@ -9786,11 +9786,6 @@ function audit_semantics(root_ast_node,
           Object.values(audit_semantics_modes).includes(mode)))
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
-
-    if (mode === audit_semantics_modes.no_errors)
-      throw new Error("trap");
-    // return; // only like 80% sure on this?
-    
     msg = `${mode.toUpperCase()}: ${msg}`;
 
     if (mode === audit_semantics_mode.throw_error) {
@@ -9801,14 +9796,9 @@ function audit_semantics(root_ast_node,
         lm.log(`PUSH WARNING '${msg}'`);
       warnings.push(msg);
     }
-    // else if (mode == audit_semantics_modes.no_errors) {
-    //   //   msg = `${mode.toUpperCase()}: ${msg}`;
-    //   //   if (log_level__audit >= 2)
-    //   //     lm.log(`PUSH WARNING '${msg}'`);
-    //   //   warnings.push(msg);
-    // }
-    else
+    else {
       throw new Error(`what do?" ${inspect_fun(mode)}`);
+    }
   }
   // -----------------------------------------------------------------------------------------------
   function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, mode, visited) {
@@ -9819,15 +9809,6 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    // if (no_errors)
-    //   throw new Error("trap");
-    
-    // if (mode === audit_semantics_modes.no_errors) {
-    //   if (log_level__audit >= 1)
-    //     lm.log(`skip checking flag ${flag} because no_errors`);
-    //   return;
-    // }
-    
     if (dummy_context.flag_is_set(flag)) {
       if (log_level__audit >= 1)
         lm.log(`flag ${flag} could be set by now`);
@@ -9867,10 +9848,7 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    const hash = thing;
-    // const hash = visited_hash(thing);
-    
-    if (visited.has(hash)) {
+    if (visited.has(thing)) {
       if (log_level__audit >= 2)
         lm.log(`already audited ` +
                `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
@@ -9878,7 +9856,7 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    visited.add(hash);
+    visited.add(thing);
 
     if (log_level__audit >= 2)
       lm.log(
@@ -9900,16 +9878,6 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
         // do nothing.
-        
-        // if (dummy_context.named_wildcards.has(thing.name)) {
-        //   if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
-        //     return;
-
-        //   throw new FatalSemanticError(`WARNING: redefining named wildcard @${thing.name}, ` +
-        //                                `is not permitted!`);
-        // }
-        
-        // dummy_context.named_wildcards.set(thing.name, thing.wildcard);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
@@ -9931,7 +9899,7 @@ function audit_semantics(root_ast_node,
                                dummy_context.picker_forbid_fun)
                 .legal_options.map(x => x.value);
 
-          // to avoid infinite loops while performing the first pass, we'll use copy of visited.
+          // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
           
@@ -9940,7 +9908,7 @@ function audit_semantics(root_ast_node,
           lm.indent(() =>
             walk(currently_legal_options,
                  // switch to no_errors mode: some things that would look sus during this pass might 
-                 // not look sus afterwards, f.e. { ?foo whatever | # foo }.
+                 // not look sus afterwards, f.e. { ?foo whatever | #foo }.
                  audit_semantics_modes.no_errors, 
                  true, // or maybe false? nah, i think this is corect... any children could also
                  // get evaluated twice and so should judg it as_if_parralel, right?
@@ -9979,7 +9947,6 @@ function audit_semantics(root_ast_node,
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
         walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
-        // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
