@@ -10427,7 +10427,7 @@ function audit_semantics(root_ast_node,
                  ? `scalar variable '$${name}' referenced before it could have been initialized `
                  : `scalar variable '$${name}' is referenced but is never initialized `) +
           `and so the reference will produce an empty string, ` +
-          `which may not be what you intended. ` +
+          `which may not be what you intended to do. ` +
           `this could be intentional or it could ` +
           `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
