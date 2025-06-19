@@ -9864,7 +9864,7 @@ function audit_semantics(root_ast_node,
                   local_audit_semantics_mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, loocal_context, local_audit_semantics_mode, as_if_parallel, visited) {
+  function walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) {
     if (!(thing instanceof ASTNode &&
           local_context instanceof Context && 
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
@@ -9876,10 +9876,10 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, local_audit_semantics_mode, as_if_parallel, visited); 
+      walk(children, local_context, local_audit_semantics_mode, as_if_parallel, visited); 
   }
   // ===============================================================================================
-  function walk(thing, local_contet, local_audit_semantics_mode, as_if_parallel, visited) { 
+  function walk(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) { 
     if (!(thing &&
           local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
@@ -9914,7 +9914,7 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing.filter(elem => !is_primitive(elem)))
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, as_if_parallel, visited);
+            walk(elem, local_context, local_audit_semantics_mode, as_if_parallel, visited);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -9928,7 +9928,7 @@ function audit_semantics(root_ast_node,
         if (!got) 
           throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
         else 
-          walk(got, local_audit_semantics_mode, true, visited); // start as_if_parallel
+          walk(got, local_context, local_audit_semantics_mode, true, visited); // start as_if_parallel
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
@@ -9949,6 +9949,7 @@ function audit_semantics(root_ast_node,
             lm.log(`NO_ERRORS PASS (legal):`);
           lm.indent(() =>
             walk(currently_legal_options,
+                 local_context,
                  // switch to no_errors mode: some things that would look sus during this pass might 
                  // not look sus afterwards, f.e. { ?foo whatever | #foo }.
                  audit_semantics_modes.no_errors, 
@@ -9960,12 +9961,14 @@ function audit_semantics(root_ast_node,
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() =>
             walk(all_options,
+                 local_context,
                  local_audit_semantics_mode,
                  false, // not 100% sure 'bout this yet but it seems to work.
                  visited)); 
         }
         else {
           walk(all_options,
+               local_context,
                local_audit_semantics_mode,
                as_if_parallel,
                visited);
@@ -9986,7 +9989,7 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
@@ -9998,6 +10001,7 @@ function audit_semantics(root_ast_node,
           for (const flag of thing.flags) 
             warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                           flag,
+                                                          local_context,
                                                           local_audit_semantics_mode,
                                                           visited);
         }
@@ -10013,6 +10017,7 @@ function audit_semantics(root_ast_node,
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
           warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                         thing.flag,
+                                                        local_context,
                                                         local_audit_semantics_mode,
                                                         visited);
       }
@@ -10026,12 +10031,13 @@ function audit_semantics(root_ast_node,
           return;
         warn_or_throw_unless_flag_could_be_set_by_now('unset',
                                                       thing.flag,
+                                                      local_context,
                                                       local_audit_semantics_mode,
                                                       visited);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
       }
       // -------------------------------------------------------------------------------------------
       else {
@@ -10045,7 +10051,7 @@ function audit_semantics(root_ast_node,
   const warnings                       = [];
   const scalars_referenced_before_init = [];
   
-  walk(root_ast_node, audit_semantics_mode, false, new Set());
+  walk(root_ast_node, dummy_context, audit_semantics_mode, false, new Set());
   
   for (const { name, suggestion } of scalars_referenced_before_init) {
     const msg = (dummy_context.scalar_variables.has(name)
