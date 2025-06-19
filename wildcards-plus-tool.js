@@ -3485,6 +3485,23 @@ function is_plain_object(value) {
   );
 }
 // -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    const allowed = Math.floor(Math.min(name.length, cand.length) * 0.4);
+
+    if (dist <= allowed && dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  return closest ? ` Did you mean '${closest}'?` : '';
+}
+// -------------------------------------------------------------------------------------------------
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
   const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
@@ -3886,24 +3903,6 @@ if (test_structured_clone) {
     else
       lm.log(`test #3 failed as intended.`);
   }
-}
-// -------------------------------------------------------------------------------------------------
-function suggest_closest(name, candidates) {
-  let closest = null;
-  let closest_distance = Infinity;
-
-  for (const cand of candidates) {
-    const dist = levenshtein(name, cand);
-    if (dist < closest_distance) {
-      closest = cand;
-      closest_distance = dist;
-    }
-  }
-
-  // If it's reasonably close (adjust threshold as needed)
-  return (closest && closest_distance <= 2)
-    ? ` Did you mean '${closest}'?`
-    : '';
 }
 // -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
@@ -10425,10 +10424,11 @@ function audit_semantics(root_ast_node,
   
   for (const { name, suggestion } of scalars_referenced_before_init) {
     const msg = (dummy_context.scalar_variables.has(name)
-                 ? `scalar variable '$${name}' referenced before it could have been initialized, `
-                 : `scalar variable '$${name}' is referenced but is never initialized, `) +
-          `and it will be an empty string at this time, ` +
-          `this could be intentional it could ` +
+                 ? `scalar variable '$${name}' referenced before it could have been initialized `
+                 : `scalar variable '$${name}' is referenced but is never initialized `) +
+          `and so the reference will produce an empty string, ` +
+          `which may not be what you intended. ` +
+          `this could be intentional or it could ` +
           `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
     warn_or_throw(msg, audit_semantics_mode);
