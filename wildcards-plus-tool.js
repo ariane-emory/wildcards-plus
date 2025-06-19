@@ -309,7 +309,6 @@ let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
 let log_level__phase1                  = 0;
-let log_level__phase3                  = 1
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
