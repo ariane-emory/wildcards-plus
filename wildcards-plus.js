@@ -4428,7 +4428,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 512,
@@ -4451,7 +4451,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 512,
@@ -4474,7 +4474,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 768,
@@ -4497,7 +4497,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 576,
@@ -4520,7 +4520,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 768,
@@ -4543,7 +4543,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 576,
@@ -4566,7 +4566,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
+  #xl_magic.object_scaling.4
 }
 // {
 // "width": 1024,
@@ -4589,7 +4589,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
+  #xl_magic.object_scaling.6
 }
 // {
 // "width": 512,
@@ -4612,7 +4612,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
+  #xl_magic.object_scaling.6
 }
 // {
 // "width": 512,
@@ -4635,7 +4635,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
+  #xl_magic.object_scaling.6
 }
 // {
 // "width": 768,
@@ -4658,7 +4658,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
+  #xl_magic.object_scaling.6
 }
 // {
 // "width": 576,
@@ -5506,7 +5506,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 1:1 os6
 // {
@@ -5535,7 +5535,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 2:3 os6
 // {
@@ -5564,7 +5564,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 3:2 os6
 // {
@@ -5593,7 +5593,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 3:4 os6
 // {
@@ -5622,7 +5622,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.landscale
   #xl_magic_aspect_ratio.4.3
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 
 }
 // {
@@ -5651,7 +5651,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 9:16 os6
 // {
@@ -5680,7 +5680,7 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
-  #xl.magic_object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // 16:9 os6
 // {
