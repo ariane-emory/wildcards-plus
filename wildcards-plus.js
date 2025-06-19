@@ -10008,45 +10008,66 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
         const all_options = thing.picker.options.map(x => x.value);
+        const split_options = thing.picker
+              .split_options(local_context.picker_allow_fun,
+                             local_context.picker_forbid_fun);
+        const currently_legal_options =
+              split_options .legal_options.map(x => x.value);
+        const currently_illlegal_options =
+              split_options .legal_options.map(x => x.value);
         
         if (as_if_parallel) {
-          const currently_legal_options =
-                thing.picker
-                .split_options(local_context.picker_allow_fun,
-                               local_context.picker_forbid_fun)
-                .legal_options.map(x => x.value);
-
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
           
           if (log_level__audit >= 1)
             lm.log(`NO_ERRORS PASS (legal):`);
-          lm.indent(() =>
-            walk(currently_legal_options,
-                 local_context,
-                 // switch to no_errors mode: some things that would look sus during this pass might 
-                 // not look sus afterwards, f.e. { ?foo whatever | #foo }.
-                 audit_semantics_modes.no_errors, 
-                 true, // or maybe false? nah, i think this is corect... any children could also
-                 // get evaluated twice and so should be juded as_if_parralel, right?
-                 visited_copy));
+          lm.indent(() => {
+            for (const option of currently_legal_options)
+              walk(option,
+                   local_context,
+                   // switch to no_errors mode: some things that would look sus during this pass might 
+                   // not look sus afterwards, f.e. { ?foo whatever | #foo }.
+                   audit_semantics_modes.no_errors, 
+                   true, // or maybe false? nah, i think this is corect... any children could also
+                   // get evaluated twice and so should be juded as_if_parralel, right?
+                   visited_copy);
+          });
 
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() =>
-            walk(all_options,
-                 local_context,
-                 local_audit_semantics_mode,
-                 false, // not 100% sure 'bout this yet but it seems to work.
-                 visited)); 
+          lm.indent(() => {
+            for (const option of all_options)
+              walk(option,
+                   local_context.clone(),
+                   local_audit_semantics_mode,
+                   false, // not 100% sure 'bout this yet but it seems to work.
+                   visited);
+          }); 
         }
         else {
-          walk(all_options,
-               local_context,
-               local_audit_semantics_mode,
-               as_if_parallel,
-               visited);
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+          lm.indent(() => {
+            for (const option of all_options)
+              walk(option,
+                   local_context.clone(),
+                   local_audit_semantics_mode,
+                   as_if_parallel,
+                   visited);
+          });
+
+          if (log_level__audit >= 1)
+            lm.log(`NO_ERRORS PASS (legal):`);
+          lm.indent(() =>  {
+            for (const option of currently_legal_options)
+              walk(option,
+                   local_context,
+                   audit_semantics_modes.no_errors,
+                   as_if_parallel,
+                   visited);
+          });
         }
       }
       // -------------------------------------------------------------------------------------------
