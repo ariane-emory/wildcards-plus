@@ -9970,16 +9970,17 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
+        if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
+          return;
+
         if (!dummy_context.scalar_variables.has(thing.name)) {
-          if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
-            return;
-          
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable $${thing.name} referenced before it could have been ` +
-                        `initialized, this suggests that you may have a made typo or other error ` +
-                        `in your  template.${suggestion}`,
-                        local_audit_semantics_mode);
+          const warning_msg = `scalar variable $${thing.name} referenced before it could have been ` +
+                `initialized, this suggests that you may have a made typo or other error ` +
+                `in your template.${suggestion}`;
+          
+          scalars_referenced_before_init.push({ name: thing.name, warning_msg });
         }
       }
       // -------------------------------------------------------------------------------------------
@@ -10044,7 +10045,8 @@ function audit_semantics(root_ast_node,
         ? base_context.clone()
         : new Context();
   const warnings = [];
-
+  const scalars_referenced_before_init = [];
+  
   walk(root_ast_node, audit_semantics_mode, false, new Set());
 
   if (log_level__audit >= 1)
