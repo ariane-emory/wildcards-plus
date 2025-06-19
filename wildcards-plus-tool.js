@@ -10324,11 +10324,12 @@ function audit_semantics(root_ast_node,
           }); 
         }
         else {
-          walk(all_options,
-               local_context,
-               local_audit_semantics_mode,
-               as_if_parallel,
-               visited);
+          for (const option of all_options)
+            walk(option,
+                 local_context,
+                 local_audit_semantics_mode,
+                 as_if_parallel,
+                 visited);
         }
       }
       // -------------------------------------------------------------------------------------------
