@@ -34,7 +34,7 @@ let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
-let log_level__phase1                  = 0;
+let log_level__process_named_wildcard_definitions                  = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
@@ -4428,7 +4428,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 512,
@@ -4451,7 +4451,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 512,
@@ -4474,7 +4474,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 768,
@@ -4497,7 +4497,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 576,
@@ -4520,7 +4520,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.4.3
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 768,
@@ -4543,7 +4543,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.9.16
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 576,
@@ -4566,7 +4566,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.16.9
-  #xl_magic.object_scaling.4
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 1024,
@@ -4589,7 +4589,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.square
   #xl_magic_aspect_ratio.1.1
-  #xl_magic.object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // {
 // "width": 512,
@@ -4612,7 +4612,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
-  #xl_magic.object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // {
 // "width": 512,
@@ -4635,7 +4635,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.landscape
   #xl_magic_aspect_ratio.3.2
-  #xl_magic.object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // {
 // "width": 768,
@@ -4658,7 +4658,7 @@ const prelude_text = `
   #xl_magic_size.small
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.3.4
-  #xl_magic.object_scaling.6
+  #xl_magic_object_scaling.6
 }
 // {
 // "width": 576,
@@ -5496,7 +5496,7 @@ const prelude_text = `
 }
 
 @xl_magic_large_1_to_1_os6 =
-{ %w    = 1536: %h    = 1536;
+{ %w    = 1536; %h    = 1536;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
@@ -5525,7 +5525,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_2_to_3_os6 =
-{ %w    = 1280: %h    = 1920;
+{ %w    = 1280; %h    = 1920;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5554,7 +5554,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_3_to_2_os6 =
-{ %w    = 1920: %h    = 1280;
+{ %w    = 1920; %h    = 1280;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
@@ -5583,7 +5583,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_3_to_4_os6 =
-{ %w    = 1344: %h    = 1796;
+{ %w    = 1344; %h    = 1796;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5641,7 +5641,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_9_to_16_os6 =
-{ %w    = 1152: %h    = 2048;
+{ %w    = 1152; %h    = 2048;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5670,7 +5670,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_16_to_9_os6 =
-{ %w    = 2048: %h    = 1152;
+{ %w    = 2048; %h    = 1152;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
@@ -9045,7 +9045,7 @@ function load_prelude(into_context = new Context()) {
     }
 
     lm.indent(() => {
-      phase1(prelude_parse_result.value, { context: into_context });
+      process_named_wildcard_definitions(prelude_parse_result.value, { context: into_context });
 
       // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
       const ignored = expand_wildcards(prelude_parse_result.value, into_context,
@@ -9837,27 +9837,27 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 // =================================================================================================
 // THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
 // =================================================================================================
-function phase1(root_ast_node, { context } ={}) {
+function process_named_wildcard_definitions(root_ast_node, { context } ={}) {
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
-    throw new Error(`bad phase1 args: ` +
+    throw new Error(`bad process_named_wildcard_definitions args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
   for (const thing of root_ast_node) {
     if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.name))
-        throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                   `is not permitted!`);
+        throw new FatalProcessNamedWildcardDefinitions(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                                       `is not permitted!`);
       
       context.named_wildcards.set(thing.name, thing.wildcard);
-      if (log_level__phase1 >= 1)
+      if (log_level__process_named_wildcard_definitions >= 1)
         lm.log(`defined @${thing.name}`);
     }
   }
 }
 // -------------------------------------------------------------------------------------------------
-class FatalPhase1Error extends WildcardsPlusError {
+class FatalProcessNamedWildcardDefinitions extends WildcardsPlusError {
   constructor(message) {
     super(message);
   }
@@ -10153,7 +10153,9 @@ function audit_semantics(root_ast_node,
     const msg = (dummy_context.scalar_variables.has(name)
                  ? `scalar variable '$${name}' referenced before it could have been initialized, `
                  : `scalar variable '$${name}' is referenced but is never initialized, `) +
-          `this suggests that you may have a made typo or other error ` +
+          `and it will be an empty string at this time, ` +
+          `this could be intentional it could ` +
+          `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
     warn_or_throw(msg, audit_semantics_mode);
     

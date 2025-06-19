@@ -5770,7 +5770,7 @@ const prelude_text = `
 }
 
 @xl_magic_large_1_to_1_os6 =
-{ %w    = 1536: %h    = 1536;
+{ %w    = 1536; %h    = 1536;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
@@ -5799,7 +5799,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_2_to_3_os6 =
-{ %w    = 1280: %h    = 1920;
+{ %w    = 1280; %h    = 1920;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5828,7 +5828,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_3_to_2_os6 =
-{ %w    = 1920: %h    = 1280;
+{ %w    = 1920; %h    = 1280;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
@@ -5857,7 +5857,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_3_to_4_os6 =
-{ %w    = 1344: %h    = 1796;
+{ %w    = 1344; %h    = 1796;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5915,7 +5915,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_9_to_16_os6 =
-{ %w    = 1152: %h    = 2048;
+{ %w    = 1152; %h    = 2048;
   %ow   = 576;  %oh   = 768;
   %tw   = 1152; %th   = 1536;
   %nw   = 1344; %nh   = 1792;
@@ -5944,7 +5944,7 @@ const prelude_text = `
 // }
 
 @xl_magic_large_16_to_9_os6 =
-{ %w    = 2048: %h    = 1152;
+{ %w    = 2048; %h    = 1152;
   %ow   = 768;  %oh   = 576;
   %tw   = 1536; %th   = 1152;
   %nw   = 1792; %nh   = 1344;
