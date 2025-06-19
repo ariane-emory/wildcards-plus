@@ -11461,14 +11461,14 @@ async function main() {
            false);
 
   // phase3:
-  let phase3_elapsed;
+  // let phase3_elapsed;
 
-  lm.log(`phase3...`);
-  lm.indent(() => {
-    phase3_elapsed = measure_time(() =>
-      phase3(AST, { context: base_context }));
-  });
-  lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
+  // lm.log(`phase3...`);
+  // lm.indent(() => {
+  //   phase3_elapsed = measure_time(() =>
+  //     phase3(AST, { context: base_context }));
+  // });
+  // lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
 
   // -----------------------------------------------------------------------------------------------
   let posted_count        = 0;
