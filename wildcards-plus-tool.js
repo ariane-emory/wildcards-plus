@@ -9756,6 +9756,39 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
 
 // =================================================================================================
+// THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
+// =================================================================================================
+function phase1(root_ast_node, { context } ={}) {
+  if (!(Array.isArray(root_ast_node) &&
+        context instanceof Context))
+    throw new Error(`bad phase1 args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+
+  for (const thing of root_ast_node) {
+    if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.name))
+        throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                   `is not permitted!`);
+      
+      context.named_wildcards.set(thing.name, thing.wildcard);
+      if (log_level__phase1 >= 1)
+        lm.log(`defined @${thing.name}`);
+    }
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class FatalPhase1Error extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// =================================================================================================
+// END OF THE NEW PHASE 1 FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
 // SEMANTICS AUDITING FUNCTION.
 // =================================================================================================
 class FatalSemanticError extends WildcardsPlusError {
@@ -10015,39 +10048,6 @@ function audit_semantics(root_ast_node,
 }
 // =================================================================================================
 // END OF THE SEMANTICS AUDITING FUNCTION.
-// =================================================================================================
-
-
-// =================================================================================================
-// THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
-// =================================================================================================
-function phase1(root_ast_node, { context } ={}) {
-  if (!(Array.isArray(root_ast_node) &&
-        context instanceof Context))
-    throw new Error(`bad phase1 args: ` +
-                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
-                    `this likely indicates a programmer error`);
-
-  for (const thing of root_ast_node) {
-    if (thing instanceof ASTNamedWildcardDefinition) {
-      if (context.named_wildcards.has(thing.name))
-        throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                   `is not permitted!`);
-      
-      context.named_wildcards.set(thing.name, thing.wildcard);
-      if (log_level__phase1 >= 1)
-        lm.log(`defined @${thing.name}`);
-    }
-  }
-}
-// -------------------------------------------------------------------------------------------------
-class FatalPhase1Error extends WildcardsPlusError {
-  constructor(message) {
-    super(message);
-  }
-}
-// =================================================================================================
-// END OF THE NEW PHASE 1 FUNCTION.
 // =================================================================================================
 
 
