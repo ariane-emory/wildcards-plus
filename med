@@ -4,8 +4,10 @@
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio.1.1
   #xl_magic_size.medium
+  #xl_magic_orientation.square
+  #xl_magic.aspect_ratio.1.1
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 1024,
@@ -38,7 +40,8 @@
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHei// "hiresFix": false
+// "negativeOriginalImageHei
+// "hiresFix": false
 // }
 
 @xl_magic_medium_3_to_2 =
