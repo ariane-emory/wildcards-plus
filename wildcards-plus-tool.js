@@ -9970,20 +9970,21 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
-        if (!dummy_context.scalar_variables_has(thing.name))
+        if (!dummy_context.scalar_variables.has(thing.name) &&
+           local_audit_semantics_mode !== audit_semantics_modes.no_errors)
           scalars_referenced_before_init.push(thing.name);
         
         // if (!dummy_context.scalar_variables.has(thing.name)) {
         //   if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
         //     return;
-          
+        
         //   const known_names = Array.from(dummy_context.scalar_variables.keys());
         //   const suggestion = suggest_closest(thing.name, known_names);
         //   warn_or_throw(`scalar variable $${thing.name} referenced before it could have been ` +
         //                 `initialized, this suggests that you may have a made typo or other error ` +
         //                 `in your  template.${suggestion}`,
         //                 local_audit_semantics_mode);
-        }
+        // }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
@@ -10047,13 +10048,26 @@ function audit_semantics(root_ast_node,
         ? base_context.clone()
         : new Context();
   const warnings = [];
-  const scalars_referenced_before_init = new Set();
+  const scalars_referenced_before_init = [];
   
   walk(root_ast_node, audit_semantics_mode, false, new Set());
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
+  const suggestion = suggest_closest(thing.name, known_names);
+
+  for (const scalar_name of scalars_referenced_before_init) {
+    if (dummy_context.scalar_variables.has(thing.name)) {
+      const known_names = Array.from(dummy_context.scalar_variables.keys());
+      warn_or_throw(`scalar variable $${thing.name} referenced before it could have been ` +
+                    `initialized, this suggests that you may have a made typo or other error ` +
+                    `in your  template.${suggestion}`,
+                    local_audit_semantics_mode);
+    }
+
+  }
+  
   return warnings;
 }
 // =================================================================================================
