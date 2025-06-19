@@ -10314,7 +10314,7 @@ function audit_semantics(root_ast_node,
           lm.indent(() => {
             for (const option of all_options)
               walk(option,
-                   local_context,
+                   local_context.clone(),
                    local_audit_semantics_mode,
                    false, // not 100% sure 'bout this yet but it seems to work.
                    visited);
