@@ -308,7 +308,7 @@ let log_name_lookups_enabled           = false;
 let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
-let log_level__phase1                  = 0;
+let log_level__process_named_wildcard_definitions                  = 0;
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
@@ -9319,7 +9319,7 @@ function load_prelude(into_context = new Context()) {
     }
 
     lm.indent(() => {
-      phase1(prelude_parse_result.value, { context: into_context });
+      process_named_wildcard_definitions(prelude_parse_result.value, { context: into_context });
 
       // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
       const ignored = expand_wildcards(prelude_parse_result.value, into_context,
@@ -10111,27 +10111,27 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 // =================================================================================================
 // THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
 // =================================================================================================
-function phase1(root_ast_node, { context } ={}) {
+function process_named_wildcard_definitions(root_ast_node, { context } ={}) {
   if (!(Array.isArray(root_ast_node) &&
         context instanceof Context))
-    throw new Error(`bad phase1 args: ` +
+    throw new Error(`bad process_named_wildcard_definitions args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
   for (const thing of root_ast_node) {
     if (thing instanceof ASTNamedWildcardDefinition) {
       if (context.named_wildcards.has(thing.name))
-        throw new FatalPhase1Error(`WARNING: redefining named wildcard @${thing.name}, ` +
-                                   `is not permitted!`);
+        throw new FatalProcessNamedWildcardDefinitions(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                                       `is not permitted!`);
       
       context.named_wildcards.set(thing.name, thing.wildcard);
-      if (log_level__phase1 >= 1)
+      if (log_level__process_named_wildcard_definitions >= 1)
         lm.log(`defined @${thing.name}`);
     }
   }
 }
 // -------------------------------------------------------------------------------------------------
-class FatalPhase1Error extends WildcardsPlusError {
+class FatalProcessNamedWildcardDefinitions extends WildcardsPlusError {
   constructor(message) {
     super(message);
   }
@@ -11835,15 +11835,15 @@ async function main() {
     // lm.log(`${JSON.stringify(AST)}`);
   }
 
-  // phase1:
-  let phase1_elapsed;
+  // process_named_wildcard_definitions:
+  let process_named_wildcard_definitions_elapsed;
 
-  lm.log(`phase1...`);
+  lm.log(`process_named_wildcard_definitions...`);
   lm.indent(() => {
-    phase1_elapsed = measure_time(() =>
-      phase1(AST, { context: base_context }));
+    process_named_wildcard_definitions_elapsed = measure_time(() =>
+      process_named_wildcard_definitions(AST, { context: base_context }));
   });
-  lm.log(`phase1 took ${phase1_elapsed.toFixed(2)} ms`);
+  lm.log(`process_named_wildcard_definitions took ${process_named_wildcard_definitions_elapsed.toFixed(2)} ms`);
 
   // audit flags:
   let audit_elapsed, audit_warnings;
