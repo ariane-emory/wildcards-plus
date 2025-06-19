@@ -309,7 +309,7 @@ let log_picker_enabled                 = false;
 let log_level__audit                   = 0;
 let log_level__expand_and_walk         = 0;
 let log_level__phase1                  = 0;
-let log_level__phase3                  = 2;
+let log_level__phase3                  = 1
 let log_level__smart_join              = 0;
 let prelude_disabled                   = false;
 let print_ast_then_die                 = false;
@@ -10110,14 +10110,16 @@ function phase3(root_ast_node, { context } = {}) {
       else if (thing instanceof ASTScalarReference) {
         if (!context.scalar_variables.has(thing.name)) {
           context.scalar_variables.set(thing.name, '');
-          lm.log(`INITIALIZED $${thing.destination.name}`);
+          if (log_level__phase3 >= 1)
+            lm.log(`INITIALIZED $${thing.name}`, log_level__phase3 >= 2);
         }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         if (!context.scalar_variables.has(thing.destination.name)) {
           context.scalar_variables.set(thing.destination.name, '');
-          lm.log(`INITIALIZED $${thing.destination.name}`);
+          if (log_level__phase3 >= 1)
+            lm.log(`${log_level__phase3 == 1 ? '  ' : ''}INITIALIZED $${thing.destination.name}`, log_level__phase3 >= 2);
         }
         walk_children(thing);
       }
@@ -11461,14 +11463,14 @@ async function main() {
            false);
 
   // phase3:
-  // let phase3_elapsed;
+  let phase3_elapsed;
 
-  // lm.log(`phase3...`);
-  // lm.indent(() => {
-  //   phase3_elapsed = measure_time(() =>
-  //     phase3(AST, { context: base_context }));
-  // });
-  // lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
+  lm.log(`phase3...`);
+  lm.indent(() => {
+    phase3_elapsed = measure_time(() =>
+      phase3(AST, { context: base_context }));
+  });
+  lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
 
   // -----------------------------------------------------------------------------------------------
   let posted_count        = 0;
