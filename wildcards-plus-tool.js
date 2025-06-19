@@ -9972,8 +9972,8 @@ function audit_semantics(root_ast_node,
           
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a made typo or other error in your ` +
+          warn_or_throw(`scalar variable $${thing.name} referenced before it could have been ` +
+                        `initialized this suggests that you may have a made typo or other error in your ` +
                         `template.${suggestion}`,
                         local_audit_semantics_mode);
         }
