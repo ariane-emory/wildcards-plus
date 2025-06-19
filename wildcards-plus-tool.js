@@ -10281,6 +10281,8 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
+        const all_options = thing.picker.options.map(x => x.value);
+
         const split_options = thing.picker
               .split_options(local_context.picker_allow_fun,
                              local_context.picker_forbid_fun);
