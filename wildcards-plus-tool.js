@@ -4877,6 +4877,29 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
+@xl_magic_small_2_to_3_os6 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
 @xl_magic_small_3_to_2_os6 =
 { %w    = 768;  %h    = 512;   
   %ow   = 768;  %oh   = 576;   
@@ -4900,19 +4923,19 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_2_to_3_os6 =
-{ %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrf  = false;
+@xl_magic_small_3_to_4_os6 = 
+{ %w   = 576;  %h     = 768;    
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
+  %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
+  #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.6
 }
 // {
-// "width": 512,
+// "width": 576,
 // "height": 768,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
@@ -4937,29 +4960,6 @@ const prelude_text = `
 // {
 // "width": 768,
 // "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_4_os6 = 
-{ %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;
-  %tw  = 1152; %th    = 1536;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 576,
-// "height": 768,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
 // "targetImageWidth": 1536,
