@@ -10047,7 +10047,7 @@ function audit_semantics(root_ast_node,
   }
   // ===============================================================================================
   
-  const dummy_context                  =  base_context.clone();
+  const dummy_context                  = base_context.clone();
   const warnings                       = [];
   const scalars_referenced_before_init = [];
   
