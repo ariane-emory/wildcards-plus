@@ -10314,12 +10314,14 @@ function audit_semantics(root_ast_node,
 
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() =>
-            walk(all_options,
-                 local_context,
-                 local_audit_semantics_mode,
-                 false, // not 100% sure 'bout this yet but it seems to work.
-                 visited)); 
+          lm.indent(() => {
+            for (const option of all_options)
+              walk(option,
+                   local_context,
+                   local_audit_semantics_mode,
+                   false, // not 100% sure 'bout this yet but it seems to work.
+                   visited);
+          }); 
         }
         else {
           walk(all_options,
