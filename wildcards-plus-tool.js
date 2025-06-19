@@ -10045,7 +10045,7 @@ function audit_semantics(root_ast_node,
   const scalars_referenced_before_init = [];
   
   walk(root_ast_node, audit_semantics_mode, false, new Set());
-
+  
   for (const { name, suggestion } of scalars_referenced_before_init) {
     const msg = (dummy_context.scalar_variables.has(name)
                  ? `scalar variable $${name} referenced before it could have been initialized, `
@@ -10053,8 +10053,16 @@ function audit_semantics(root_ast_node,
           `this suggests that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
     warn_or_throw(msg, audit_semantics_mode);
+    
+    if (!dummy_context.scalar_variables.has(name) &&
+        !base_context.scalar_variables.has(name))
+      base_context.scalar_variables.set(name, '');    
   }
 
+  for (const name of dummy_context.scalar_variables.keys())
+    if (!base_context.scalar_variables.has(name))
+      base_context.scalar_variables.set(name, '');
+  
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
@@ -11476,15 +11484,15 @@ async function main() {
             : warning),
            false);
 
-  // phase3:
-  let phase3_elapsed;
+  // // phase3:
+  // let phase3_elapsed;
 
-  lm.log(`phase3...`);
-  lm.indent(() => {
-    phase3_elapsed = measure_time(() =>
-      phase3(AST, { context: base_context }));
-  });
-  lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
+  // lm.log(`phase3...`);
+  // lm.indent(() => {
+  //   phase3_elapsed = measure_time(() =>
+  //     phase3(AST, { context: base_context }));
+  // });
+  // lm.log(`phase3 took ${phase3_elapsed.toFixed(2)} ms`);
 
   // -----------------------------------------------------------------------------------------------
   let posted_count        = 0;
