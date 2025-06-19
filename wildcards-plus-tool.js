@@ -294,34 +294,34 @@ if (false)
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled        = true;
-let fire_and_forget_post_enabled       = false;
-let inspect_depth                      = 50;
-let log_configuration_enabled          = true;
-let log_loading_prelude                = true;
-let log_post_enabled                   = true;
-let log_finalize_enabled               = false;
-let log_intercalate_enabled            = false;
-let log_flags_enabled                  = false;
-let log_match_enabled                  = false;
-let log_name_lookups_enabled           = false;
-let log_picker_enabled                 = false;
-let log_level__audit                   = 0;
-let log_level__expand_and_walk         = 0;
-let log_level__process_named_wildcard_definitions                  = 0;
-let log_level__smart_join              = 0;
-let prelude_disabled                   = false;
-let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = false;
-let print_ast_after_includes_enabled   = false;
-let print_ast_json_enabled             = false;
-let print_packrat_cache_counts_enabled = false;
-let packrat_enabled                    = false;
-let save_post_requests_enabled         = true;
-let unnecessary_choice_is_an_error     = false;
-let double_latching_is_an_error        = false;
-let double_unlatching_is_an_error      = false;
-let rule_match_counter_enabled         = false;
+let abbreviate_str_repr_enabled                   = true;
+let fire_and_forget_post_enabled                  = false;
+let inspect_depth                                 = 50;
+let log_configuration_enabled                     = true;
+let log_loading_prelude                           = true;
+let log_post_enabled                              = true;
+let log_finalize_enabled                          = false;
+let log_intercalate_enabled                       = false;
+let log_flags_enabled                             = false;
+let log_match_enabled                             = false;
+let log_name_lookups_enabled                      = false;
+let log_picker_enabled                            = false;
+let log_level__audit                              = 0;
+let log_level__expand_and_walk                    = 0;
+let log_level__process_named_wildcard_definitions = 0;
+let log_level__smart_join                         = 0;
+let prelude_disabled                              = false;
+let print_ast_then_die                            = false;
+let print_ast_before_includes_enabled             = false;
+let print_ast_after_includes_enabled              = false;
+let print_ast_json_enabled                        = false;
+let print_packrat_cache_counts_enabled            = false;
+let packrat_enabled                               = false;
+let save_post_requests_enabled                    = true;
+let unnecessary_choice_is_an_error                = false;
+let double_latching_is_an_error                   = false;
+let double_unlatching_is_an_error                 = false;
+let rule_match_counter_enabled                    = false;
 // =================================================================================================
 
 

@@ -11519,15 +11519,15 @@ try {
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
   // -----------------------------------------------------------------------------------------------
-  // phase1:
-  let phase1_elapsed;
+  // process_named_wildcard_definitions:
+  let process_named_wildcard_definitions_elapsed;
 
-  lm.log(`phase1...`);
+  lm.log(`process_named_wildcard_definitions...`);
   lm.indent(() => {
-    phase1_elapsed = measure_time(() =>
-      phase1(AST, { context: base_context }));
+    process_named_wildcard_definitions_elapsed = measure_time(() =>
+      process_named_wildcard_definitions(AST, { context: base_context }));
   });
-  lm.log(`phase1 took ${phase1_elapsed.toFixed(2)} ms`);
+  lm.log(`process_named_wildcard_definitions took ${process_named_wildcard_definitions_elapsed.toFixed(2)} ms`);
 
   // audit flags:
   let audit_elapsed, audit_warnings;
