@@ -9950,7 +9950,7 @@ function audit_semantics(root_ast_node,
                  // not look sus afterwards, f.e. { ?foo whatever | #foo }.
                  audit_semantics_modes.no_errors, 
                  true, // or maybe false? nah, i think this is corect... any children could also
-                 // get evaluated twice and so should judg it as_if_parralel, right?
+                 // get evaluated twice and so should be juded as_if_parralel, right?
                  visited_copy));
 
           if (log_level__audit >= 1)
