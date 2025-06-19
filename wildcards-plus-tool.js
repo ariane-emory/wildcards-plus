@@ -10427,7 +10427,9 @@ function audit_semantics(root_ast_node,
     const msg = (dummy_context.scalar_variables.has(name)
                  ? `scalar variable '$${name}' referenced before it could have been initialized, `
                  : `scalar variable '$${name}' is referenced but is never initialized, `) +
-          `this suggests that you may have a made typo or other error ` +
+          `and will be an empty string at this time, ` +
+          `this could be intentional it could ` +
+          `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
     warn_or_throw(msg, audit_semantics_mode);
     
