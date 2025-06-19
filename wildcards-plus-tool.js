@@ -9804,6 +9804,8 @@ const audit_semantics_modes = Object.freeze({
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
+const scalar_init_states = Object.freeze({});
+// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
@@ -10106,13 +10108,17 @@ function phase3(root_ast_node, { context } = {}) {
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
-        context.scalar_variables.set(thing.name, '')
-        lm.log(`initialized $${thing.name}}`);
+        if (!context.scalar_variables.has(thing.name)) {
+          context.scalar_variables.set(thing.name, '');
+          lm.log(`INITIALIZED $${thing.destination.name}`);
+        }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        context.scalar_variables.set(thing.destination.name, '');
-        lm.log(`initialized $${thing.destination.name}}`);
+        if (!context.scalar_variables.has(thing.destination.name)) {
+          context.scalar_variables.set(thing.destination.name, '');
+          lm.log(`INITIALIZED $${thing.destination.name}`);
+        }
         walk_children(thing);
       }
       // -------------------------------------------------------------------------------------------
@@ -10301,377 +10307,377 @@ class ASTNamedWildcardReference extends ASTLeafNode {
 // -------------------------------------------------------------------------------------------------
 // Scalar references:
 // -------------------------------------------------------------------------------------------------
-class ASTScalarReference extends ASTLeafNode {
-  constructor(name, capitalize = '', trailer = '') {
-    super();
-    this.name       = name;
-    this.capitalize = capitalize;
-    this.trailer    = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    let str = '$';
+                          class ASTScalarReference extends ASTLeafNode {
+                            constructor(name, capitalize = '', trailer = '') {
+                              super();
+                              this.name       = name;
+                              this.capitalize = capitalize;
+                              this.trailer    = trailer;
+                            }
+                            // -----------------------------------------------------------------------------------------------
+                            toString() {
+                              let str = '$';
 
-    if (this.capitalize)
-      str += this.capitalize;
+                              if (this.capitalize)
+                                str += this.capitalize;
 
-    str += this.name;
-    
-    if (this.trailer)
-      str += this.trailer;
-    
-    return str;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// Scalar assignment:
-// -------------------------------------------------------------------------------------------------
-class ASTScalarAssignment extends ASTNode  {
-  constructor(destination, source, assign) {
-    super();
-    this.destination = destination;
-    this.source      = source;
-    this.assign      = assign;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.source ]; // exclude this.destination, it's just a boxed name
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTLora (for A1111-style LoRA syntax);
-// -------------------------------------------------------------------------------------------------
-class ASTLora extends ASTNode {
-  constructor(file, weight) {
-    super();
-    this.file   = file;
-    this.weight = weight;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.file, this.weight ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString(with_types = false ) {
-    return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
-      `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTLatchNamedWildcard:
-// -------------------------------------------------------------------------------------------------
-class ASTLatchNamedWildcard extends ASTNode {
-  constructor(ident) {
-    super();
-    this.target = new ASTNamedWildcardReference(ident);
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.target ]; 
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `@#${this.target.name}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTUnlatchNamedWildcard:
-// -------------------------------------------------------------------------------------------------
-class ASTUnlatchNamedWildcard extends ASTLeafNode {
-  constructor(name) {
-    super();
-    this.name = name;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `@!${this.name}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTLatchedNamedWildcard:
-// -------------------------------------------------------------------------------------------------
-class ASTLatchedNamedWildcard extends ASTNode {
-  constructor(latched_value, original_value) {
-    super();
-    this.latched_value  = latched_value;
-    this.original_value = original_value;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.original_value, /* this.latched_value */ ]; // not sure?
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return this.original_value.toString();
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTAnonWildcard:
-// -------------------------------------------------------------------------------------------------
-class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null } = {}) {
-    super();
-    this.picker = new WeightedPicker(options
-                                     .filter(o => o.weight !== 0)
-                                     .map(o => [o.weight, o]));
-    this.trailer = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return this.picker.options.values().map(x => x.value);
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick(...args) {
-    return this.picker.pick(...args);
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    let str = '';
-    
-    str += '{';
+                              str += this.name;
+                              
+                              if (this.trailer)
+                                str += this.trailer;
+                              
+                              return str;
+                            }
+                          }
+                          // -------------------------------------------------------------------------------------------------
+                          // Scalar assignment:
+                          // -------------------------------------------------------------------------------------------------
+                          class ASTScalarAssignment extends ASTNode  {
+                            constructor(destination, source, assign) {
+                              super();
+                              this.destination = destination;
+                              this.source      = source;
+                              this.assign      = assign;
+                            }
+                            // -----------------------------------------------------------------------------------------------
+                            __direct_children() {
+                              return [ this.source ]; // exclude this.destination, it's just a boxed name
+                            }
+                            // -----------------------------------------------------------------------------------------------
+                            toString() {
+                              return `$${this.destination.name} ${this.assign? '=' : '+='} ${this.source.toString()}`;
+                            }
+                          }
+                          // -------------------------------------------------------------------------------------------------
+                          // ASTLora (for A1111-style LoRA syntax);
+                          // -------------------------------------------------------------------------------------------------
+                                                         class ASTLora extends ASTNode {
+                                                           constructor(file, weight) {
+                                                             super();
+                                                             this.file   = file;
+                                                             this.weight = weight;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return [ this.file, this.weight ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString(with_types = false ) {
+                                                             return `<lora:${with_types ? `${this.file.constructor.name} ` : ``}${this.file}: ` +
+                                                               `${with_types ? `${this.weight.constructor.name} ` : ``}${this.weight}>`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTLatchNamedWildcard:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTLatchNamedWildcard extends ASTNode {
+                                                           constructor(ident) {
+                                                             super();
+                                                             this.target = new ASTNamedWildcardReference(ident);
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return [ this.target ]; 
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `@#${this.target.name}`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTUnlatchNamedWildcard:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTUnlatchNamedWildcard extends ASTLeafNode {
+                                                           constructor(name) {
+                                                             super();
+                                                             this.name = name;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `@!${this.name}`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTLatchedNamedWildcard:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTLatchedNamedWildcard extends ASTNode {
+                                                           constructor(latched_value, original_value) {
+                                                             super();
+                                                             this.latched_value  = latched_value;
+                                                             this.original_value = original_value;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return [ this.original_value, /* this.latched_value */ ]; // not sure?
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return this.original_value.toString();
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTAnonWildcard:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTAnonWildcard extends ASTNode {
+                                                           constructor(options, { trailer = null } = {}) {
+                                                             super();
+                                                             this.picker = new WeightedPicker(options
+                                                                                              .filter(o => o.weight !== 0)
+                                                                                              .map(o => [o.weight, o]));
+                                                             this.trailer = trailer;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return this.picker.options.values().map(x => x.value);
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           pick(...args) {
+                                                             return this.picker.pick(...args);
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             let str = '';
+                                                             
+                                                             str += '{';
 
-    for (let ix = 0; ix < this.picker.options.length; ix++) {
-      const option     = this.picker.options[ix];
-      const repr       = option.value.toString();
-      const has_weight = option.weight != 1;
-      const is_empty   = repr == '';
-      const is_last    = ix == (this.picker.options.length - 1);
-      const has_guards = (option.value.check_flags?.length > 0 ||
-                          option.value.not_flags?.length   > 0);
-      
-      if (!is_empty && !has_weight && !has_guards)
-        str += ' ';
+                                                             for (let ix = 0; ix < this.picker.options.length; ix++) {
+                                                               const option     = this.picker.options[ix];
+                                                               const repr       = option.value.toString();
+                                                               const has_weight = option.weight != 1;
+                                                               const is_empty   = repr == '';
+                                                               const is_last    = ix == (this.picker.options.length - 1);
+                                                               const has_guards = (option.value.check_flags?.length > 0 ||
+                                                                                   option.value.not_flags?.length   > 0);
+                                                               
+                                                               if (!is_empty && !has_weight && !has_guards)
+                                                                 str += ' ';
 
-      str += repr;
+                                                               str += repr;
 
-      if (!is_empty)
-        str += ' ';
+                                                               if (!is_empty)
+                                                                 str += ' ';
 
-      if (!is_last)
-        str += '|';
-    }
-    
-    str += '}';
-    
-    if (this.trailer)
-      str += this.trailer;
-    
-    return str;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTAnonWildcardsAlternative:
-// -------------------------------------------------------------------------------------------------
-class ASTAnonWildcardAlternative extends ASTNode {
-  constructor(weight, check_flags, not_flags, body) {
-    super();
-    this.weight      = weight;
-    this.check_flags = check_flags;
-    this.not_flags   = not_flags;
-    this.body        = body;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return  [
-      ...this.check_flags,
-      ...this.not_flags,
-      ...this.body,
-    ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    var str = '';
+                                                               if (!is_last)
+                                                                 str += '|';
+                                                             }
+                                                             
+                                                             str += '}';
+                                                             
+                                                             if (this.trailer)
+                                                               str += this.trailer;
+                                                             
+                                                             return str;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTAnonWildcardsAlternative:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTAnonWildcardAlternative extends ASTNode {
+                                                           constructor(weight, check_flags, not_flags, body) {
+                                                             super();
+                                                             this.weight      = weight;
+                                                             this.check_flags = check_flags;
+                                                             this.not_flags   = not_flags;
+                                                             this.body        = body;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return  [
+                                                               ...this.check_flags,
+                                                               ...this.not_flags,
+                                                               ...this.body,
+                                                             ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             var str = '';
 
-    if (this.weight !== 1)
-      str += `${this.weight} `;
+                                                             if (this.weight !== 1)
+                                                               str += `${this.weight} `;
 
-    var strs = [];
+                                                             var strs = [];
 
-    for (const check of this.check_flags)
-      strs.push(check.toString());
-    
-    for (const not of this.not_flags)
-      strs.push(not.toString());
+                                                             for (const check of this.check_flags)
+                                                               strs.push(check.toString());
+                                                             
+                                                             for (const not of this.not_flags)
+                                                               strs.push(not.toString());
 
-    if (this.body.length >= 1)
-      for (const thing of this.body)
-        strs.push(thing.toString());
-    else
-      strs.push(`ε`);
+                                                             if (this.body.length >= 1)
+                                                               for (const thing of this.body)
+                                                                 strs.push(thing.toString());
+                                                             else
+                                                               strs.push(`ε`);
 
-    str += strs.join(' ');
-    
-    return str;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTInclude:
-// -------------------------------------------------------------------------------------------------
-class ASTInclude extends ASTLeafNode {
-  constructor(args) {
-    super();
-    this.args      = args;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `include(${this.args})`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTUpdateConfigurationUnary:
-// -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigurationUnary extends ASTNode {
-  constructor(value, assign) {
-    super();
-    this.value = value;
-    this.assign = assign; // otherwise update
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return is_plain_object(this.value) ? [] : [ this.value ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%config ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value)
+                                                             str += strs.join(' ');
+                                                             
+                                                             return str;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTInclude:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTInclude extends ASTLeafNode {
+                                                           constructor(args) {
+                                                             super();
+                                                             this.args      = args;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `include(${this.args})`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTUpdateConfigurationUnary:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTUpdateConfigurationUnary extends ASTNode {
+                                                           constructor(value, assign) {
+                                                             super();
+                                                             this.value = value;
+                                                             this.assign = assign; // otherwise update
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return is_plain_object(this.value) ? [] : [ this.value ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%config ${this.assign? '=' : '+='} ` +
+                                                               `${this.value instanceof ASTNode || Array.isArray(this.value)
          ? this.value
          : inspect_fun(this.value)}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTUpdateConfigurationBinary:
-// -------------------------------------------------------------------------------------------------
-class ASTUpdateConfigurationBinary extends ASTNode {
-  constructor(key, value, assign) {
-    super();
-    this.key    = key;
-    this.value  = value;
-    this.assign = assign;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return is_primitive(this.value) ? [] :  [ this.value ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
-      `${this.value instanceof ASTNode || Array.isArray(this.value)
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTUpdateConfigurationBinary:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTUpdateConfigurationBinary extends ASTNode {
+                                                           constructor(key, value, assign) {
+                                                             super();
+                                                             this.key    = key;
+                                                             this.value  = value;
+                                                             this.assign = assign;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return is_primitive(this.value) ? [] :  [ this.value ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%${get_our_configuration_key_name(this.key)} ${this.assign? '=' : '+='} ` +
+                                                               `${this.value instanceof ASTNode || Array.isArray(this.value)
            ? this.value
            : inspect_fun(this.value)}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTSetPickMultiple:
-// -------------------------------------------------------------------------------------------------
-class ASTSetPickMultiple extends ASTNode {
-  constructor(limited_content) {
-    super();
-    this.limited_content = limited_content;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.limited_content ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%multi-pick = ${this.limited_content}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTSetPickSingle:
-// -------------------------------------------------------------------------------------------------
-class ASTSetPickSingle extends ASTNode {
-  constructor(limited_content) {
-    super();
-    this.limited_content = limited_content;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __direct_children() {
-    return [ this.limited_content ];
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%single-pick = ${this.limited_content}`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTRevertPickMultiple:
-// -------------------------------------------------------------------------------------------------
-class ASTRevertPickMultiple extends ASTLeafNode {
-  constructor() {
-    super();
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%revert-pick-multi`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTRevertPickSingle:
-// -------------------------------------------------------------------------------------------------
-class ASTRevertPickSingle extends ASTLeafNode {
-  constructor() {
-    super();
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `%revert-pick-single`;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTUIPrompt:
-// -------------------------------------------------------------------------------------------------
-class ASTUIPrompt extends ASTLeafNode {
-  constructor(trailer) {
-    super();
-    this.trailer = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    let str = `%ui-prompt`;
-    
-    if (this.trailer)
-      str += this.trailer;
-    
-    return str;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-// ASTUINegPrompt:
-// -------------------------------------------------------------------------------------------------
-class ASTUINegPrompt extends ASTLeafNode {
-  constructor(trailer) {
-    super();
-    this.trailer = trailer;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    let str = `%ui-neg-prompt`;
-    
-    if (this.trailer)
-      str += this.trailer;
-    
-    return str;
-  }
-}
-// =================================================================================================
-// END OF SD PROMPT AST CLASSES SECTION.
-// =================================================================================================
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTSetPickMultiple:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTSetPickMultiple extends ASTNode {
+                                                           constructor(limited_content) {
+                                                             super();
+                                                             this.limited_content = limited_content;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return [ this.limited_content ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%multi-pick = ${this.limited_content}`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTSetPickSingle:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTSetPickSingle extends ASTNode {
+                                                           constructor(limited_content) {
+                                                             super();
+                                                             this.limited_content = limited_content;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           __direct_children() {
+                                                             return [ this.limited_content ];
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%single-pick = ${this.limited_content}`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTRevertPickMultiple:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTRevertPickMultiple extends ASTLeafNode {
+                                                           constructor() {
+                                                             super();
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%revert-pick-multi`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTRevertPickSingle:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTRevertPickSingle extends ASTLeafNode {
+                                                           constructor() {
+                                                             super();
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             return `%revert-pick-single`;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTUIPrompt:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTUIPrompt extends ASTLeafNode {
+                                                           constructor(trailer) {
+                                                             super();
+                                                             this.trailer = trailer;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             let str = `%ui-prompt`;
+                                                             
+                                                             if (this.trailer)
+                                                               str += this.trailer;
+                                                             
+                                                             return str;
+                                                           }
+                                                         }
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         // ASTUINegPrompt:
+                                                         // -------------------------------------------------------------------------------------------------
+                                                         class ASTUINegPrompt extends ASTLeafNode {
+                                                           constructor(trailer) {
+                                                             super();
+                                                             this.trailer = trailer;
+                                                           }
+                                                           // -----------------------------------------------------------------------------------------------
+                                                           toString() {
+                                                             let str = `%ui-neg-prompt`;
+                                                             
+                                                             if (this.trailer)
+                                                               str += this.trailer;
+                                                             
+                                                             return str;
+                                                           }
+                                                         }
+                                                         // =================================================================================================
+                                                         // END OF SD PROMPT AST CLASSES SECTION.
+                                                         // =================================================================================================
 
 
-// =================================================================================================
-// SD PROMPT GRAMMAR SECTION:
-// =================================================================================================
-// structural_word_break and its helper combinators:
-// =================================================================================================
-const comment_beginning       = raw`\/\/|\/\*`;
-const structural_chars            = '{|}';
-// const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|${comment_beginning})`
-const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|${comment_beginning}|$)`
+                                                         // =================================================================================================
+                                                         // SD PROMPT GRAMMAR SECTION:
+                                                         // =================================================================================================
+                                                         // structural_word_break and its helper combinators:
+                                                         // =================================================================================================
+                                                         const comment_beginning       = raw`\/\/|\/\*`;
+                                                         const structural_chars            = '{|}';
+                                                         // const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|${comment_beginning})`
+                                                         const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|${comment_beginning}|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
