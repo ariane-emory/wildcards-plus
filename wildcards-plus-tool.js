@@ -9976,11 +9976,8 @@ function audit_semantics(root_ast_node,
         if (!dummy_context.scalar_variables.has(thing.name)) {
           const known_names = Array.from(dummy_context.scalar_variables.keys());
           const suggestion = suggest_closest(thing.name, known_names);
-          const warning_msg = `scalar variable $${thing.name} referenced before it could have been ` +
-                `initialized, this suggests that you may have a made typo or other error ` +
-                `in your template.${suggestion}`;
           
-          scalars_referenced_before_init.push({ name: thing.name, warning_msg });
+          scalars_referenced_before_init.push({ name: thing.name, suggestion });
         }
       }
       // -------------------------------------------------------------------------------------------
@@ -10048,6 +10045,13 @@ function audit_semantics(root_ast_node,
   const scalars_referenced_before_init = [];
   
   walk(root_ast_node, audit_semantics_mode, false, new Set());
+
+  for (const { name, suggestion } of scalars_referenced_before_init) {
+    const msg = `scalar variable $${name} referenced before it could have been ` +
+          `initialized, this suggests that you may have a made typo or other error ` +
+          `in your template.${suggestion}`;
+    warn_or_throw(msg, audit_semantics_mode);
+  }
 
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
