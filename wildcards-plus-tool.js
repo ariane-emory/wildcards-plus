@@ -9840,10 +9840,11 @@ function audit_semantics(root_ast_node,
     }
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, mode, visited) {
+  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, local_context, local_audit_semantics_mode, visited) {
     if (!(typeof verb == 'string' &&
           Array.isArray(flag) &&
-          Object.values(audit_semantics_modes).includes(mode) &&
+          local_context instanceof Context &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           visited instanceof Set))
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
@@ -9860,11 +9861,12 @@ function audit_semantics(root_ast_node,
     warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
                   `a typo or other error in your template.${suggestion}`,
-                  mode);
+                  local_audit_semantics_mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, local_audit_semantics_mode, as_if_parallel, visited) {
+  function walk_children(thing, loocal_context, local_audit_semantics_mode, as_if_parallel, visited) {
     if (!(thing instanceof ASTNode &&
+          local_context instanceof Context && 
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           typeof as_if_parallel == 'boolean' &&
           visited instanceof Set))
@@ -9877,8 +9879,9 @@ function audit_semantics(root_ast_node,
       walk(children, local_audit_semantics_mode, as_if_parallel, visited); 
   }
   // ===============================================================================================
-  function walk(thing, local_audit_semantics_mode, as_if_parallel, visited) { 
+  function walk(thing, local_contet, local_audit_semantics_mode, as_if_parallel, visited) { 
     if (!(thing &&
+          local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
           typeof as_if_parallel == 'boolean' &&
           visited instanceof Set))
@@ -10038,8 +10041,8 @@ function audit_semantics(root_ast_node,
   }
   // ===============================================================================================
   
-  const dummy_context =  base_context.clone();
-  const warnings = [];
+  const dummy_context                  =  base_context.clone();
+  const warnings                       = [];
   const scalars_referenced_before_init = [];
   
   walk(root_ast_node, audit_semantics_mode, false, new Set());
