@@ -9849,14 +9849,14 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    if (dummy_context.flag_is_set(flag)) {
+    if (local_context.flag_is_set(flag)) {
       if (log_level__audit >= 1)
         lm.log(`flag ${flag} could be set by now`);
       return;
     }
     
     const flag_str = flag.join(".").toLowerCase();
-    const known_flags = dummy_context.flags.map(f => f.join("."));
+    const known_flags = local_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
     warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
@@ -9905,7 +9905,7 @@ function audit_semantics(root_ast_node,
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
           `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-          `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+          `flags: ${abbreviate(compress(inspect_fun(local_context.flags)), 200)}`);
 
     lm.indent(() => {
       // ===========================================================================================
@@ -9923,7 +9923,7 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = dummy_context.named_wildcards.get(thing.name);
+        const got = local_context.named_wildcards.get(thing.name);
         
         if (!got) 
           throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
@@ -9937,8 +9937,8 @@ function audit_semantics(root_ast_node,
         if (as_if_parallel) {
           const currently_legal_options =
                 thing.picker
-                .split_options(dummy_context.picker_allow_fun,
-                               dummy_context.picker_forbid_fun)
+                .split_options(local_context.picker_allow_fun,
+                               local_context.picker_forbid_fun)
                 .legal_options.map(x => x.value);
 
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
@@ -9979,8 +9979,8 @@ function audit_semantics(root_ast_node,
         if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
           return;
 
-        if (!dummy_context.scalar_variables.has(thing.name)) {
-          const known_names = Array.from(dummy_context.scalar_variables.keys().map(x => `$${x}`));
+        if (!local_context.scalar_variables.has(thing.name)) {
+          const known_names = Array.from(local_context.scalar_variables.keys().map(x => `$${x}`));
           const suggestion = suggest_closest(`$${thing.name}`, known_names);
           
           scalars_referenced_before_init.push({ name: thing.name, suggestion });
@@ -9988,14 +9988,14 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+        local_context.scalar_variables.set(thing.destination.name, "doesn't matter");
         walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
           // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+          local_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
           for (const flag of thing.flags) 
@@ -10010,10 +10010,10 @@ function audit_semantics(root_ast_node,
       else if (thing instanceof ASTNotFlag) {
         if (thing.consequently_set_flag_tail)
           // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+          local_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
         else if (thing.set_immediately) 
           // this case probably doesn't deserve a warning, avoid one:
-          dummy_context.set_flag(thing.flag, false);
+          local_context.set_flag(thing.flag, false);
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
           warn_or_throw_unless_flag_could_be_set_by_now('checked',
                                                         thing.flag,
@@ -10023,7 +10023,7 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        dummy_context.set_flag(thing.flag, false);
+        local_context.set_flag(thing.flag, false);
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
