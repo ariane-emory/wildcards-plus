@@ -10281,15 +10281,17 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        const all_options = thing.picker.options.map(x => x.value);
+        const split_options = thing.picker
+              .split_options(local_context.picker_allow_fun,
+                             local_context.picker_forbid_fun);
+        
+        const currently_legal_options =
+              split_options .legal_options.map(x => x.value);
+        
+        const currently_illlegal_options =
+              split_options .legal_options.map(x => x.value);
         
         if (as_if_parallel) {
-          const currently_legal_options =
-                thing.picker
-                .split_options(local_context.picker_allow_fun,
-                               local_context.picker_forbid_fun)
-                .legal_options.map(x => x.value);
-
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
