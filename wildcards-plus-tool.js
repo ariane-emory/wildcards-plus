@@ -9980,8 +9980,8 @@ function audit_semantics(root_ast_node,
           return;
 
         if (!dummy_context.scalar_variables.has(thing.name)) {
-          const known_names = Array.from(dummy_context.scalar_variables.keys());
-          const suggestion = suggest_closest(thing.name, known_names);
+          const known_names = Array.from(dummy_context.scalar_variables.keys().map(x => `'$${x}'`));
+          const suggestion = suggest_closest(`'$${thing.name}'`, known_names);
           
           scalars_referenced_before_init.push({ name: thing.name, suggestion });
         }
