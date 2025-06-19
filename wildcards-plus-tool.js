@@ -10321,6 +10321,8 @@ function audit_semantics(root_ast_node,
           }); 
         }
         else {
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
           lm.indent(() => {
             for (const option of all_options)
               walk(option,
@@ -10330,8 +10332,10 @@ function audit_semantics(root_ast_node,
                    visited);
           });
 
+          if (log_level__audit >= 1)
+            lm.log(`NO_ERRORS PASS (legal):`);
           lm.indent(() =>  {
-            for (const option of all_options)
+            for (const option of currently_legal_options)
               walk(option,
                    local_context,
                    audit_semantics_modes.no_errors,
