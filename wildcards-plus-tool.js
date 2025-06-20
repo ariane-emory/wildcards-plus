@@ -11382,6 +11382,7 @@ const make_AnonWildcard_rule            =
             if (arr[0][0].body.length === 1 &&
                 typeof arr[0][0].body[0] == 'string') {
               lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
+              return arr[0][0].body[0];
             }
           }
           // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);

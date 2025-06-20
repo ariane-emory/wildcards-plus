@@ -4,3 +4,5 @@
 // %foo = 123;
 
 $foo =  { quux corge grault }
+{ foo bar baz }
+waldo fred
