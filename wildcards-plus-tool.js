@@ -11379,9 +11379,12 @@ const make_AnonWildcard_rule            =
           
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
+          if (arr[0].length === 0 && dont_reduce)
+            return '';
+          
           if (!dont_reduce) {
             if (arr[0].length === 0)
-              return ''; // or maybe DISCARD sometimes?
+              return DISCARD;
             else if (arr[0].length === 1) {
               // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
               if (arr[0][0].check_flags.length === 0 && 
@@ -11405,21 +11408,21 @@ const make_AnonWildcard_rule            =
           // lm.log(`THINGL: ${inspect_fun(arr[0][0].body.length)}`);
           
           return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
-        };
-        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
-        const tail_rule = can_have_trailer
-              ? optional_punctuation_trailer
-              : unexpected_punctuation_trailer;
-        const xform_fun = empty_value === undefined
-              ? arr => new_ASTAnonWildcard(arr)
-              : arr => (arr.length === 0
-                        ? empty_value
-                        : new_ASTAnonWildcard(arr));
-        return xform(xform_fun,
-                     seq(discarded_comments,
-                         body_rule,
-                         tail_rule));
       };
+const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+const tail_rule = can_have_trailer
+      ? optional_punctuation_trailer
+      : unexpected_punctuation_trailer;
+const xform_fun = empty_value === undefined
+      ? arr => new_ASTAnonWildcard(arr)
+      : arr => (arr.length === 0
+                ? empty_value
+                : new_ASTAnonWildcard(arr));
+return xform(xform_fun,
+             seq(discarded_comments,
+                 body_rule,
+                 tail_rule));
+};
 // -------------------------------------------------------------------------------------------------
 const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
