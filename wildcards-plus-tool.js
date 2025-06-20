@@ -11391,8 +11391,7 @@ const make_AnonWildcard_rule            =
                     typeof arr[0][0].body[0] == 'string') {
                   // lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
                   let str = arr[0][0].body[0];
-                  if (str.length > 0 &&
-                      arr[1])
+                  if (arr[1])
                     str += arr[1];
                   // lm.log(`reduce to string ${inspect_fun(str)}`);
                   return str;
