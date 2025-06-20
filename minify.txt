@@ -7,6 +7,9 @@
 // { foo bar baz }
 // waldo fred
 
-$yes = { yes }
+// $yes = { yes }
 
-does { this { all { reduce to { a single string }}}} $yes { it { does } }
+// does { this { all { reduce to { a single string }}}} $yes { it { does } }
+
+// \n
+{what {0 happens} }
