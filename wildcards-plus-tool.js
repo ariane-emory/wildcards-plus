@@ -4190,7 +4190,7 @@ const configuration_key_names = [
     shorthands: [ "znp" ] },
 ];
 const known_configuration_key_names = new Set(configuration_key_names.map(x =>
-  [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1));
+  [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1.map(x => `%${x}`)));
 // -------------------------------------------------------------------------------------------------
 function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
@@ -4570,49 +4570,49 @@ class Context {
              `${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ` +
              `${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
-                                                           log_level__expand_and_walk);
-                                                    munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-                                                  }
+             log_level__expand_and_walk);
+      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+    }
 
-                                                  // 'fix' seed if n_iter > 1, doing this seems convenient?
-                                                  const n_iter_key = get_our_configuration_key_name('n_iter');
-                                                  const n_iter_val = munged_configuration[n_iter_key];
+    // 'fix' seed if n_iter > 1, doing this seems convenient?
+    const n_iter_key = get_our_configuration_key_name('n_iter');
+    const n_iter_val = munged_configuration[n_iter_key];
 
-                                                  if (n_iter_val > 1 && munged_configuration.seed !== -1) {
-                                                    if (log_configuration_enabled)
-                                                      lm.log(`%seed = -1 due to n_iter > 1`,
-                                                             log_level__expand_and_walk);
+    if (n_iter_val > 1 && munged_configuration.seed !== -1) {
+      if (log_configuration_enabled)
+        lm.log(`%seed = -1 due to n_iter > 1`,
+               log_level__expand_and_walk);
 
-                                                    munged_configuration.seed = -1;
-                                                  }
-                                                  else if (typeof munged_configuration.seed !== 'number') {
-                                                    const random = Math.floor(Math.random() * (2 ** 32));
-                                                    
-                                                    if (log_configuration_enabled)
-                                                      lm.log(`%seed = ${random} due to no seed`,
-                                                             log_level__expand_and_walk);
+      munged_configuration.seed = -1;
+    }
+    else if (typeof munged_configuration.seed !== 'number') {
+      const random = Math.floor(Math.random() * (2 ** 32));
+      
+      if (log_configuration_enabled)
+        lm.log(`%seed = ${random} due to no seed`,
+               log_level__expand_and_walk);
 
-                                                    munged_configuration.seed = random;
-                                                  }    
+      munged_configuration.seed = random;
+    }    
 
-                                                  // if (log_configuration_enabled)
-                                                  //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
+    // if (log_configuration_enabled)
+    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
-                                                  this.configuration = munged_configuration;
-                                                }
-                                                                                                           // -----------------------------------------------------------------------------------------------
-                                                                                                           toString() {
-                                                                                                             return `Context<#${this.context_id}>`;
-                                                                                                           }
-                                                                                                          }
-                                                                  // =================================================================================================
-                                                                  // END OF Context CLASS.
-                                                                  // =================================================================================================
+    this.configuration = munged_configuration;
+  }
+  // -----------------------------------------------------------------------------------------------
+  toString() {
+    return `Context<#${this.context_id}>`;
+  }
+}
+// =================================================================================================
+// END OF Context CLASS.
+// =================================================================================================
 
 
-                                                                  // =================================================================================================
-                                                                  // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
-                                                                  // =================================================================================================
+// =================================================================================================
+// HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+// =================================================================================================
                                                                                                                                                                                              const prelude_text = `
 @__set_gender_if_unset  = {  ?female           #gender.female 
                           |  ?male             #gender.male
@@ -10285,7 +10285,7 @@ function audit_semantics(root_ast_node,
         if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
           return;
         
-        if (!known_configuration_key_names.has(thing.key)) {
+        if (!known_configuration_key_names.has(`%${thing.key}`)) {
           const suggestion = suggest_closest(thing.key, known_configuration_key_names);
           const message = `%${thing.key} is an unknown configuration key. ` +
                 `we'll allow you to set it, ` +
