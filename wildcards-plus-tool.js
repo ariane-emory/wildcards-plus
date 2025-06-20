@@ -11385,18 +11385,18 @@ const make_AnonWildcard_rule            =
             if (arr[0].length === 1) {
               // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
               if (arr[0][0].check_flags.length === 0 && 
-                  arr[0][0].not_flags.length   === 0) {
+                  arr[0][0].not_flags.length   === 0 &&
+                  arr[0][0].body.length        === 1 &&
+                  typeof arr[0][0].body[0] == 'string') {
                 // lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
-                if (arr[0][0].body.length === 1 &&
-                    typeof arr[0][0].body[0] == 'string') {
-                  // lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
-                  let str = arr[0][0].body[0];
-                  if (arr[1])
+                
+                // lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
+                let str = arr[0][0].body[0];
+                if (arr[1])
                     str += arr[1];
                   // lm.log(`reduce to string ${inspect_fun(str)}`);
                   return str;
                 }
-              }
             }
           }
           // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
