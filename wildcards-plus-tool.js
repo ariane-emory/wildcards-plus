@@ -11375,7 +11375,7 @@ const make_AnonWildcard_rule            =
         const new_ASTAnonWildcard = arr => {
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
-          if (arr[0].length === 0 && empty_value)
+          if (arr[0].length === 0 && empty_value !== undefined)
             return empty_value;
 
           if (!dont_reduce) {
