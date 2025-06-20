@@ -67,7 +67,7 @@ function parse_file(filename) {
   
   //log_match_enabled          = true;
   // log_flags_enabled          = true;
-  // log_level__expand_and_walk = 2; // not here, later during walk! 
+  // log_level__expand_and_walk = 1; // not here, won't work!
 
   let  result        = null;
 
@@ -310,9 +310,9 @@ let log_level__audit                              = 0;
 let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
-let prelude_disabled                              = true;
+let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
-let print_ast_before_includes_enabled             = true;
+let print_ast_before_includes_enabled             = false;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -3577,7 +3577,7 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       typeof correct_articles !== 'boolean')
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
-  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+  if (log_level__smart_join >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
            `(#${smart_join_trap_counter})`);
 
@@ -11371,20 +11371,29 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
       .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
+      (alternative_rule, { can_have_trailer = false, empty_value = undefined, dont_reduce = false } = {}) => {
         const new_ASTAnonWildcard = arr => {
-          lm.log(`ARR[0]: ${inspect_fun(arr[0])}`);
-          if (arr[0].length === 1) {
-            lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
-            if (arr[0][0].check_flags.length === 0 && 
-                arr[0][0].not_flags.length   === 0)
-              lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
-            if (arr[0][0].body.length === 1 &&
-                typeof arr[0][0].body[0] == 'string') {
-              lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
-              return arr[0][0].body[0];
+          // lm.log(`ARR[0]: ${inspect_fun(arr[0])}`);
+          // if (dont_reduce)
+          //   lm.log(`DONT REDUCE ${inspect_fun(arr)}`);
+          
+          if (!dont_reduce)
+            if (arr[0].length === 1) {
+              // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
+              if (arr[0][0].check_flags.length === 0 && 
+                  arr[0][0].not_flags.length   === 0)
+                // lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
+                if (arr[0][0].body.length === 1 &&
+                    typeof arr[0][0].body[0] == 'string') {
+                  // lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
+                  let str = arr[0][0].body[0];
+                  if (str.length > 0 &&
+                      arr[1])
+                    str += arr[1];
+                  // lm.log(`reduce to string ${inspect_fun(str)}`);
+                  return str;
+                }
             }
-          }
           // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
           // lm.log(`THING:  ${inspect_fun(arr[0][0].body)}`);
           // lm.log(`THINGL: ${inspect_fun(arr[0][0].body.length)}`);
@@ -11414,7 +11423,8 @@ const AnonWildcard =
 // to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, empty_value: undefined })
+                             { can_have_trailer: true, empty_value: undefined,
+                               dont_reduce: true })
       .abbreviate_str_repr('AnonWildcardInDefinition');
 // note differing empty values due their contexts of use:
 const AnonWildcardNoSJMergeArticleCorrection =
@@ -11973,7 +11983,7 @@ async function main() {
       lm.log(`Scalars after:`);
       LOG_LINE();
       for (const [key, val] of context.scalar_variables)
-        lm.log(`$${key} = ${inspect_fun(val)}`);
+        lm.log(`  $${key} = ${inspect_fun(val)}`);
     }
 
     LOG_LINE();
