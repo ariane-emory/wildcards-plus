@@ -11976,7 +11976,7 @@ async function main() {
       LOG_LINE();
       let strs = [];
       for (const flag of context.flags)
-        strs.push(`  #${flag.join('.')}\n`);
+        strs.push(`  #${flag.join('.')}`);
       lm.log(strs.sort().join('\n'));
     }
 
@@ -11984,8 +11984,10 @@ async function main() {
       LOG_LINE();
       lm.log(`Scalars after:`);
       LOG_LINE();
+      let strs = [];
       for (const [key, val] of context.scalar_variables)
-        lm.log(`  $${key} = ${inspect_fun(val)}`);
+        strs.push(`  $${key} = ${inspect_fun(val)}`);
+      lm.log(strs.sort().join('\n'));
     }
 
     LOG_LINE();
