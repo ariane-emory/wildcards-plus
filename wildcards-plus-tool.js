@@ -11974,8 +11974,10 @@ async function main() {
       LOG_LINE();
       lm.log(`Flags after:`);
       LOG_LINE();
+      let strs = [];
       for (const flag of context.flags)
-        lm.log(`  #${flag.join('.')}`);
+        strs.push(`  #${flag.join('.')}\n`);
+      lm.log(strs.sort().join('\n'));
     }
 
     if (context.scalar_variables.size > 0) {
