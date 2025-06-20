@@ -3,6 +3,8 @@
 
 // %foo = 123;
 
-$foo =  { quux corge grault }
-{ foo bar baz }
-waldo fred
+// $foo =  { quux corge grault }
+// { foo bar baz }
+// waldo fred
+
+does { this { all { reduce to { a single string }}}}
