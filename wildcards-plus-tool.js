@@ -11378,11 +11378,11 @@ const make_AnonWildcard_rule            =
           if (!dont_reduce) {
             if (arr[0].length === 0)
               return DISCARD;
-            if (arr[0].length === 1 &&
+            if (arr[0].length                === 1 &&
                 arr[0][0].check_flags.length === 0 && 
                 arr[0][0].not_flags.length   === 0 &&
                 arr[0][0].body.length        === 1 &&
-                typeof arr[0][0].body[0] == 'string') {
+                typeof arr[0][0].body[0]     === 'string') {
               let str = arr[0][0].body[0];
               if (arr[1])
                 str += arr[1];
