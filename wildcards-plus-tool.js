@@ -11384,7 +11384,7 @@ const make_AnonWildcard_rule            =
                 arr[0][0].body.length        === 1 &&
                 typeof arr[0][0].body[0]     === 'string') {
               let str = arr[0][0].body[0];
-              if (arr[1])
+              if (can_have_trailer && arr[1])
                 str += arr[1];
               return str;
             }
