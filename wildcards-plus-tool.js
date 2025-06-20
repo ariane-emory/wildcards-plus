@@ -4190,7 +4190,7 @@ const configuration_key_names = [
     shorthands: [ "znp" ] },
 ];
 const known_configuration_key_names = new Set(configuration_key_names.map(x =>
-  [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1.map(x => `%${x}`)));
+  [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1).map(x => `%${x}`));
 // -------------------------------------------------------------------------------------------------
 function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
@@ -10285,14 +10285,17 @@ function audit_semantics(root_ast_node,
         if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
           return;
         
-        if (!known_configuration_key_names.has(`%${thing.key}`)) {
+        if (!known_configuration_key_names.has(`%${thing.key.toLowerCase()}`)) {
           const suggestion = suggest_closest(thing.key, known_configuration_key_names);
           const message = `%${thing.key} is an unknown configuration key. ` +
                 `we'll allow you to set it, ` +
                 `but doing so may produce unexpected results.${suggestion}`;
-          lm.log(`MSG: ${message}`);
+          // lm.log(`MSG: ${message}`);
           warn_or_throw(message, local_audit_semantics_mode);          
         }
+        // else {
+        //   lm.log(`FOUND: ${thing.key}`);
+        // }
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
