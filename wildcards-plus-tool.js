@@ -11130,7 +11130,7 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
 
   const alternative_1  = plain_text_re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
   const alternative_2  = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
-  const alternative_2b = plain_text_re_front_part + raw`(?=[\s${structural_chars}${additional_excluded_chars}]|$)`;
+  const alternative_2b = plain_text_re_front_part +       raw`(?=[\s${structural_chars}${additional_excluded_chars}]|$)`;
 
   const plain_text_re_src = alternative_1 + `|`  + alternative_2b;
 
