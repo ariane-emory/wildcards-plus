@@ -312,7 +312,7 @@ let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
 let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
-let print_ast_before_includes_enabled             = true;
+let print_ast_before_includes_enabled             = false;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -11382,7 +11382,7 @@ const make_AnonWildcard_rule            =
           if (!dont_reduce) {
             if (arr[0].length === 0)
               return DISCARD;
-            else if (arr[0].length === 1) {
+            if (arr[0].length === 1) {
               // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
               if (arr[0][0].check_flags.length === 0 && 
                   arr[0][0].not_flags.length   === 0) {
