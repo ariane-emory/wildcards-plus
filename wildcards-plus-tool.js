@@ -11373,36 +11373,22 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined, dont_reduce = false } = {}) => {
         const new_ASTAnonWildcard = arr => {
-          // lm.log(`ARR[0]: ${inspect_fun(arr[0])}`);
-          // if (dont_reduce)
-          //   lm.log(`DONT REDUCE ${inspect_fun(arr)}`);
-          
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
           if (!dont_reduce) {
             if (arr[0].length === 0)
               return DISCARD;
-            if (arr[0].length === 1) {
-              // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
-              if (arr[0][0].check_flags.length === 0 && 
-                  arr[0][0].not_flags.length   === 0 &&
-                  arr[0][0].body.length        === 1 &&
-                  typeof arr[0][0].body[0] == 'string') {
-                // lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
-                
-                // lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
-                let str = arr[0][0].body[0];
-                if (arr[1])
-                    str += arr[1];
-                  // lm.log(`reduce to string ${inspect_fun(str)}`);
-                  return str;
-                }
+            if (arr[0].length === 1 &&
+                arr[0][0].check_flags.length === 0 && 
+                arr[0][0].not_flags.length   === 0 &&
+                arr[0][0].body.length        === 1 &&
+                typeof arr[0][0].body[0] == 'string') {
+              let str = arr[0][0].body[0];
+              if (arr[1])
+                str += arr[1];
+              return str;
             }
           }
-          // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
-          // lm.log(`THING:  ${inspect_fun(arr[0][0].body)}`);
-          // lm.log(`THINGL: ${inspect_fun(arr[0][0].body.length)}`);
-          
           return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
         };
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
