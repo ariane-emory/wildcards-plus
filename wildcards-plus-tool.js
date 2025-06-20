@@ -4189,6 +4189,8 @@ const configuration_key_names = [
     expected_type: 'boolean',
     shorthands: [ "znp" ] },
 ];
+const known_configuration_key_names = new Set(configuration_key_names.map(x => [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1));
+lm.log(inspect_fun(known_configuration_key_names));
 // -------------------------------------------------------------------------------------------------
 function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
@@ -4568,50 +4570,50 @@ class Context {
              `${munged_configuration.sampler} to ` +
              `munged_configuration.sampler = ` +
              `${inspect_fun(dt_samplers[munged_configuration.sampler])}.`,
-             log_level__expand_and_walk);
-      munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
-    }
+                                                           log_level__expand_and_walk);
+                                                    munged_configuration.sampler = dt_samplers[munged_configuration.sampler];
+                                                  }
 
-    // 'fix' seed if n_iter > 1, doing this seems convenient?
-    const n_iter_key = get_our_configuration_key_name('n_iter');
-    const n_iter_val = munged_configuration[n_iter_key];
+                                                  // 'fix' seed if n_iter > 1, doing this seems convenient?
+                                                  const n_iter_key = get_our_configuration_key_name('n_iter');
+                                                  const n_iter_val = munged_configuration[n_iter_key];
 
-    if (n_iter_val > 1 && munged_configuration.seed !== -1) {
-      if (log_configuration_enabled)
-        lm.log(`%seed = -1 due to n_iter > 1`,
-               log_level__expand_and_walk);
+                                                  if (n_iter_val > 1 && munged_configuration.seed !== -1) {
+                                                    if (log_configuration_enabled)
+                                                      lm.log(`%seed = -1 due to n_iter > 1`,
+                                                             log_level__expand_and_walk);
 
-      munged_configuration.seed = -1;
-    }
-    else if (typeof munged_configuration.seed !== 'number') {
-      const random = Math.floor(Math.random() * (2 ** 32));
-      
-      if (log_configuration_enabled)
-        lm.log(`%seed = ${random} due to no seed`,
-               log_level__expand_and_walk);
+                                                    munged_configuration.seed = -1;
+                                                  }
+                                                  else if (typeof munged_configuration.seed !== 'number') {
+                                                    const random = Math.floor(Math.random() * (2 ** 32));
+                                                    
+                                                    if (log_configuration_enabled)
+                                                      lm.log(`%seed = ${random} due to no seed`,
+                                                             log_level__expand_and_walk);
 
-      munged_configuration.seed = random;
-    }    
+                                                    munged_configuration.seed = random;
+                                                  }    
 
-    // if (log_configuration_enabled)
-    //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
+                                                  // if (log_configuration_enabled)
+                                                  //   lm.log(`MUNGED CONFIGURATION IS: ${inspect_fun(munged_configuration)}`);
 
-    this.configuration = munged_configuration;
-  }
-  // -----------------------------------------------------------------------------------------------
-  toString() {
-    return `Context<#${this.context_id}>`;
-  }
-}
-// =================================================================================================
-// END OF Context CLASS.
-// =================================================================================================
+                                                  this.configuration = munged_configuration;
+                                                }
+                                                                                                           // -----------------------------------------------------------------------------------------------
+                                                                                                           toString() {
+                                                                                                             return `Context<#${this.context_id}>`;
+                                                                                                           }
+                                                                                                          }
+                                                                  // =================================================================================================
+                                                                  // END OF Context CLASS.
+                                                                  // =================================================================================================
 
 
-// =================================================================================================
-// HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
-// =================================================================================================
-const prelude_text = `
+                                                                  // =================================================================================================
+                                                                  // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
+                                                                  // =================================================================================================
+                                                                                                                                                                                             const prelude_text = `
 @__set_gender_if_unset  = {  ?female           #gender.female 
                           |  ?male             #gender.male
                           |  ?neuter           #gender.neuter 
@@ -5585,709 +5587,709 @@ const prelude_text = `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.6
 }
-// {
-// "width": 1152,
-// "height": 896,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
+                 // {
+                 // "width": 1152,
+                 // "height": 896,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": false
+                 // }
 
-@xl_magic_medium_3_to_4_os6 =
-{ %w   = 896;   %h    = 1152;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 896,
-// "height": 1152,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
+                 @xl_magic_medium_3_to_4_os6 =
+                 { %w   = 896;   %h    = 1152;   
+                   %ow  = 576;   %oh   = 768;
+                   %tw  = 1152;  %th   = 1536;
+                   %nw  = 1344;  %nh   = 1792;
+                   %hrf = false;
+                   #xl_magic_size.medium
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.3.4
+                   #xl_magic_object_scaling.6
+                 }
+                 // {
+                 // "width": 896,
+                 // "height": 1152,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": false
+                 // }
 
-@xl_magic_medium_9_to_16_os6 = 
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
+                 @xl_magic_medium_9_to_16_os6 = 
+                 { %w   = 768;   %h    = 1344;   
+                   %ow  = 576;   %oh   = 768;
+                   %tw  = 1152;  %th   = 1536;
+                   %nw  = 1344;  %nh   = 1792;
+                   %hrf = false;
+                   #xl_magic_size.medium
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.9.16
+                   #xl_magic_object_scaling.6
+                 }
+                 // {
+                 // "width": 768,
+                 // "height": 1344,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": false
+                 // }
 
-@xl_magic_medium_16_to_9_os6 =
-{ %w   = 1344;  %h    = 768;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1344,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
+                 @xl_magic_medium_16_to_9_os6 =
+                 { %w   = 1344;  %h    = 768;    
+                   %ow  = 768;   %oh   = 576;    
+                   %tw  = 1536;  %th   = 1152    
+                   %nw  = 1792;  %nh   = 1344;   
+                   %hrf = false;
+                   #xl_magic_size.medium
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.16.9
+                   #xl_magic_object_scaling.6
+                 }
+                 // {
+                 // "width": 1344,
+                 // "height": 768,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": false
+                 // }
 
-// -------------------------------------------------------------------------------------------------
-// large:
-// -------------------------------------------------------------------------------------------------
+                 // -------------------------------------------------------------------------------------------------
+                 // large:
+                 // -------------------------------------------------------------------------------------------------
 
-@xl_magic_large_1_to_1 = 
-{ %w    = 1536; %h    = 1536;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 512;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_1_to_1 = 
+                 { %w    = 1536; %h    = 1536;   
+                   %ow   = 768;  %oh   = 576;    
+                   %tw   = 1024; %th   = 768;    
+                   %nw   = 1792; %nh   = 1344;   
+                   %hrfw = 512;  %hrfh = 512;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.square
+                   #xl_magic_aspect_ratio.1.1
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_2_to_3 =
-{ %w    = 1280; %h    = 1920;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 512;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_2_to_3 =
+                 { %w    = 1280; %h    = 1920;   
+                   %ow   = 576;  %oh   = 768;    
+                   %tw   = 768;  %th   = 1024;   
+                   %nw   = 1344; %nh   = 1792;   
+                   %hrfw = 512;  %hrfh = 768;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.2.3
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_3_to_2 =
-{ %w    = 1920; %h    = 1280;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_3_to_2 =
+                 { %w    = 1920; %h    = 1280;   
+                   %ow   = 768;  %oh   = 576;    
+                   %tw   = 1024; %th   = 768;    
+                   %nw   = 1792; %nh   = 1344;   
+                   %hrfw = 768;  %hrfh = 512;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.3.2
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_3_to_4 =
-{ %w    = 1344; %h    = 1792;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 576;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_3_to_4 =
+                 { %w    = 1344; %h    = 1792;   
+                   %ow   = 576;  %oh   = 768;    
+                   %tw   = 768;  %th   = 1024;   
+                   %nw   = 1344; %nh   = 1792;   
+                   %hrfw = 576;  %hrfh = 768;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.3.4
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_4_to_3 =
-{ %w    = 1792; %h    = 1344;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_4_to_3 =
+                 { %w    = 1792; %h    = 1344;   
+                   %ow   = 768;  %oh   = 576;    
+                   %tw   = 1024; %th   = 768;    
+                   %nw   = 1792; %nh   = 1344;   
+                   %hrfw = 768;  %hrfh = 576;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.4.3
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_9_to_16 =
-{ %w    = 1152; %h    = 2048;   
-  %ow   = 576;  %oh   = 768;    
-  %tw   = 768;  %th   = 1024;   
-  %nw   = 1344; %nh   = 1792;   
-  %hrfw = 576;  %hrfh = 1024;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_9_to_16 =
+                 { %w    = 1152; %h    = 2048;   
+                   %ow   = 576;  %oh   = 768;    
+                   %tw   = 768;  %th   = 1024;   
+                   %nw   = 1344; %nh   = 1792;   
+                   %hrfw = 576;  %hrfh = 1024;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.9.16
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_16_to_9 =
-{ %w    = 2048; %h    = 1152;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
+                 @xl_magic_large_16_to_9 =
+                 { %w    = 2048; %h    = 1152;   
+                   %ow   = 768;  %oh   = 576;    
+                   %tw   = 1024; %th   = 768;    
+                   %nw   = 1792; %nh   = 1344;   
+                   %hrfw = 1024; %hrfh = 576;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.16.9
+                   #xl_magic_object_scaling.4
+                 }
 
-@xl_magic_large_1_to_1_os6 =
-{ %w    = 1536; %h    = 1536;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 512;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
-}
-// 1:1 os6
-// {
-// "width": 1536,
-// "height": 1536,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 512,
-// "hiresFixHeight": 512,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_1_to_1_os6 =
+                 { %w    = 1536; %h    = 1536;
+                   %ow   = 768;  %oh   = 576;
+                   %tw   = 1536; %th   = 1152;
+                   %nw   = 1792; %nh   = 1344;
+                   %hrfw = 512;  %hrfh = 512;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.square
+                   #xl_magic_aspect_ratio.1.1
+                   #xl_magic_object_scaling.6
+                 }
+                 // 1:1 os6
+                 // {
+                 // "width": 1536,
+                 // "height": 1536,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 512,
+                 // "hiresFixHeight": 512,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_2_to_3_os6 =
-{ %w    = 1280; %h    = 1920;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 512;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
-// 2:3 os6
-// {
-// "width": 1280,
-// "height": 1920,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 512,
-// "hiresFixHeight": 768,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_2_to_3_os6 =
+                 { %w    = 1280; %h    = 1920;
+                   %ow   = 576;  %oh   = 768;
+                   %tw   = 1152; %th   = 1536;
+                   %nw   = 1344; %nh   = 1792;
+                   %hrfw = 512;  %hrfh = 768;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.2.3
+                   #xl_magic_object_scaling.6
+                 }
+                 // 2:3 os6
+                 // {
+                 // "width": 1280,
+                 // "height": 1920,
+                 // "originalImageWidth": 576,
+                 // "originalImageHeight": 768,
+                 // "targetImageWidth": 1152,
+                 // "targetImageHeight": 1536,
+                 // "negativeOriginalImageWidth": 1344,
+                 // "negativeOriginalImageHeight": 1792,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 512,
+                 // "hiresFixHeight": 768,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_3_to_2_os6 =
-{ %w    = 1920; %h    = 1280;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
-}
-// 3:2 os6
-// {
-// "width": 1920,
-// "height": 1280,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 768,
-// "hiresFixHeight": 512,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_3_to_2_os6 =
+                 { %w    = 1920; %h    = 1280;
+                   %ow   = 768;  %oh   = 576;
+                   %tw   = 1536; %th   = 1152;
+                   %nw   = 1792; %nh   = 1344;
+                   %hrfw = 768;  %hrfh = 512;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.3.2
+                   #xl_magic_object_scaling.6
+                 }
+                 // 3:2 os6
+                 // {
+                 // "width": 1920,
+                 // "height": 1280,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 768,
+                 // "hiresFixHeight": 512,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_3_to_4_os6 =
-{ %w    = 1344; %h    = 1796;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 576;  %hrfh = 768;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// 3:4 os6
-// {
-// "width": 1344,
-// "height": 1796,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 576,
-// "hiresFixHeight": 768,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_3_to_4_os6 =
+                 { %w    = 1344; %h    = 1796;
+                   %ow   = 576;  %oh   = 768;
+                   %tw   = 1152; %th   = 1536;
+                   %nw   = 1344; %nh   = 1792;
+                   %hrfw = 576;  %hrfh = 768;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.3.4
+                   #xl_magic_object_scaling.6
+                 }
+                 // 3:4 os6
+                 // {
+                 // "width": 1344,
+                 // "height": 1796,
+                 // "originalImageWidth": 576,
+                 // "originalImageHeight": 768,
+                 // "targetImageWidth": 1152,
+                 // "targetImageHeight": 1536,
+                 // "negativeOriginalImageWidth": 1344,
+                 // "negativeOriginalImageHeight": 1792,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 576,
+                 // "hiresFixHeight": 768,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_4_to_3_os6 = 
-{ %w    = 1792; %h    = 1344;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 768;  %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscale
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.6
+                 @xl_magic_large_4_to_3_os6 = 
+                 { %w    = 1792; %h    = 1344;
+                   %ow   = 768;  %oh   = 576;
+                   %tw   = 1536; %th   = 1152;
+                   %nw   = 1792; %nh   = 1344;
+                   %hrfw = 768;  %hrfh = 576;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscale
+                   #xl_magic_aspect_ratio.4.3
+                   #xl_magic_object_scaling.6
 
-}
-// {
-// "width": 1792,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 768,
-// "hiresFixHeight": 576,
-// "hiresFixStrength": 0.6
-// }
+                 }
+                 // {
+                 // "width": 1792,
+                 // "height": 1344,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 768,
+                 // "hiresFixHeight": 576,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_9_to_16_os6 =
-{ %w    = 1152; %h    = 2048;
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrfw = 576;  %hrfh = 1024;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.6
-}
-// 9:16 os6
-// {
-// "width": 1152,
-// "height": 2048,
-// "originalImageWidth": 576,
-// "originalImageHeight": 768,
-// "targetImageWidth": 1152,
-// "targetImageHeight": 1536,
-// "negativeOriginalImageWidth": 1344,
-// "negativeOriginalImageHeight": 1792,
-// "hiresFix": true,
-// "hiresFixWidth": 576,
-// "hiresFixHeight": 1024,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_9_to_16_os6 =
+                 { %w    = 1152; %h    = 2048;
+                   %ow   = 576;  %oh   = 768;
+                   %tw   = 1152; %th   = 1536;
+                   %nw   = 1344; %nh   = 1792;
+                   %hrfw = 576;  %hrfh = 1024;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.portrait
+                   #xl_magic_aspect_ratio.9.16
+                   #xl_magic_object_scaling.6
+                 }
+                 // 9:16 os6
+                 // {
+                 // "width": 1152,
+                 // "height": 2048,
+                 // "originalImageWidth": 576,
+                 // "originalImageHeight": 768,
+                 // "targetImageWidth": 1152,
+                 // "targetImageHeight": 1536,
+                 // "negativeOriginalImageWidth": 1344,
+                 // "negativeOriginalImageHeight": 1792,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 576,
+                 // "hiresFixHeight": 1024,
+                 // "hiresFixStrength": 0.6
+                 // }
 
-@xl_magic_large_16_to_9_os6 =
-{ %w    = 2048; %h    = 1152;
-  %ow   = 768;  %oh   = 576;
-  %tw   = 1536; %th   = 1152;
-  %nw   = 1792; %nh   = 1344;
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.6
-}
-// 16:9 os6
-// {
-// "width": 2048,
-// "height": 1152,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": true,
-// "hiresFixWidth": 1024,
-// "hiresFixHeight": 576,
-// "hiresFixStrength": 0.6
-// }
+                 @xl_magic_large_16_to_9_os6 =
+                 { %w    = 2048; %h    = 1152;
+                   %ow   = 768;  %oh   = 576;
+                   %tw   = 1536; %th   = 1152;
+                   %nw   = 1792; %nh   = 1344;
+                   %hrfw = 1024; %hrfh = 576;
+                   %hrf  = true;
+                   %hrf_strength = 0.6;
+                   #xl_magic_size.large
+                   #xl_magic_orientation.landscape
+                   #xl_magic_aspect_ratio.16.9
+                   #xl_magic_object_scaling.6
+                 }
+                 // 16:9 os6
+                 // {
+                 // "width": 2048,
+                 // "height": 1152,
+                 // "originalImageWidth": 768,
+                 // "originalImageHeight": 576,
+                 // "targetImageWidth": 1536,
+                 // "targetImageHeight": 1152,
+                 // "negativeOriginalImageWidth": 1792,
+                 // "negativeOriginalImageHeight": 1344,
+                 // "hiresFix": true,
+                 // "hiresFixWidth": 1024,
+                 // "hiresFixHeight": 576,
+                 // "hiresFixStrength": 0.6
+                 // }
 
 
-// --------------------------------------------------------------------------------------------------
-// pickers:
-// -------------------------------------------------------------------------------------------------
+                 // --------------------------------------------------------------------------------------------------
+                 // pickers:
+                 // -------------------------------------------------------------------------------------------------
 
-@xl_magic_small_random =
-{ @xl_magic_small_1_to_1
-| @xl_magic_small_2_to_3
-| @xl_magic_small_3_to_2
-| @xl_magic_small_3_to_4
-| @xl_magic_small_4_to_3
-| @xl_magic_small_9_to_16
-| @xl_magic_small_16_to_9
-}
+                 @xl_magic_small_random =
+                 { @xl_magic_small_1_to_1
+                   | @xl_magic_small_2_to_3
+                   | @xl_magic_small_3_to_2
+                   | @xl_magic_small_3_to_4
+                   | @xl_magic_small_4_to_3
+                   | @xl_magic_small_9_to_16
+                   | @xl_magic_small_16_to_9
+                 }
 
-@xl_magic_small_random_os6 = 
-{ @xl_magic_small_1_to_1_os6
-| @xl_magic_small_2_to_3_os6
-| @xl_magic_small_3_to_2_os6
-| @xl_magic_small_3_to_4_os6
-| @xl_magic_small_4_to_3_os6
-| @xl_magic_small_9_to_16_os6
-| @xl_magic_small_16_to_9_os6
-}
+                 @xl_magic_small_random_os6 = 
+                 { @xl_magic_small_1_to_1_os6
+                   | @xl_magic_small_2_to_3_os6
+                   | @xl_magic_small_3_to_2_os6
+                   | @xl_magic_small_3_to_4_os6
+                   | @xl_magic_small_4_to_3_os6
+                   | @xl_magic_small_9_to_16_os6
+                   | @xl_magic_small_16_to_9_os6
+                 }
 
-@xl_magic_smallish_random =
-{ @xl_magic_smallish_1_to_1
-| @xl_magic_smallish_2_to_3
-| @xl_magic_smallish_3_to_2
-| @xl_magic_smallish_3_to_4
-| @xl_magic_smallish_4_to_3
-| @xl_magic_smallish_9_to_16
-| @xl_magic_smallish_16_to_9
-}
+                 @xl_magic_smallish_random =
+                 { @xl_magic_smallish_1_to_1
+                   | @xl_magic_smallish_2_to_3
+                   | @xl_magic_smallish_3_to_2
+                   | @xl_magic_smallish_3_to_4
+                   | @xl_magic_smallish_4_to_3
+                   | @xl_magic_smallish_9_to_16
+                   | @xl_magic_smallish_16_to_9
+                 }
 
-@xl_magic_smallish_random_os6 = 
-{ @xl_magic_smallish_1_to_1_os6
-| @xl_magic_smallish_2_to_3_os6
-| @xl_magic_smallish_3_to_2_os6
-| @xl_magic_smallish_3_to_4_os6
-| @xl_magic_smallish_4_to_3_os6
-| @xl_magic_smallish_9_to_16_os6
-| @xl_magic_smallish_16_to_9_os6
-}
+                 @xl_magic_smallish_random_os6 = 
+                 { @xl_magic_smallish_1_to_1_os6
+                   | @xl_magic_smallish_2_to_3_os6
+                   | @xl_magic_smallish_3_to_2_os6
+                   | @xl_magic_smallish_3_to_4_os6
+                   | @xl_magic_smallish_4_to_3_os6
+                   | @xl_magic_smallish_9_to_16_os6
+                   | @xl_magic_smallish_16_to_9_os6
+                 }
 
-@xl_magic_medium_random =
-{ @xl_magic_medium_1_to_1
-| @xl_magic_medium_2_to_3
-| @xl_magic_medium_3_to_2
-| @xl_magic_medium_3_to_4
-| @xl_magic_medium_4_to_3
-| @xl_magic_medium_9_to_16
-| @xl_magic_medium_16_to_9
-}
+                 @xl_magic_medium_random =
+                 { @xl_magic_medium_1_to_1
+                   | @xl_magic_medium_2_to_3
+                   | @xl_magic_medium_3_to_2
+                   | @xl_magic_medium_3_to_4
+                   | @xl_magic_medium_4_to_3
+                   | @xl_magic_medium_9_to_16
+                   | @xl_magic_medium_16_to_9
+                 }
 
-@xl_magic_medium_random_os6 =
-{ @xl_magic_medium_1_to_1_os6
-| @xl_magic_medium_2_to_3_os6
-| @xl_magic_medium_3_to_2_os6
-| @xl_magic_medium_3_to_4_os6
-| @xl_magic_medium_4_to_3_os6
-| @xl_magic_medium_9_to_16_os6
-| @xl_magic_medium_16_to_9_os6
-}
+                 @xl_magic_medium_random_os6 =
+                 { @xl_magic_medium_1_to_1_os6
+                   | @xl_magic_medium_2_to_3_os6
+                   | @xl_magic_medium_3_to_2_os6
+                   | @xl_magic_medium_3_to_4_os6
+                   | @xl_magic_medium_4_to_3_os6
+                   | @xl_magic_medium_9_to_16_os6
+                   | @xl_magic_medium_16_to_9_os6
+                 }
 
-@xl_magic_large_random =
-{ @xl_magic_large_1_to_1
-| @xl_magic_large_2_to_3
-| @xl_magic_large_3_to_2
-| @xl_magic_large_3_to_4
-| @xl_magic_large_4_to_3
-| @xl_magic_large_9_to_16
-| @xl_magic_large_16_to_9
-}
+                 @xl_magic_large_random =
+                 { @xl_magic_large_1_to_1
+                   | @xl_magic_large_2_to_3
+                   | @xl_magic_large_3_to_2
+                   | @xl_magic_large_3_to_4
+                   | @xl_magic_large_4_to_3
+                   | @xl_magic_large_9_to_16
+                   | @xl_magic_large_16_to_9
+                 }
 
-@xl_magic_large_random_os6 =
-{ @xl_magic_large_1_to_1_os6
-| @xl_magic_large_2_to_3_os6
-| @xl_magic_large_3_to_2_os6
-| @xl_magic_large_3_to_4_os6
-| @xl_magic_large_4_to_3_os6
-| @xl_magic_large_9_to_16_os6
-| @xl_magic_large_16_to_9_os6
-}
+                 @xl_magic_large_random_os6 =
+                 { @xl_magic_large_1_to_1_os6
+                   | @xl_magic_large_2_to_3_os6
+                   | @xl_magic_large_3_to_2_os6
+                   | @xl_magic_large_3_to_4_os6
+                   | @xl_magic_large_4_to_3_os6
+                   | @xl_magic_large_9_to_16_os6
+                   | @xl_magic_large_16_to_9_os6
+                 }
 
-//--------------------------------------------------------------------------------------------------
-// Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
-// Artist Summoning':
-//--------------------------------------------------------------------------------------------------
+                 //--------------------------------------------------------------------------------------------------
+                 // Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+                 // Artist Summoning':
+                 //--------------------------------------------------------------------------------------------------
 
-@__set_wizards_artists_artist_if_unset =
-{ !wizards_artist.#zacharias_martin_aagaard
-| !wizards_artist.#slim_aarons
-| !wizards_artist.#elenore_abbott
-| !wizards_artist.#tomma_abts
-| !wizards_artist.#vito_acconci
-| !wizards_artist.#andreas_achenbach
-| !wizards_artist.#ansel_adams
-| !wizards_artist.#josh_adamski
-| !wizards_artist.#charles_addams
-| !wizards_artist.#etel_adnan
-| !wizards_artist.#alena_aenami
-| !wizards_artist.#leonid_afremov
-| !wizards_artist.#petros_afshar
-| !wizards_artist.#yaacov_agam
-| !wizards_artist.#eileen_agar
-| !wizards_artist.#craigie_aitchison
-| !wizards_artist.#ivan_aivazovsky
-| !wizards_artist.#francesco_albani
-| !wizards_artist.#alessio_albi
-| !wizards_artist.#miles_aldridge
-| !wizards_artist.#john_white_alexander
-| !wizards_artist.#alessandro_allori
-| !wizards_artist.#mike_allred
-| !wizards_artist.#lawrence_alma_tadema
-| !wizards_artist.#lilia_alvarado
-| !wizards_artist.#tarsila_do_amaral
-| !wizards_artist.#ghada_amer
-| !wizards_artist.#cuno_amiet
-| !wizards_artist.#el_anatsui
-| !wizards_artist.#helga_ancher
-| !wizards_artist.#sarah_andersen
-| !wizards_artist.#richard_anderson
-| !wizards_artist.#sophie_gengembre_anderson
-| !wizards_artist.#wes_anderson
-| !wizards_artist.#alex_andreev
-| !wizards_artist.#sofonisba_anguissola
-| !wizards_artist.#louis_anquetin
-| !wizards_artist.#mary_jane_ansell
-| !wizards_artist.#chiho_aoshima
-| !wizards_artist.#sabbas_apterus
-| !wizards_artist.#hirohiko_araki
-| !wizards_artist.#howard_arkley
-| !wizards_artist.#rolf_armstrong
-| !wizards_artist.#gerd_arntz
-| !wizards_artist.#guy_aroch
-| !wizards_artist.#miki_asai
-| !wizards_artist.#clemens_ascher
-| !wizards_artist.#henry_asencio
-| !wizards_artist.#andrew_atroshenko
-| !wizards_artist.#deborah_azzopardi
-| !wizards_artist.#lois_van_baarle
-| !wizards_artist.#ingrid_baars
-| !wizards_artist.#anne_bachelier
-| !wizards_artist.#francis_bacon
-| !wizards_artist.#firmin_baes
-| !wizards_artist.#tom_bagshaw
-| !wizards_artist.#karol_bak
-| !wizards_artist.#christopher_balaskas
-| !wizards_artist.#benedick_bana
-| !wizards_artist.#banksy
-| !wizards_artist.#george_barbier
-| !wizards_artist.#cicely_mary_barker
-| !wizards_artist.#wayne_barlowe
-| !wizards_artist.#will_barnet
-| !wizards_artist.#matthew_barney
-| !wizards_artist.#angela_barrett
-| !wizards_artist.#jean_michel_basquiat
-| !wizards_artist.#lillian_bassman
-| !wizards_artist.#pompeo_batoni
-| !wizards_artist.#casey_baugh
-| !wizards_artist.#chiara_bautista
-| !wizards_artist.#herbert_bayer
-| !wizards_artist.#mary_beale
-| !wizards_artist.#alan_bean
-| !wizards_artist.#romare_bearden
-| !wizards_artist.#cecil_beaton
-| !wizards_artist.#cecilia_beaux
-| !wizards_artist.#jasmine_becket_griffith
-| !wizards_artist.#vanessa_beecroft
-| !wizards_artist.#beeple
-| !wizards_artist.#zdzislaw_beksinski
-| !wizards_artist.#katerina_belkina
-| !wizards_artist.#julie_bell
-| !wizards_artist.#vanessa_bell
-| !wizards_artist.#bernardo_bellotto
-| !wizards_artist.#ambrosius_benson
-| !wizards_artist.#stan_berenstain
-| !wizards_artist.#laura_berger
-| !wizards_artist.#jody_bergsma
-| !wizards_artist.#john_berkey
-| !wizards_artist.#gian_lorenzo_bernini
-| !wizards_artist.#marta_bevacqua
-| !wizards_artist.#john_t_biggers
-| !wizards_artist.#enki_bilal
-| !wizards_artist.#ivan_bilibin
-| !wizards_artist.#butcher_billy
-| !wizards_artist.#george_caleb_bingham
-| !wizards_artist.#ed_binkley
-| !wizards_artist.#george_birrell
-| !wizards_artist.#robert_bissell
-| !wizards_artist.#charles_blackman
-| !wizards_artist.#mary_blair
-| !wizards_artist.#john_blanche
-| !wizards_artist.#don_blanding
-| !wizards_artist.#albert_bloch
-| !wizards_artist.#hyman_bloom
-| !wizards_artist.#peter_blume
-| !wizards_artist.#don_bluth
-| !wizards_artist.#umberto_boccioni
-| !wizards_artist.#anna_bocek
-| !wizards_artist.#lee_bogle
-| !wizards_artist.#louis_leopold_boily
-| !wizards_artist.#giovanni_boldini
-| !wizards_artist.#enoch_bolles
-| !wizards_artist.#david_bomberg
-| !wizards_artist.#chesley_bonestell
-| !wizards_artist.#lee_bontecou
-| !wizards_artist.#michael_borremans
-| !wizards_artist.#matt_bors
-| !wizards_artist.#flora_borsi
-| !wizards_artist.#hieronymus_bosch
-| !wizards_artist.#sam_bosma
-| !wizards_artist.#johfra_bosschart
-| !wizards_artist.#fernando_botero
-| !wizards_artist.#sandro_botticelli
-| !wizards_artist.#william_adolphe_bouguereau
-| !wizards_artist.#susan_seddon_boulet
-| !wizards_artist.#louise_bourgeois
-| !wizards_artist.#annick_bouvattier
-| !wizards_artist.#david_michael_bowers
-| !wizards_artist.#noah_bradley
-| !wizards_artist.#aleksi_briclot
-| !wizards_artist.#frederick_arthur_bridgman
-| !wizards_artist.#renie_britenbucher
-| !wizards_artist.#romero_britto
-| !wizards_artist.#gerald_brom
-| !wizards_artist.#bronzino
-| !wizards_artist.#herman_brood
-| !wizards_artist.#mark_brooks
-| !wizards_artist.#romaine_brooks
-| !wizards_artist.#troy_brooks
-| !wizards_artist.#broom_lee
-| !wizards_artist.#allie_brosh
-| !wizards_artist.#ford_madox_brown
-| !wizards_artist.#charles_le_brun
-| !wizards_artist.#elisabeth_vigee_le_brun
-| !wizards_artist.#james_bullough
-| !wizards_artist.#laurel_burch
-| !wizards_artist.#alejandro_burdisio
-| !wizards_artist.#daniel_buren
-| !wizards_artist.#jon_burgerman
-| !wizards_artist.#richard_burlet
-| !wizards_artist.#jim_burns
-| !wizards_artist.#stasia_burrington
-| !wizards_artist.#kaethe_butcher
-| !wizards_artist.#saturno_butto
-| !wizards_artist.#paul_cadmus
-| !wizards_artist.#zhichao_cai
-| !wizards_artist.#randolph_caldecott
-| !wizards_artist.#alexander_calder_milne
-| !wizards_artist.#clyde_caldwell
-| !wizards_artist.#vincent_callebaut
-| !wizards_artist.#fred_calleri
-| !wizards_artist.#charles_camoin
-| !wizards_artist.#mike_campau
-| !wizards_artist.#eric_canete
-| !wizards_artist.#josef_capek
-| !wizards_artist.#leonetto_cappiello
-| !wizards_artist.#eric_carle
-| !wizards_artist.#larry_carlson
-| !wizards_artist.#bill_carman
-| !wizards_artist.#jean_baptiste_carpeaux
-| !wizards_artist.#rosalba_carriera
-| !wizards_artist.#michael_carson
-| !wizards_artist.#felice_casorati
-| !wizards_artist.#mary_cassatt
-| !wizards_artist.#a_j_casson
-| !wizards_artist.#giorgio_barbarelli_da_castelfranco
-| !wizards_artist.#paul_catherall
-| !wizards_artist.#george_catlin
-| !wizards_artist.#patrick_caulfield
-| !wizards_artist.#nicoletta_ceccoli
-| !wizards_artist.#agnes_cecile
-| !wizards_artist.#paul_cezanne
-| !wizards_artist.#paul_chabas
-| !wizards_artist.#marc_chagall
-| !wizards_artist.#tom_chambers
-| !wizards_artist.#katia_chausheva
-| !wizards_artist.#hsiao_ron_cheng
-| !wizards_artist.#yanjun_cheng
-| !wizards_artist.#sandra_chevrier
-| !wizards_artist.#judy_chicago
-| !wizards_artist.#dale_chihuly
-| !wizards_artist.#frank_cho
-| !wizards_artist.#james_c_christensen
-| !wizards_artist.#mikalojus_konstantinas_ciurlionis
-| !wizards_artist.#alson_skinner_clark
-| !wizards_artist.#amanda_clark
-| !wizards_artist.#harry_clarke
-| !wizards_artist.#george_clausen
-| !wizards_artist.#francesco_clemente
-| !wizards_artist.#alvin_langdon_coburn
-| !wizards_artist.#clifford_coffin
-| !wizards_artist.#vince_colletta
-| !wizards_artist.#beth_conklin
-| !wizards_artist.#john_constable
-| !wizards_artist.#darwyn_cooke
-| !wizards_artist.#richard_corben
-| !wizards_artist.#vittorio_matteo_corcos
-| !wizards_artist.#paul_corfield
-| !wizards_artist.#fernand_cormon
-| !wizards_artist.#norman_cornish
-| !wizards_artist.#camille_corot
-| !wizards_artist.#gemma_correll
-| !wizards_artist.#petra_cortright
-| !wizards_artist.#lorenzo_costa_the_elder
-| !wizards_artist.#olive_cotton
-| !wizards_artist.#peter_coulson
-| !wizards_artist.#gustave_courbet
-| !wizards_artist.#frank_cadogan_cowper
-| !wizards_artist.#kinuko_y_craft
-| !wizards_artist.#clayton_crain
-| !wizards_artist.#lucas_cranach_the_elder
-| !wizards_artist.#lucas_cranach_the_younger
-| !wizards_artist.#walter_crane
-| !wizards_artist.#martin_creed
+                 @__set_wizards_artists_artist_if_unset =
+                 { !wizards_artist.#zacharias_martin_aagaard
+                   | !wizards_artist.#slim_aarons
+                   | !wizards_artist.#elenore_abbott
+                   | !wizards_artist.#tomma_abts
+                   | !wizards_artist.#vito_acconci
+                   | !wizards_artist.#andreas_achenbach
+                   | !wizards_artist.#ansel_adams
+                   | !wizards_artist.#josh_adamski
+                   | !wizards_artist.#charles_addams
+                   | !wizards_artist.#etel_adnan
+                   | !wizards_artist.#alena_aenami
+                   | !wizards_artist.#leonid_afremov
+                   | !wizards_artist.#petros_afshar
+                   | !wizards_artist.#yaacov_agam
+                   | !wizards_artist.#eileen_agar
+                   | !wizards_artist.#craigie_aitchison
+                   | !wizards_artist.#ivan_aivazovsky
+                   | !wizards_artist.#francesco_albani
+                   | !wizards_artist.#alessio_albi
+                   | !wizards_artist.#miles_aldridge
+                   | !wizards_artist.#john_white_alexander
+                   | !wizards_artist.#alessandro_allori
+                   | !wizards_artist.#mike_allred
+                   | !wizards_artist.#lawrence_alma_tadema
+                   | !wizards_artist.#lilia_alvarado
+                   | !wizards_artist.#tarsila_do_amaral
+                   | !wizards_artist.#ghada_amer
+                   | !wizards_artist.#cuno_amiet
+                   | !wizards_artist.#el_anatsui
+                   | !wizards_artist.#helga_ancher
+                   | !wizards_artist.#sarah_andersen
+                   | !wizards_artist.#richard_anderson
+                   | !wizards_artist.#sophie_gengembre_anderson
+                   | !wizards_artist.#wes_anderson
+                   | !wizards_artist.#alex_andreev
+                   | !wizards_artist.#sofonisba_anguissola
+                   | !wizards_artist.#louis_anquetin
+                   | !wizards_artist.#mary_jane_ansell
+                   | !wizards_artist.#chiho_aoshima
+                   | !wizards_artist.#sabbas_apterus
+                   | !wizards_artist.#hirohiko_araki
+                   | !wizards_artist.#howard_arkley
+                   | !wizards_artist.#rolf_armstrong
+                   | !wizards_artist.#gerd_arntz
+                   | !wizards_artist.#guy_aroch
+                   | !wizards_artist.#miki_asai
+                   | !wizards_artist.#clemens_ascher
+                   | !wizards_artist.#henry_asencio
+                   | !wizards_artist.#andrew_atroshenko
+                   | !wizards_artist.#deborah_azzopardi
+                   | !wizards_artist.#lois_van_baarle
+                   | !wizards_artist.#ingrid_baars
+                   | !wizards_artist.#anne_bachelier
+                   | !wizards_artist.#francis_bacon
+                   | !wizards_artist.#firmin_baes
+                   | !wizards_artist.#tom_bagshaw
+                   | !wizards_artist.#karol_bak
+                   | !wizards_artist.#christopher_balaskas
+                   | !wizards_artist.#benedick_bana
+                   | !wizards_artist.#banksy
+                   | !wizards_artist.#george_barbier
+                   | !wizards_artist.#cicely_mary_barker
+                   | !wizards_artist.#wayne_barlowe
+                   | !wizards_artist.#will_barnet
+                   | !wizards_artist.#matthew_barney
+                   | !wizards_artist.#angela_barrett
+                   | !wizards_artist.#jean_michel_basquiat
+                   | !wizards_artist.#lillian_bassman
+                   | !wizards_artist.#pompeo_batoni
+                   | !wizards_artist.#casey_baugh
+                   | !wizards_artist.#chiara_bautista
+                   | !wizards_artist.#herbert_bayer
+                   | !wizards_artist.#mary_beale
+                   | !wizards_artist.#alan_bean
+                   | !wizards_artist.#romare_bearden
+                   | !wizards_artist.#cecil_beaton
+                   | !wizards_artist.#cecilia_beaux
+                   | !wizards_artist.#jasmine_becket_griffith
+                   | !wizards_artist.#vanessa_beecroft
+                   | !wizards_artist.#beeple
+                   | !wizards_artist.#zdzislaw_beksinski
+                   | !wizards_artist.#katerina_belkina
+                   | !wizards_artist.#julie_bell
+                   | !wizards_artist.#vanessa_bell
+                   | !wizards_artist.#bernardo_bellotto
+                   | !wizards_artist.#ambrosius_benson
+                   | !wizards_artist.#stan_berenstain
+                   | !wizards_artist.#laura_berger
+                   | !wizards_artist.#jody_bergsma
+                   | !wizards_artist.#john_berkey
+                   | !wizards_artist.#gian_lorenzo_bernini
+                   | !wizards_artist.#marta_bevacqua
+                   | !wizards_artist.#john_t_biggers
+                   | !wizards_artist.#enki_bilal
+                   | !wizards_artist.#ivan_bilibin
+                   | !wizards_artist.#butcher_billy
+                   | !wizards_artist.#george_caleb_bingham
+                   | !wizards_artist.#ed_binkley
+                   | !wizards_artist.#george_birrell
+                   | !wizards_artist.#robert_bissell
+                   | !wizards_artist.#charles_blackman
+                   | !wizards_artist.#mary_blair
+                   | !wizards_artist.#john_blanche
+                   | !wizards_artist.#don_blanding
+                   | !wizards_artist.#albert_bloch
+                   | !wizards_artist.#hyman_bloom
+                   | !wizards_artist.#peter_blume
+                   | !wizards_artist.#don_bluth
+                   | !wizards_artist.#umberto_boccioni
+                   | !wizards_artist.#anna_bocek
+                   | !wizards_artist.#lee_bogle
+                   | !wizards_artist.#louis_leopold_boily
+                   | !wizards_artist.#giovanni_boldini
+                   | !wizards_artist.#enoch_bolles
+                   | !wizards_artist.#david_bomberg
+                   | !wizards_artist.#chesley_bonestell
+                   | !wizards_artist.#lee_bontecou
+                   | !wizards_artist.#michael_borremans
+                   | !wizards_artist.#matt_bors
+                   | !wizards_artist.#flora_borsi
+                   | !wizards_artist.#hieronymus_bosch
+                   | !wizards_artist.#sam_bosma
+                   | !wizards_artist.#johfra_bosschart
+                   | !wizards_artist.#fernando_botero
+                   | !wizards_artist.#sandro_botticelli
+                   | !wizards_artist.#william_adolphe_bouguereau
+                   | !wizards_artist.#susan_seddon_boulet
+                   | !wizards_artist.#louise_bourgeois
+                   | !wizards_artist.#annick_bouvattier
+                   | !wizards_artist.#david_michael_bowers
+                   | !wizards_artist.#noah_bradley
+                   | !wizards_artist.#aleksi_briclot
+                   | !wizards_artist.#frederick_arthur_bridgman
+                   | !wizards_artist.#renie_britenbucher
+                   | !wizards_artist.#romero_britto
+                   | !wizards_artist.#gerald_brom
+                   | !wizards_artist.#bronzino
+                   | !wizards_artist.#herman_brood
+                   | !wizards_artist.#mark_brooks
+                   | !wizards_artist.#romaine_brooks
+                   | !wizards_artist.#troy_brooks
+                   | !wizards_artist.#broom_lee
+                   | !wizards_artist.#allie_brosh
+                   | !wizards_artist.#ford_madox_brown
+                   | !wizards_artist.#charles_le_brun
+                   | !wizards_artist.#elisabeth_vigee_le_brun
+                   | !wizards_artist.#james_bullough
+                   | !wizards_artist.#laurel_burch
+                   | !wizards_artist.#alejandro_burdisio
+                   | !wizards_artist.#daniel_buren
+                   | !wizards_artist.#jon_burgerman
+                   | !wizards_artist.#richard_burlet
+                   | !wizards_artist.#jim_burns
+                   | !wizards_artist.#stasia_burrington
+                   | !wizards_artist.#kaethe_butcher
+                   | !wizards_artist.#saturno_butto
+                   | !wizards_artist.#paul_cadmus
+                   | !wizards_artist.#zhichao_cai
+                   | !wizards_artist.#randolph_caldecott
+                   | !wizards_artist.#alexander_calder_milne
+                   | !wizards_artist.#clyde_caldwell
+                   | !wizards_artist.#vincent_callebaut
+                   | !wizards_artist.#fred_calleri
+                   | !wizards_artist.#charles_camoin
+                   | !wizards_artist.#mike_campau
+                   | !wizards_artist.#eric_canete
+                   | !wizards_artist.#josef_capek
+                   | !wizards_artist.#leonetto_cappiello
+                   | !wizards_artist.#eric_carle
+                   | !wizards_artist.#larry_carlson
+                   | !wizards_artist.#bill_carman
+                   | !wizards_artist.#jean_baptiste_carpeaux
+                   | !wizards_artist.#rosalba_carriera
+                   | !wizards_artist.#michael_carson
+                   | !wizards_artist.#felice_casorati
+                   | !wizards_artist.#mary_cassatt
+                   | !wizards_artist.#a_j_casson
+                   | !wizards_artist.#giorgio_barbarelli_da_castelfranco
+                   | !wizards_artist.#paul_catherall
+                   | !wizards_artist.#george_catlin
+                   | !wizards_artist.#patrick_caulfield
+                   | !wizards_artist.#nicoletta_ceccoli
+                   | !wizards_artist.#agnes_cecile
+                   | !wizards_artist.#paul_cezanne
+                   | !wizards_artist.#paul_chabas
+                   | !wizards_artist.#marc_chagall
+                   | !wizards_artist.#tom_chambers
+                   | !wizards_artist.#katia_chausheva
+                   | !wizards_artist.#hsiao_ron_cheng
+                   | !wizards_artist.#yanjun_cheng
+                   | !wizards_artist.#sandra_chevrier
+                   | !wizards_artist.#judy_chicago
+                   | !wizards_artist.#dale_chihuly
+                   | !wizards_artist.#frank_cho
+                   | !wizards_artist.#james_c_christensen
+                   | !wizards_artist.#mikalojus_konstantinas_ciurlionis
+                   | !wizards_artist.#alson_skinner_clark
+                   | !wizards_artist.#amanda_clark
+                   | !wizards_artist.#harry_clarke
+                   | !wizards_artist.#george_clausen
+                   | !wizards_artist.#francesco_clemente
+                   | !wizards_artist.#alvin_langdon_coburn
+                   | !wizards_artist.#clifford_coffin
+                   | !wizards_artist.#vince_colletta
+                   | !wizards_artist.#beth_conklin
+                   | !wizards_artist.#john_constable
+                   | !wizards_artist.#darwyn_cooke
+                   | !wizards_artist.#richard_corben
+                   | !wizards_artist.#vittorio_matteo_corcos
+                   | !wizards_artist.#paul_corfield
+                   | !wizards_artist.#fernand_cormon
+                   | !wizards_artist.#norman_cornish
+                   | !wizards_artist.#camille_corot
+                   | !wizards_artist.#gemma_correll
+                   | !wizards_artist.#petra_cortright
+                   | !wizards_artist.#lorenzo_costa_the_elder
+                   | !wizards_artist.#olive_cotton
+                   | !wizards_artist.#peter_coulson
+                   | !wizards_artist.#gustave_courbet
+                   | !wizards_artist.#frank_cadogan_cowper
+                   | !wizards_artist.#kinuko_y_craft
+                   | !wizards_artist.#clayton_crain
+                   | !wizards_artist.#lucas_cranach_the_elder
+                   | !wizards_artist.#lucas_cranach_the_younger
+                   | !wizards_artist.#walter_crane
+                   | !wizards_artist.#martin_creed
 | !wizards_artist.#gregory_crewdson
 | !wizards_artist.#debbie_criswell
 | !wizards_artist.#victoria_crowe
