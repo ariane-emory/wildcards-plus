@@ -11375,7 +11375,7 @@ const make_AnonWildcard_rule            =
         const new_ASTAnonWildcard = arr => {
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
-          if (arr[0].length === 0)
+          if (arr[0].length === 0 && empty_value)
             return empty_value;
 
           if (!dont_reduce) {
@@ -11396,12 +11396,7 @@ const make_AnonWildcard_rule            =
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        const xform_fun = empty_value === undefined
-              ? arr => new_ASTAnonWildcard(arr)
-              : arr => (arr.length === 0
-                        ? empty_value
-                        : new_ASTAnonWildcard(arr));
-        return xform(xform_fun,
+        return xform(new_ASTAnonWildcard,
                      seq(discarded_comments,
                          body_rule,
                          tail_rule));
@@ -11524,7 +11519,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             lws(any_assignment_operator),                   // [0][1]
                             discarded_comments),                            // -
                         lws(choice(ExposedRjsonc,                           // [1]
-                                   head(() => LimitedContentNoAWCArticleCorrection,
+                                   head(() => LimitedContentNoAwcSJMergeArticleCorrection,
                                         optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
@@ -11675,9 +11670,9 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
 const LimitedContent =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoAWCArticleCorrection =
+const LimitedContentNoAwcSJMergeArticleCorrection =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrection)
-      .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrection');
 const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
       .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
