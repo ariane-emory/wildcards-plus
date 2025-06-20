@@ -11161,7 +11161,7 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
                .replace(/<+$/,    '<')
                .replace(/\\n/g,   '\n')
                .replace(/\\ /g,   ' ')
-               .replace(/\\([^<])/g, '$1')); // unescape any other backslash escaped charts except \<
+               .replace(/\\([^<])/g, '$1')); // unescape any other backslash escaped chars except \<
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(';')
@@ -11371,14 +11371,13 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
       .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, { can_have_trailer = false, empty_value = undefined, dont_reduce = false } = {}) => {
-        const new_ASTAnonWildcard = arr => {
+      (alternative_rule, { can_have_trailer = false, reducable_to_value } = {}) => {
+        const new_ASTAnonWildcard_or_reduced_value = arr => {
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
-          if (arr[0].length === 0 && empty_value !== undefined)
-            return empty_value;
-
-          if (!dont_reduce) {
+          if (reducable_to_value !== undefined) {
+            if (arr[0].length === 0)
+              return reducable_to_value;
             if (arr[0].length                === 1 &&
                 arr[0][0].check_flags.length === 0 && 
                 arr[0][0].not_flags.length   === 0 &&
@@ -11396,7 +11395,7 @@ const make_AnonWildcard_rule            =
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        return xform(new_ASTAnonWildcard,
+        return xform(new_ASTAnonWildcard_or_reduced_value,
                      seq(discarded_comments,
                          body_rule,
                          tail_rule));
@@ -11404,23 +11403,22 @@ const make_AnonWildcard_rule            =
 // -------------------------------------------------------------------------------------------------
 const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, empty_value: DISCARD })
+                             { can_have_trailer: true, reducable_to_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
 // no empty value because values that are going to go on the rhs of context.named_wildcards need
 // to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, empty_value: undefined,
-                               dont_reduce: true })
+                             { can_have_trailer: true, reducable_to_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
 // note differing empty values due their contexts of use:
 const AnonWildcardNoSJMergeArticleCorrection =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: true, empty_value: '' }) // DISCARD })
+                             { can_have_trailer: true, reducable_to_value: '' }) // DISCARD })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
 const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: false, empty_value:  '' })
+                             { can_have_trailer: false, reducable_to_value:  '' })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrectionOrTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
