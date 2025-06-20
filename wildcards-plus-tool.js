@@ -11379,11 +11379,13 @@ const make_AnonWildcard_rule            =
           
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
-          if (!dont_reduce)
-            if (arr[0].length === 1) {
+          if (!dont_reduce) {
+            if (arr[0].length === 0)
+              return ''; // or maybe DISCARD sometimes?
+            else if (arr[0].length === 1) {
               // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
               if (arr[0][0].check_flags.length === 0 && 
-                  arr[0][0].not_flags.length   === 0)
+                  arr[0][0].not_flags.length   === 0) {
                 // lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
                 if (arr[0][0].body.length === 1 &&
                     typeof arr[0][0].body[0] == 'string') {
@@ -11395,7 +11397,9 @@ const make_AnonWildcard_rule            =
                   // lm.log(`reduce to string ${inspect_fun(str)}`);
                   return str;
                 }
+              }
             }
+          }
           // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
           // lm.log(`THING:  ${inspect_fun(arr[0][0].body)}`);
           // lm.log(`THINGL: ${inspect_fun(arr[0][0].body.length)}`);
