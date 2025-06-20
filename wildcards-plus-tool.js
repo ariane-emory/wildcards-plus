@@ -11416,7 +11416,7 @@ const AnonWildcardInDefinition =
 // note differing empty values due their contexts of use:
 const AnonWildcardNoSJMergeArticleCorrection =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: true, empty_value: DISCARD })
+                             { can_have_trailer: true, empty_value: '' }) // DISCARD })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
 const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
