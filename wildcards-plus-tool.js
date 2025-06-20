@@ -310,9 +310,9 @@ let log_level__audit                              = 0;
 let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
-let prelude_disabled                              = false;
+let prelude_disabled                              = true;
 let print_ast_then_die                            = false;
-let print_ast_before_includes_enabled             = false;
+let print_ast_before_includes_enabled             = true;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -4613,7 +4613,7 @@ class Context {
 // =================================================================================================
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
-                                                                                                                                                                                             const prelude_text = `
+const prelude_text = `
 @__set_gender_if_unset  = {  ?female           #gender.female 
                           |  ?male             #gender.male
                           |  ?neuter           #gender.neuter 
@@ -11372,8 +11372,24 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
-        const new_ASTAnonWildcard = arr =>
-              new ASTAnonWildcard(arr[0], { trailer: arr[1] });
+        const new_ASTAnonWildcard = arr => {
+          lm.log(`ARR[0]: ${inspect_fun(arr[0])}`);
+          if (arr[0].length === 1) {
+            lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
+            if (arr[0][0].check_flags.length === 0 && 
+                arr[0][0].not_flags.length   === 0)
+              lm.log(`ARR[0][0].body: ${inspect_fun(arr[0][0].body)}`);
+            if (arr[0][0].body.length === 1 &&
+                typeof arr[0][0].body[0] == 'string') {
+              lm.log(`ARR[0][0].body[0]: ${inspect_fun(arr[0][0].body[0])}`);
+            }
+          }
+          // lm.log(`ARR[0][0]: ${inspect_fun(arr[0][0])}`);
+          // lm.log(`THING:  ${inspect_fun(arr[0][0].body)}`);
+          // lm.log(`THINGL: ${inspect_fun(arr[0][0].body.length)}`);
+          
+          return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
+        };
         const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer

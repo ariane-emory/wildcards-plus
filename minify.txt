@@ -1,5 +1,6 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-%foo = 123;
+// %foo = 123;
 
+$foo =  { quux corge grault }
