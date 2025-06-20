@@ -10287,7 +10287,7 @@ function audit_semantics(root_ast_node,
         
         if (!known_configuration_key_names.has(`%${thing.key.toLowerCase()}`)) {
           const suggestion = suggest_closest(thing.key, known_configuration_key_names);
-          const message = `%${thing.key} is an unknown configuration key. ` +
+          const message = `'%${thing.key}' is an unknown configuration key. ` +
                 `we'll allow you to set it, ` +
                 `but doing so may produce unexpected results.${suggestion}`;
           // lm.log(`MSG: ${message}`);
