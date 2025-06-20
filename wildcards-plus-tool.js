@@ -11142,7 +11142,7 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
                .replace(/<+$/,    '<')
                .replace(/\\n/g,   '\n')
                .replace(/\\ /g,   ' ')
-               .replace(/\\([^<])/g, '$1'));
+               .replace(/\\([^<])/g, '$1')); // unescape any other backslash escaped charts except \<
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(';')
@@ -11438,11 +11438,10 @@ const SpecialFunctionInclude =
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
-                 new FatalParseError("%include is only supported when " +
+                 new FatalParseError(`%include is only supported when ` +
                                      `using wildcards-plus-tool.js, ` +
-                                     `NOT when ` +
-                                     "running the wildcards-plus.js script " +
-                                     "inside Draw Things",
+                                     `NOT when running the wildcards-plus.js ` +
+                                     `script  inside Draw Things`,
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 // -------------------------------------------------------------------------------------------------
@@ -11717,7 +11716,7 @@ Prompt.finalize();
 // MAIN SECTION:
 // =================================================================================================
 // fake UI prompt, just for use debugging when dt_hosted has been set to true:
-const ui_prompt = "@shape = { cube | sphere } there is a @shape here";
+const ui_prompt = `@shape = { cube | sphere } there is a @shape here`;
 // -------------------------------------------------------------------------------------------------
 async function main() {
   // -----------------------------------------------------------------------------------------------
