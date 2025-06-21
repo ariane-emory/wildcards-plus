@@ -314,7 +314,6 @@ let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
 let print_ast_before_includes_enabled             = true;
 let print_ast_after_includes_enabled              = true;
-let print_ast_after_flattening_enabled            = true;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
 let packrat_enabled                               = false;
@@ -2653,7 +2652,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = lpar, close = rpar, sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, { open = lpar, close = rpar, sep = comma } = {}) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
