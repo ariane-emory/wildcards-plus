@@ -12,4 +12,9 @@
 // does { this { all { reduce to { a single string }}}} $yes { it { does } }
 
 // \n
-{what {0 happens} }
+// {what {0 happens} }
+
+@foo = { foo }
+{ { @foo  }  | bar },
+{ { @foo  }, | bar }
+{ { @foo, }  | bar}
