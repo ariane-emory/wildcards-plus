@@ -10451,14 +10451,16 @@ function audit_semantics(root_ast_node,
   
   for (const { name, suggestion } of scalars_referenced_before_init) {
     const msg = (dummy_context.scalar_variables.has(name)
-                 ? `scalar variable '$${name}' referenced before it could have been initialized `
+                 ? `scalar variable '$${name}' is referenced before it could have been initialized `
                  : `scalar variable '$${name}' is referenced but is never initialized `) +
           `and so the reference will produce an empty string, ` +
           `which may not be what you intended to do. ` +
           `this could be intentional or it could ` +
           `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
-    warn_or_throw(msg, audit_semantics_mode);
+    warn_or_throw(Symbol(msg), // just a unique dummy object
+                  msg,
+                  audit_semantics_mode); 
     
     if (!dummy_context.scalar_variables.has(name) &&
         !base_context.scalar_variables.has(name))
