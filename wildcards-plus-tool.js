@@ -10238,18 +10238,21 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    if (visited.has(thing)) {
-      if (log_level__audit >= 2)
-        lm.log(`already audited ` +
-               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
-      
-      return;
+    if (! (thing instanceof ASTNamedWildcardReference ||
+           (thing instanceof ASTAnonWildcard && as_if_parallel))) {
+      if (visited.has(thing)) {
+        if (log_level__audit >= 2)
+          lm.log(`already audited ` +
+                 `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+        
+        return;
+      }
+
+      visited.add(thing);
     }
 
-    visited.add(thing);
-
     if (log_level__audit >= 2)
-      lm.log(
+          lm.log(
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
           `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
@@ -10333,7 +10336,7 @@ function audit_semantics(root_ast_node,
                    local_context.clone(),
                    local_audit_semantics_mode,
                    false, // not 100% sure 'bout this yet but it seems to work.
-                   visited);
+                   visited_copy);
           }); 
         }
         else {
