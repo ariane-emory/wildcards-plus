@@ -10168,8 +10168,9 @@ function audit_semantics(root_ast_node,
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw(msg, mode) {
-    if (!(typeof msg === 'string' &&
+  function warn_or_throw(about_thing, msg, mode) {
+    if (!(about_thing &&
+          typeof msg === 'string' &&
           Object.values(audit_semantics_modes).includes(mode)))
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
@@ -10178,18 +10179,21 @@ function audit_semantics(root_ast_node,
     if (mode === audit_semantics_mode.throw_error) {
       throw new Error(msg);
     }
-    else if (mode === audit_semantics_modes.warnings) {  
-      if (log_level__audit >= 2)
-        lm.log(`PUSH WARNING '${msg}'`);
-      warnings.push(msg);
+    else if (mode === audit_semantics_modes.warnings) {
+      if (!warnings.has(about_thing)) {
+        if (log_level__audit >= 2)
+          lm.log(`PUSH WARNING '${msg}'`);
+        warnings.set(about_thing, msg);
+      }
     }
     else {
       throw new Error(`what do?" ${inspect_fun(mode)}`);
     }
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, local_context, local_audit_semantics_mode, visited) {
-    if (!(typeof verb == 'string' &&
+  function warn_or_throw_unless_flag_could_be_set_by_now(about_thing, verb, flag, local_context, local_audit_semantics_mode, visited) {
+    if (!(about_thing &&
+          typeof verb == 'string' &&
           Array.isArray(flag) &&
           local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
@@ -10206,7 +10210,8 @@ function audit_semantics(root_ast_node,
     const flag_str = flag.join(".").toLowerCase();
     const known_flags = local_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
-    warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
+    warn_or_throw(about_thing,
+                  `flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
                   `a typo or other error in your template.${suggestion}`,
                   local_audit_semantics_mode);
@@ -10388,7 +10393,8 @@ function audit_semantics(root_ast_node,
         }
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
           for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now('checked',
+            warn_or_throw_unless_flag_could_be_set_by_now(thing,
+                                                          'checked',
                                                           flag,
                                                           local_context,
                                                           local_audit_semantics_mode,
@@ -10404,7 +10410,8 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           local_context.set_flag(thing.flag, false);
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
-          warn_or_throw_unless_flag_could_be_set_by_now('checked',
+          warn_or_throw_unless_flag_could_be_set_by_now(thing,
+                                                        'checked',
                                                         thing.flag,
                                                         local_context,
                                                         local_audit_semantics_mode,
@@ -10437,7 +10444,7 @@ function audit_semantics(root_ast_node,
   // ===============================================================================================
   
   const dummy_context                  = base_context.clone();
-  const warnings                       = [];
+  const warnings                       = new Map();
   const scalars_referenced_before_init = [];
   
   walk(root_ast_node, dummy_context, audit_semantics_mode, false, new Set());
@@ -10465,7 +10472,7 @@ function audit_semantics(root_ast_node,
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return warnings;
+  return Array.from(warnings.values());
 }
 // =================================================================================================
 // END OF THE SEMANTICS AUDITING FUNCTION.
