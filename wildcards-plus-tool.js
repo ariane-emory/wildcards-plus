@@ -11608,10 +11608,9 @@ const make_NamedWildcardReference_rule  = can_have_trailer =>
                                                    caret,
                                                    min_ct,
                                                    max_ct,
-                                                   trailer);
-            })
-const NamedWildcardReference = make_NamedWildcardReference_rule(true)
-      .abbreviate_str_repr('NamedWildcardReference');
+                                                   trailer) ;
+            }).abbreviate_str_repr(`make_NamedWildcardReference_rule<${can_have_trailer}>`);
+const NamedWildcardReference = make_NamedWildcardReference_rule(true);
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
