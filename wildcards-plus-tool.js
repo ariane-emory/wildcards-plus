@@ -11643,14 +11643,17 @@ const NamedWildcardUsage      =
             })
       .abbreviate_str_repr('NamedWildcardUsage');
 // -------------------------------------------------------------------------------------------------
-const ScalarReference         =
+const make_ScalarReference_rule = can_have_trailer =>
       xform(seq(dollar,
                 optional(caret),
                 ident,
-                optional_punctuation_trailer),
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer)),
             arr => new ASTScalarReference(arr[2],
                                           arr[1],
-                                          arr[3]))
+                                          arr[3]));
+const ScalarReference = make_ScalarReference_rule(true)
       .abbreviate_str_repr('ScalarReference');
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        =
