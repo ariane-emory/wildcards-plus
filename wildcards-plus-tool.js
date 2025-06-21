@@ -11391,12 +11391,15 @@ const make_AnonWildcard_rule            =
             if (arr[0].length                === 1 &&
                 arr[0][0].check_flags.length === 0 && 
                 arr[0][0].not_flags.length   === 0 &&
-                arr[0][0].body.length        === 1 &&
-                typeof arr[0][0].body[0]     === 'string') {
-              let str = arr[0][0].body[0];
-              if (can_have_trailer && arr[1])
-                str += arr[1];
-              return str;
+                arr[0][0].body.length        === 1) {
+              if (typeof arr[0][0].body[0]     === 'string') {
+                let str = arr[0][0].body[0];
+                if (can_have_trailer && arr[1])
+                  str += arr[1];
+                return str;
+              }
+              else {
+              }
             }
           }
           return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
