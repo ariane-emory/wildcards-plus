@@ -11391,7 +11391,7 @@ const make_AnonWildcard_rule            =
           }
           return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
         };
-        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+        const body_rule = wst_brc_enc(wst_star(alternative_rule, pipe));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
