@@ -238,7 +238,7 @@ function process_includes(thing, context = new Context()) {
         res.push(walk(parse_file_result.value, copied));
       }
 
-      return res;
+      return res.flat(1);
     }
     else if (Array.isArray(thing)) {
       const ret = [];
@@ -246,7 +246,7 @@ function process_includes(thing, context = new Context()) {
       for (const t of thing)
         ret.push(walk(t));
 
-      return ret;
+      return ret.flat(1);
     }
     else {
       return thing;
@@ -314,6 +314,7 @@ let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
 let print_ast_before_includes_enabled             = true;
 let print_ast_after_includes_enabled              = true;
+let print_ast_after_flattening_enabled            = true;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
 let packrat_enabled                               = false;
@@ -11868,11 +11869,19 @@ async function main() {
     lm.log(`${inspect_fun(AST)}`);
   }
 
-  AST = AST.flat(Infinity);
-  
+  // AST = AST.flat(Infinity);
+
+  // if (print_ast_after_flattening_enabled) { 
+  //   LOG_LINE();
+  //   lm.log(`after flattening:`);
+  //   LOG_LINE();
+  //   lm.log(`${inspect_fun(AST)}`);
+  // }
+
   // process_named_wildcard_definitions:
   let process_named_wildcard_definitions_elapsed;
 
+  LOG_LINE();
   lm.log(`process_named_wildcard_definitions...`);
   lm.indent(() => {
     process_named_wildcard_definitions_elapsed = measure_time(() =>
