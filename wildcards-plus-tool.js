@@ -11573,7 +11573,7 @@ const SpecialFunctionNotInclude =
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
-const NamedWildcardReference  =
+const make_NamedWildcardReference_rule  = can_have_trailer => 
       xform(seq(at,                                        // [0]
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
@@ -11581,7 +11581,9 @@ const NamedWildcardReference  =
                                cadr(dash, uint))),
                 optional(/[,\.&|;]/),                      // [4]
                 ident,                                     // [5]
-                optional_punctuation_trailer,  // [6]
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer),  // [6]
                ), 
             arr => {
               const ident   = arr[5];
@@ -11608,6 +11610,7 @@ const NamedWildcardReference  =
                                                    max_ct,
                                                    trailer);
             })
+const NamedWildcardReference = make_NamedWildcardReference_rule(true)
       .abbreviate_str_repr('NamedWildcardReference');
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = cadr(at, ident)
