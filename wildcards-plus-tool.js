@@ -11854,10 +11854,6 @@ async function main() {
     lm.log(`before process_includes:`);
     LOG_LINE();
     lm.log(`${inspect_fun(AST)}`);
-    // LOG_LINE();
-    // lm.log(`before process_includes (as JSON):`);
-    // LOG_LINE();
-    // lm.log(`${JSON.stringify(AST)}`);
   }
   
   if (print_ast_then_die)
@@ -11870,10 +11866,6 @@ async function main() {
     lm.log(`after process_includes:`);
     LOG_LINE();
     lm.log(`${inspect_fun(AST)}`);
-    // LOG_LINE();
-    // lm.log(`after process_includes (as JSON):`);
-    // LOG_LINE();
-    // lm.log(`${JSON.stringify(AST)}`);
   }
 
   AST = AST.flat(Infinity);
