@@ -11654,9 +11654,9 @@ const make_ScalarReference_rule = can_have_trailer =>
                  : unexpected_punctuation_trailer)),
             arr => new ASTScalarReference(arr[2],
                                           arr[1],
-                                          arr[3]));
-const ScalarReference = make_ScalarReference_rule(true)
-      .abbreviate_str_repr('ScalarReference');
+                                          arr[3]))
+      .abbreviate_str_repr(`make_ScalarReference_rule<${can_have_trailer}>`);
+const ScalarReference = make_ScalarReference_rule(true) ;
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        =
       xform(seq(dollar, ident),
