@@ -10158,8 +10158,6 @@ const audit_semantics_modes = Object.freeze({
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
-const scalar_init_states = Object.freeze({});
-// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
