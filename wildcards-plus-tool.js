@@ -306,7 +306,7 @@ let log_flags_enabled                             = false;
 let log_match_enabled                             = false;
 let log_name_lookups_enabled                      = false;
 let log_picker_enabled                            = false;
-let log_level__audit                              = 0;
+let log_level__audit                              = 2;
 let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
@@ -10160,7 +10160,7 @@ const audit_semantics_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
-                           audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.throw_error } = {}) {
   if (!(Array.isArray(root_ast_node) &&
         base_context instanceof Context &&
         Object.values(audit_semantics_modes).includes(audit_semantics_mode)))
