@@ -306,7 +306,7 @@ let log_flags_enabled                             = false;
 let log_match_enabled                             = false;
 let log_name_lookups_enabled                      = false;
 let log_picker_enabled                            = false;
-let log_level__audit                              = 2;
+let log_level__audit                              = 0;
 let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
@@ -10176,7 +10176,7 @@ function audit_semantics(root_ast_node,
                       `${inspect_fun(arguments)}`);
     msg = `${mode.toUpperCase()}: ${msg}`;
 
-    if (mode === audit_semantics_mode.throw_error) {
+    if (mode === audit_semantics_modes.throw_error) {
       throw new Error(msg);
     }
     else if (mode === audit_semantics_modes.warnings) {
@@ -10353,7 +10353,9 @@ function audit_semantics(root_ast_node,
                    local_context.clone(),
                    local_audit_semantics_mode,
                    in_named_wildcard_reference,
-                   visited);
+                   new Set(visited)); /* we'll need to revisit these some of these nodes in a non-cloned
+                                         context next, so we'll use a copy of visited.
+                                      */
           });
 
           if (log_level__audit >= 1)
