@@ -9336,6 +9336,9 @@ function load_prelude(into_context = new Context()) {
     if (rule_match_counter_enabled)
       lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
   }
+
+  for (const nwc of into_context.named_wildcards)
+    nwc.__prelude_content = true;
   
   return into_context;
 }
