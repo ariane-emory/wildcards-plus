@@ -10212,11 +10212,11 @@ function audit_semantics(root_ast_node,
                   local_audit_semantics_mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) {
+  function walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) {
     if (!(thing instanceof ASTNode &&
           local_context instanceof Context && 
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-          typeof as_if_parallel == 'boolean' &&
+          typeof in_named_wildcard_reference == 'boolean' &&
           visited instanceof Set))
       throw new Error(`bad walk_children args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
@@ -10224,14 +10224,14 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, local_context, local_audit_semantics_mode, as_if_parallel, visited); 
+      walk(children, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited); 
   }
   // ===============================================================================================
-  function walk(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) { 
+  function walk(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) { 
     if (!(thing &&
           local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-          typeof as_if_parallel == 'boolean' &&
+          typeof in_named_wildcard_reference == 'boolean' &&
           visited instanceof Set))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
@@ -10239,7 +10239,7 @@ function audit_semantics(root_ast_node,
       return;
 
     if (! (thing instanceof ASTNamedWildcardReference ||
-           (thing instanceof ASTAnonWildcard && as_if_parallel))) {
+           (thing instanceof ASTAnonWildcard && in_named_wildcard_reference))) {
       if (visited.has(thing)) {
         if (log_level__audit >= 2)
           lm.log(`already audited ` +
@@ -10252,9 +10252,9 @@ function audit_semantics(root_ast_node,
     }
 
     if (log_level__audit >= 2)
-          lm.log(
+      lm.log(
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
-          `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
+          `${in_named_wildcard_reference? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
           `flags: ${abbreviate(compress(inspect_fun(local_context.flags)), 200)}`);
 
@@ -10265,7 +10265,7 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing.filter(elem => !is_primitive(elem)))
           if (!is_primitive(elem))
-            walk(elem, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+            walk(elem, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -10279,7 +10279,7 @@ function audit_semantics(root_ast_node,
         if (!got) 
           throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
         else 
-          walk(got, local_context, local_audit_semantics_mode, true, visited); // start as_if_parallel
+          walk(got, local_context, local_audit_semantics_mode, true, visited); // start in_named_wildcard_reference
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationBinary) {
@@ -10309,7 +10309,7 @@ function audit_semantics(root_ast_node,
         const currently_illlegal_options =
               split_options .legal_options.map(x => x.value);
         
-        if (as_if_parallel) {
+        if (in_named_wildcard_reference) {
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
@@ -10335,7 +10335,7 @@ function audit_semantics(root_ast_node,
               walk(option,
                    local_context.clone(),
                    local_audit_semantics_mode,
-                   false, // not 100% sure 'bout this yet but it seems to work.
+                   true, // false, // not 100% sure 'bout this yet but it seems to work.
                    visited_copy);
           }); 
         }
@@ -10347,7 +10347,7 @@ function audit_semantics(root_ast_node,
               walk(option,
                    local_context.clone(),
                    local_audit_semantics_mode,
-                   as_if_parallel,
+                   in_named_wildcard_reference,
                    visited);
           });
 
@@ -10358,7 +10358,7 @@ function audit_semantics(root_ast_node,
               walk(option,
                    local_context,
                    audit_semantics_modes.no_errors,
-                   as_if_parallel,
+                   in_named_wildcard_reference,
                    visited);
           });
         }
@@ -10378,7 +10378,7 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         local_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
@@ -10426,7 +10426,7 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
       // -------------------------------------------------------------------------------------------
       else {
