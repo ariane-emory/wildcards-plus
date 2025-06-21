@@ -29,7 +29,7 @@
 //
 // epic fantasy, masterpiece, ultra high resolution, 8k, detailed background, wide shot, 
 // A promotional poster for an award winning video game, which depicts a heroic, strong and athletic paladin wearing blood-smeared wargear holding his bejeweled flail while standing in an eerily lit lair, smiling towards the viewer victoriously.
-// =================================================================================================
+// ================,=================================================================================
 import * as util     from 'util';
 import * as http     from 'http';
 import * as fs       from 'fs';
@@ -3090,8 +3090,8 @@ class WeightedPicker {
       lm.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     }
     
-    if (! (priority && allow_if && forbid_if))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    // if (! (priority && allow_if && forbid_if))
+    //   throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
