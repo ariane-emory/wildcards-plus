@@ -11388,6 +11388,8 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
 const make_AnonWildcard_rule            =
       (alternative_rule, { can_have_trailer = false, reduce_to_value } = {}) => {
         const new_ASTAnonWildcard_or_reduced_value = arr => {
+          // lm.log(`ARR: ${inspect_fun(arr)}`)
+          
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
           if (reduce_to_value !== undefined) {
