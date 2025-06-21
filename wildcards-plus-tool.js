@@ -11863,7 +11863,7 @@ async function main() {
   if (print_ast_then_die)
     process.exit(0);
 
-  AST = process_includes(AST, base_context).flat(1);
+  AST = process_includes(AST, base_context);
   
   if (print_ast_after_includes_enabled) { 
     LOG_LINE();
@@ -11876,6 +11876,8 @@ async function main() {
     // lm.log(`${JSON.stringify(AST)}`);
   }
 
+  AST = AST.flat(Infinity);
+  
   // process_named_wildcard_definitions:
   let process_named_wildcard_definitions_elapsed;
 
