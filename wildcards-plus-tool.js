@@ -10161,9 +10161,9 @@ const audit_semantics_modes = Object.freeze({
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
-function audit_semantics(root_ast_node,
-                         { base_context = null,
-                           audit_semantics_mode = audit_semantics_modes.throw_error } = {}) {
+function (root_ast_node,
+          { base_context = null,
+            audit_semantics_mode = audit_semantics_modes.throw_error } = {}) {
   if (!(Array.isArray(root_ast_node) &&
         base_context instanceof Context &&
         Object.values(audit_semantics_modes).includes(audit_semantics_mode)))
@@ -10313,9 +10313,9 @@ function audit_semantics(root_ast_node,
               .split_options(local_context.picker_allow_fun,
                              local_context.picker_forbid_fun);
         const currently_legal_options =
-              split_options .legal_options.map(x => x.value);
+              split_options.legal_options.map(x => x.value);
         const currently_illlegal_options =
-              split_options .legal_options.map(x => x.value);
+              split_options.legal_options.map(x => x.value);
         
         if (in_named_wildcard_reference) {
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
