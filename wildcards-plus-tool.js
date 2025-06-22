@@ -10247,7 +10247,7 @@ function audit_semantics(root_ast_node,
 
     if (local_context.flag_is_set(flag)) {
       // if (log_level__audit >= 1)
-      lm.log(`flag ${flag} could be set by now`);
+      //   lm.log(`flag ${flag} could be set by now`);
       return;
     }
     
