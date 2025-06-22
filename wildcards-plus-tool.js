@@ -10163,7 +10163,7 @@ const audit_semantics_modes = Object.freeze({
 // -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
-                           audit_semantics_mode = audit_semantics_modes.throw_error } = {}) {
+                           audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
   if (!(Array.isArray(root_ast_node) &&
         base_context instanceof Context &&
         Object.values(audit_semantics_modes).includes(audit_semantics_mode)))
@@ -10349,8 +10349,10 @@ function audit_semantics(root_ast_node,
             });
           }
 
-          if (currently_legal_options.length == all_options.length)
+          if (currently_legal_options.length == all_options.length) {
+            visited.add(thing);
             thing.__no_reaudit = true;
+          }
         }
         else {
           if (log_level__audit >= 1)
