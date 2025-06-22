@@ -10246,18 +10246,16 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    thing.__no_reaudit
+    if (visited.has(thing)) {
+      if (log_level__audit >= 2)
+        lm.log(`already audited ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+      
+      return;
+    }
 
-      if (visited.has(thing)) {
-        if (log_level__audit >= 2)
-          lm.log(`already audited ` +
-                 `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
-        
-        return;
-      }
-
-    if (! (thing instanceof ASTNamedWildcardReference ||
-           (thing instanceof ASTAnonWildcard && in_named_wildcard_reference))) {
+    if (! // (thing instanceof ASTNamedWildcardReference ||
+        (thing instanceof ASTAnonWildcard && in_named_wildcard_reference)) { // ) {
       visited.add(thing);
     }
 
@@ -10354,10 +10352,7 @@ function audit_semantics(root_ast_node,
           });
 
           if (all_options.every(x => visited.has(x))) {
-            // if (currently_legal_options.length == all_options.length) {
-            visited.add(thing);
-            thing.__no_reaudit = true;
-            // lm.log(`MARK NO_REAUDIT`);
+            // visited.add(thing);
           }
         }
         else {
