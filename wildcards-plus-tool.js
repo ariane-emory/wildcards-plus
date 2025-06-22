@@ -306,7 +306,7 @@ let log_flags_enabled                             = false;
 let log_match_enabled                             = false;
 let log_name_lookups_enabled                      = false;
 let log_picker_enabled                            = false;
-let log_level__audit                              = 0;
+let log_level__audit                              = 2;
 let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
@@ -10264,7 +10264,7 @@ function audit_semantics(root_ast_node,
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
           `${in_named_wildcard_reference? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-          `flags: ${abbreviate(compress(inspect_fun(local_context.flags)), 200)}`);
+          `flags: ${compress(inspect_fun(local_context.flags))}`);
 
     lm.indent(() => {
       // ===========================================================================================
@@ -10333,7 +10333,7 @@ function audit_semantics(root_ast_node,
                    audit_semantics_modes.no_errors, 
                    true, // or maybe false? nah, i think this is corect... any children could also
                    // get evaluated twice and so should be juded as_if_parralel, right?
-                   visited_copy);
+                   visited);
           });
 
           {
@@ -10349,10 +10349,10 @@ function audit_semantics(root_ast_node,
             });
           }
 
-          if (currently_legal_options.length == all_options.length) {
-            visited.add(thing);
-            thing.__no_reaudit = true;
-          }
+          // if (currently_legal_options.length == all_options.length) {
+          //   visited.add(thing);
+          //   thing.__no_reaudit = true;
+          // }
         }
         else {
           if (log_level__audit >= 1)

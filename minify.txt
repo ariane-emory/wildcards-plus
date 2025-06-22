@@ -1,20 +1,11 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-// %foo = 123;
+@features =
+{0
+|1  feature 1
+|1  feature 2
+|1  !#expression !bad_emotion #good_emotion proud
+}
 
-// $foo =  { quux corge grault }
-// { foo bar baz }
-// waldo fred
-
-// $yes = { yes }
-
-// does { this { all { reduce to { a single string }}}} $yes { it { does } }
-
-// \n
-// {what {0 happens} }
-
-@foo = { foo }
-{ { @foo  }  | bar },
-{ { @foo  }, | bar }
-{ { @foo, }  | bar}
+@2-4features
