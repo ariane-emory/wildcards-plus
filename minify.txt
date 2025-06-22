@@ -3,9 +3,17 @@
 
 @features =
 {0
-|1  feature 1
-|1  feature 2
-|1  !#expression !bad_emotion #good_emotion proud
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  feature
+|1  !#expression !bad #good good
 }
 
 @2-4features
