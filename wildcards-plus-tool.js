@@ -10381,14 +10381,16 @@ function audit_semantics(root_ast_node,
           if (log_level__audit >= 1)
             lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS ON ALL OPTIONS TO CHECK ` +
                    `SEMANTICS, MAY REVISIT SOME LATER:`);
-          lm.indent(() => {
-            for (const option of all_options)
-              walk(option,
-                   local_context.clone(),
-                   local_audit_semantics_mode,
-                   true, // false, // not 100% sure 'bout this yet but it seems to work.
-                   visited_copy);
-          });
+
+          if (thing.__provenance !== 'prelude')
+            lm.indent(() => {
+              for (const option of all_options)
+                walk(option,
+                     local_context.clone(),
+                     local_audit_semantics_mode,
+                     true, // false, // not 100% sure 'bout this yet but it seems to work.
+                     visited_copy);
+            });
 
           if (all_options.every(x => visited.has(x))) {
             // visited.add(thing);
