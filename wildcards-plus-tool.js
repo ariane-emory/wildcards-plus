@@ -10317,7 +10317,7 @@ function audit_semantics(root_ast_node,
         const currently_illlegal_options =
               split_options .legal_options.map(x => x.value);
         
-        if (in_named_wildcard_reference) {
+        if (in_named_wildcard_reference && !thing.__no_reaudit) {
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
@@ -10336,16 +10336,21 @@ function audit_semantics(root_ast_node,
                    visited_copy);
           });
 
-          if (log_level__audit >= 1)
-            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => {
-            for (const option of all_options)
-              walk(option,
-                   local_context.clone(),
-                   local_audit_semantics_mode,
-                   true, // false, // not 100% sure 'bout this yet but it seems to work.
-                   visited_copy);
-          }); 
+          {
+            if (log_level__audit >= 1)
+              lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+            lm.indent(() => {
+              for (const option of all_options)
+                walk(option,
+                     local_context.clone(),
+                     local_audit_semantics_mode,
+                     true, // false, // not 100% sure 'bout this yet but it seems to work.
+                     visited_copy);
+            });
+          }
+
+          if (currently_legal_options.length == all_options.length)
+            thing.__no_reaudit = true;
         }
         else {
           if (log_level__audit >= 1)
