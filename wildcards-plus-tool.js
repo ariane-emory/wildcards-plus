@@ -10246,8 +10246,8 @@ function audit_semantics(root_ast_node,
     if (is_primitive(thing))
       return;
 
-    if (! (thing instanceof ASTNamedWildcardReference ||
-           (thing instanceof ASTAnonWildcard && in_named_wildcard_reference))) {
+    thing.__no_reaudit
+
       if (visited.has(thing)) {
         if (log_level__audit >= 2)
           lm.log(`already audited ` +
@@ -10256,6 +10256,8 @@ function audit_semantics(root_ast_node,
         return;
       }
 
+    if (! (thing instanceof ASTNamedWildcardReference ||
+           (thing instanceof ASTAnonWildcard && in_named_wildcard_reference))) {
       visited.add(thing);
     }
 
@@ -10308,8 +10310,8 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        if (thing.__no_reaudit)
-          return;
+        // if (thing.__no_reaudit)
+        //   return;
         
         const all_options = thing.picker.options.map(x => x.value);
         const split_options = thing.picker
