@@ -10322,21 +10322,8 @@ function audit_semantics(root_ast_node,
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
           
-          {
-            if (log_level__audit >= 1)
-              lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-            lm.indent(() => {
-              for (const option of all_options)
-                walk(option,
-                     local_context.clone(),
-                     local_audit_semantics_mode,
-                     true, // false, // not 100% sure 'bout this yet but it seems to work.
-                     visited_copy);
-            });
-          }
-
           if (log_level__audit >= 1)
-            lm.log(`NO_ERRORS PASS (legal):`);
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
           lm.indent(() => {
             for (const option of currently_legal_options)
               walk(option,
@@ -10349,6 +10336,18 @@ function audit_semantics(root_ast_node,
                    visited);
           });
 
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS ON ALL OPTIONS TO CHECK ` +
+                   `SEMANTICS, MAY REVISIT SOME LATER:`);
+          lm.indent(() => {
+            for (const option of all_options)
+              walk(option,
+                   local_context.clone(),
+                   local_audit_semantics_mode,
+                   true, // false, // not 100% sure 'bout this yet but it seems to work.
+                   visited_copy);
+          });
+
           // if (currently_legal_options.length == all_options.length) {
           //   visited.add(thing);
           //   thing.__no_reaudit = true;
@@ -10356,7 +10355,8 @@ function audit_semantics(root_ast_node,
         }
         else {
           if (log_level__audit >= 1)
-            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS TO CHECK SEMANTICS, MAY ` +
+                   `REVISIT SOME LATER:`);
           lm.indent(() => {
             for (const option of all_options)
               walk(option,
@@ -10369,7 +10369,7 @@ function audit_semantics(root_ast_node,
           });
 
           if (log_level__audit >= 1)
-            lm.log(`NO_ERRORS PASS (legal):`);
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
           lm.indent(() =>  {
             for (const option of currently_legal_options)
               walk(option,
