@@ -9360,7 +9360,7 @@ function load_prelude(into_context = new Context()) {
           mark(elem, visited);
       }
       else if (thing instanceof ASTNode) {
-        thing.__prelude_content = true;
+        thing.__provenance = 'prelude';
         
         for (const child of thing.direct_children())
           mark(child, visited);
@@ -10212,6 +10212,10 @@ function audit_semantics(root_ast_node,
           Object.values(audit_semantics_modes).includes(mode)))
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
+
+    if (about_thing.__provenance === 'prelude')
+      return;
+    
     msg = `${mode.toUpperCase()}: ${msg}`;
 
     if (mode === audit_semantics_modes.throw_error) {
