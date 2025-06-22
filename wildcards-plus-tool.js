@@ -10308,6 +10308,9 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
+        if (thing.__no_reaudit)
+          return;
+        
         const all_options = thing.picker.options.map(x => x.value);
         const split_options = thing.picker
               .split_options(local_context.picker_allow_fun,
@@ -10317,7 +10320,7 @@ function audit_semantics(root_ast_node,
         const currently_illlegal_options =
               split_options .legal_options.map(x => x.value);
         
-        if (in_named_wildcard_reference && !thing.__no_reaudit) {
+        if (in_named_wildcard_reference) {
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
@@ -10348,10 +10351,12 @@ function audit_semantics(root_ast_node,
                    visited_copy);
           });
 
-          // if (currently_legal_options.length == all_options.length) {
-          //   visited.add(thing);
-          //   thing.__no_reaudit = true;
-          // }
+          if (all_options.every(x => visited.has(x))) {
+            // if (currently_legal_options.length == all_options.length) {
+            visited.add(thing);
+            thing.__no_reaudit = true;
+            // lm.log(`MARK NO_REAUDIT`);
+          }
         }
         else {
           const visited_copy = new Set(visited);
@@ -10367,7 +10372,7 @@ function audit_semantics(root_ast_node,
                    in_named_wildcard_reference,
                    visited_copy); /* we'll need to revisit these some of these nodes in a non-cloned
                                      context next, so we'll use a copy of visited.
-                                      */
+                                  */
           });
 
           if (log_level__audit >= 1)
