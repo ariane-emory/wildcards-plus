@@ -10392,9 +10392,9 @@ function audit_semantics(root_ast_node,
                      visited_copy);
             });
 
-          if (all_options.every(x => visited.has(x))) {
-            // visited.add(thing);
-          }
+          // not sure how much this helps, but why not: 
+          if (all_options.every(x => visited.has(x)))
+            visited.add(thing);
         }
         else {
           const visited_copy = new Set(visited);
