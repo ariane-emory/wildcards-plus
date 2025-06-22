@@ -9360,7 +9360,8 @@ function load_prelude(into_context = new Context()) {
           mark(elem, visited);
       }
       else if (thing instanceof ASTNode) {
-        thing.__plelude_content = true; 
+        thing.__prelude_content = true;
+        
         for (const child of thing.direct_children())
           mark(child, visited);
       }
