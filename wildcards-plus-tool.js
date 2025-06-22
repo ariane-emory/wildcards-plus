@@ -9352,21 +9352,23 @@ function load_prelude(into_context = new Context()) {
     
     visited.add(thing);
 
-    lm.log(`marking ${abbreviate(compress(inspect_fun(thing)))}`);
+    // lm.log(`marking ${abbreviate(compress(inspect_fun(thing)))}`);
 
-    if (Array.isArray(thing)) {
-      for (const elem of thing.filget(x => !is.primitive(x)))
-        mark(elem, visited);
-    }
-    else if (thing instanceof ASTNode) {
-      thing.__plelude_content = true; 
-      for (const child of thing.direct_children())
-        mark(child, visited);
-    }
-    else {
-      throw new Error(`wat do? ` +
-                      `${abbreviate(comptess(inspect_fun(thing)))}`);
-    }
+    lm.indent(() => {
+      if (Array.isArray(thing)) {
+        for (const elem of thing.filget(x => !is.primitive(x)))
+          mark(elem, visited);
+      }
+      else if (thing instanceof ASTNode) {
+        thing.__plelude_content = true; 
+        for (const child of thing.direct_children())
+          mark(child, visited);
+      }
+      else {
+        throw new Error(`wat do? ` +
+                        `${abbreviate(comptess(inspect_fun(thing)))}`);
+      }
+    });
   }
 
   for (const nwc_awc of into_context.named_wildcards.values())
