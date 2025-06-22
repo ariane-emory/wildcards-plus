@@ -1,19 +1,21 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-@features =
-{0
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  feature
-|1  !#expression !bad #good good
-}
+// @features =
+// {0
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  feature
+// |1  !#expression !bad #good good
+// }
 
-@2-4features
+// @2-4features
+
+{ ?foo,bar foobar }

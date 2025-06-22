@@ -10243,13 +10243,16 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
+    lm.log(`warn unless set ${inspect_fun(flag)}`);
+
     if (local_context.flag_is_set(flag)) {
-      if (log_level__audit >= 1)
-        lm.log(`flag ${flag} could be set by now`);
+      // if (log_level__audit >= 1)
+      lm.log(`flag ${flag} could be set by now`);
       return;
     }
     
     const flag_str = flag.join(".").toLowerCase();
+    lm.log(`joined flag ${flag_str}`);
     const known_flags = local_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
     warn_or_throw(about_thing,
@@ -10449,13 +10452,15 @@ function audit_semantics(root_ast_node,
           local_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
-          for (const flag of thing.flags) 
+          for (const flag of thing.flags) {
+            lm.log(`check ${inspect_fun(flag)}`);
             warn_or_throw_unless_flag_could_be_set_by_now(thing,
                                                           'checked',
                                                           flag,
                                                           local_context,
                                                           local_audit_semantics_mode,
                                                           visited);
+          }
         }
       }
       // -------------------------------------------------------------------------------------------
