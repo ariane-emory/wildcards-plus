@@ -10243,7 +10243,7 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
-    lm.log(`warn unless set ${inspect_fun(flag)}`);
+    // lm.log(`warn unless set ${inspect_fun(flag)}`);
 
     if (local_context.flag_is_set(flag)) {
       // if (log_level__audit >= 1)
@@ -10252,7 +10252,7 @@ function audit_semantics(root_ast_node,
     }
     
     const flag_str = flag.join(".").toLowerCase();
-    lm.log(`joined flag ${flag_str}`);
+    // lm.log(`joined flag ${flag_str}`);
     const known_flags = local_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
     warn_or_throw(about_thing,
@@ -10453,8 +10453,8 @@ function audit_semantics(root_ast_node,
         }
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
           for (const flag of thing.flags) {
-            lm.log(`check ${inspect_fun(flag)}`);
-            warn_or_throw_unless_flag_could_be_set_by_now(thing,
+            // lm.log(`check ${inspect_fun(flag)}`);
+            warn_or_throw_unless_flag_could_be_set_by_now(`?${flag.join(".")}`, // thing,
                                                           'checked',
                                                           flag,
                                                           local_context,
