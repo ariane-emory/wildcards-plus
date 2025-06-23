@@ -2378,7 +2378,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, { open = lpar, close = rpar, sep = comma } = {}) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -2816,8 +2816,8 @@ class WeightedPicker {
       lm.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     }
     
-    if (! (priority && allow_if && forbid_if))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    // if (! (priority && allow_if && forbid_if))
+    //   throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
@@ -5313,709 +5313,710 @@ const prelude_text = `
   #xl_magic_aspect_ratio.4.3
   #xl_magic_object_scaling.6
 }
-                 // {
-                 // "width": 1152,
-                 // "height": 896,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": false
-                 // }
+// {
+// "width": 1152,
+// "height": 896,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-                 @xl_magic_medium_3_to_4_os6 =
-                 { %w   = 896;   %h    = 1152;   
-                   %ow  = 576;   %oh   = 768;
-                   %tw  = 1152;  %th   = 1536;
-                   %nw  = 1344;  %nh   = 1792;
-                   %hrf = false;
-                   #xl_magic_size.medium
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.3.4
-                   #xl_magic_object_scaling.6
-                 }
-                 // {
-                 // "width": 896,
-                 // "height": 1152,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": false
-                 // }
+@xl_magic_medium_3_to_4_os6 =
+{ %w   = 896;   %h    = 1152;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 896,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-                 @xl_magic_medium_9_to_16_os6 = 
-                 { %w   = 768;   %h    = 1344;   
-                   %ow  = 576;   %oh   = 768;
-                   %tw  = 1152;  %th   = 1536;
-                   %nw  = 1344;  %nh   = 1792;
-                   %hrf = false;
-                   #xl_magic_size.medium
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.9.16
-                   #xl_magic_object_scaling.6
-                 }
-                 // {
-                 // "width": 768,
-                 // "height": 1344,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": false
-                 // }
+@xl_magic_medium_9_to_16_os6 = 
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-                 @xl_magic_medium_16_to_9_os6 =
-                 { %w   = 1344;  %h    = 768;    
-                   %ow  = 768;   %oh   = 576;    
-                   %tw  = 1536;  %th   = 1152    
-                   %nw  = 1792;  %nh   = 1344;   
-                   %hrf = false;
-                   #xl_magic_size.medium
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.16.9
-                   #xl_magic_object_scaling.6
-                 }
-                 // {
-                 // "width": 1344,
-                 // "height": 768,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": false
-                 // }
+@xl_magic_medium_16_to_9_os6 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
 
-                 // -------------------------------------------------------------------------------------------------
-                 // large:
-                 // -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// large:
+// -------------------------------------------------------------------------------------------------
 
-                 @xl_magic_large_1_to_1 = 
-                 { %w    = 1536; %h    = 1536;   
-                   %ow   = 768;  %oh   = 576;    
-                   %tw   = 1024; %th   = 768;    
-                   %nw   = 1792; %nh   = 1344;   
-                   %hrfw = 512;  %hrfh = 512;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.square
-                   #xl_magic_aspect_ratio.1.1
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_1_to_1 = 
+{ %w    = 1536; %h    = 1536;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_2_to_3 =
-                 { %w    = 1280; %h    = 1920;   
-                   %ow   = 576;  %oh   = 768;    
-                   %tw   = 768;  %th   = 1024;   
-                   %nw   = 1344; %nh   = 1792;   
-                   %hrfw = 512;  %hrfh = 768;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.2.3
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_2_to_3 =
+{ %w    = 1280; %h    = 1920;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_3_to_2 =
-                 { %w    = 1920; %h    = 1280;   
-                   %ow   = 768;  %oh   = 576;    
-                   %tw   = 1024; %th   = 768;    
-                   %nw   = 1792; %nh   = 1344;   
-                   %hrfw = 768;  %hrfh = 512;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.3.2
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_3_to_2 =
+{ %w    = 1920; %h    = 1280;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_3_to_4 =
-                 { %w    = 1344; %h    = 1792;   
-                   %ow   = 576;  %oh   = 768;    
-                   %tw   = 768;  %th   = 1024;   
-                   %nw   = 1344; %nh   = 1792;   
-                   %hrfw = 576;  %hrfh = 768;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.3.4
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_3_to_4 =
+{ %w    = 1344; %h    = 1792;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_4_to_3 =
-                 { %w    = 1792; %h    = 1344;   
-                   %ow   = 768;  %oh   = 576;    
-                   %tw   = 1024; %th   = 768;    
-                   %nw   = 1792; %nh   = 1344;   
-                   %hrfw = 768;  %hrfh = 576;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.4.3
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_4_to_3 =
+{ %w    = 1792; %h    = 1344;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_9_to_16 =
-                 { %w    = 1152; %h    = 2048;   
-                   %ow   = 576;  %oh   = 768;    
-                   %tw   = 768;  %th   = 1024;   
-                   %nw   = 1344; %nh   = 1792;   
-                   %hrfw = 576;  %hrfh = 1024;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.9.16
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_9_to_16 =
+{ %w    = 1152; %h    = 2048;   
+  %ow   = 576;  %oh   = 768;    
+  %tw   = 768;  %th   = 1024;   
+  %nw   = 1344; %nh   = 1792;   
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_16_to_9 =
-                 { %w    = 2048; %h    = 1152;   
-                   %ow   = 768;  %oh   = 576;    
-                   %tw   = 1024; %th   = 768;    
-                   %nw   = 1792; %nh   = 1344;   
-                   %hrfw = 1024; %hrfh = 576;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.16.9
-                   #xl_magic_object_scaling.4
-                 }
+@xl_magic_large_16_to_9 =
+{ %w    = 2048; %h    = 1152;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
 
-                 @xl_magic_large_1_to_1_os6 =
-                 { %w    = 1536; %h    = 1536;
-                   %ow   = 768;  %oh   = 576;
-                   %tw   = 1536; %th   = 1152;
-                   %nw   = 1792; %nh   = 1344;
-                   %hrfw = 512;  %hrfh = 512;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.square
-                   #xl_magic_aspect_ratio.1.1
-                   #xl_magic_object_scaling.6
-                 }
-                 // 1:1 os6
-                 // {
-                 // "width": 1536,
-                 // "height": 1536,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 512,
-                 // "hiresFixHeight": 512,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_1_to_1_os6 =
+{ %w    = 1536; %h    = 1536;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// 1:1 os6
+// {
+// "width": 1536,
+// "height": 1536,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_2_to_3_os6 =
-                 { %w    = 1280; %h    = 1920;
-                   %ow   = 576;  %oh   = 768;
-                   %tw   = 1152; %th   = 1536;
-                   %nw   = 1344; %nh   = 1792;
-                   %hrfw = 512;  %hrfh = 768;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.2.3
-                   #xl_magic_object_scaling.6
-                 }
-                 // 2:3 os6
-                 // {
-                 // "width": 1280,
-                 // "height": 1920,
-                 // "originalImageWidth": 576,
-                 // "originalImageHeight": 768,
-                 // "targetImageWidth": 1152,
-                 // "targetImageHeight": 1536,
-                 // "negativeOriginalImageWidth": 1344,
-                 // "negativeOriginalImageHeight": 1792,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 512,
-                 // "hiresFixHeight": 768,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_2_to_3_os6 =
+{ %w    = 1280; %h    = 1920;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// 2:3 os6
+// {
+// "width": 1280,
+// "height": 1920,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_3_to_2_os6 =
-                 { %w    = 1920; %h    = 1280;
-                   %ow   = 768;  %oh   = 576;
-                   %tw   = 1536; %th   = 1152;
-                   %nw   = 1792; %nh   = 1344;
-                   %hrfw = 768;  %hrfh = 512;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.3.2
-                   #xl_magic_object_scaling.6
-                 }
-                 // 3:2 os6
-                 // {
-                 // "width": 1920,
-                 // "height": 1280,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 768,
-                 // "hiresFixHeight": 512,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_3_to_2_os6 =
+{ %w    = 1920; %h    = 1280;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// 3:2 os6
+// {
+// "width": 1920,
+// "height": 1280,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_3_to_4_os6 =
-                 { %w    = 1344; %h    = 1796;
-                   %ow   = 576;  %oh   = 768;
-                   %tw   = 1152; %th   = 1536;
-                   %nw   = 1344; %nh   = 1792;
-                   %hrfw = 576;  %hrfh = 768;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.3.4
-                   #xl_magic_object_scaling.6
-                 }
-                 // 3:4 os6
-                 // {
-                 // "width": 1344,
-                 // "height": 1796,
-                 // "originalImageWidth": 576,
-                 // "originalImageHeight": 768,
-                 // "targetImageWidth": 1152,
-                 // "targetImageHeight": 1536,
-                 // "negativeOriginalImageWidth": 1344,
-                 // "negativeOriginalImageHeight": 1792,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 576,
-                 // "hiresFixHeight": 768,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_3_to_4_os6 =
+{ %w    = 1344; %h    = 1796;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// 3:4 os6
+// {
+// "width": 1344,
+// "height": 1796,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_4_to_3_os6 = 
-                 { %w    = 1792; %h    = 1344;
-                   %ow   = 768;  %oh   = 576;
-                   %tw   = 1536; %th   = 1152;
-                   %nw   = 1792; %nh   = 1344;
-                   %hrfw = 768;  %hrfh = 576;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscale
-                   #xl_magic_aspect_ratio.4.3
-                   #xl_magic_object_scaling.6
+@xl_magic_large_4_to_3_os6 = 
+{ %w    = 1792; %h    = 1344;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscale
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
 
-                 }
-                 // {
-                 // "width": 1792,
-                 // "height": 1344,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 768,
-                 // "hiresFixHeight": 576,
-                 // "hiresFixStrength": 0.6
-                 // }
+}
+// {
+// "width": 1792,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_9_to_16_os6 =
-                 { %w    = 1152; %h    = 2048;
-                   %ow   = 576;  %oh   = 768;
-                   %tw   = 1152; %th   = 1536;
-                   %nw   = 1344; %nh   = 1792;
-                   %hrfw = 576;  %hrfh = 1024;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.portrait
-                   #xl_magic_aspect_ratio.9.16
-                   #xl_magic_object_scaling.6
-                 }
-                 // 9:16 os6
-                 // {
-                 // "width": 1152,
-                 // "height": 2048,
-                 // "originalImageWidth": 576,
-                 // "originalImageHeight": 768,
-                 // "targetImageWidth": 1152,
-                 // "targetImageHeight": 1536,
-                 // "negativeOriginalImageWidth": 1344,
-                 // "negativeOriginalImageHeight": 1792,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 576,
-                 // "hiresFixHeight": 1024,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_9_to_16_os6 =
+{ %w    = 1152; %h    = 2048;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// 9:16 os6
+// {
+// "width": 1152,
+// "height": 2048,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 1024,
+// "hiresFixStrength": 0.6
+// }
 
-                 @xl_magic_large_16_to_9_os6 =
-                 { %w    = 2048; %h    = 1152;
-                   %ow   = 768;  %oh   = 576;
-                   %tw   = 1536; %th   = 1152;
-                   %nw   = 1792; %nh   = 1344;
-                   %hrfw = 1024; %hrfh = 576;
-                   %hrf  = true;
-                   %hrf_strength = 0.6;
-                   #xl_magic_size.large
-                   #xl_magic_orientation.landscape
-                   #xl_magic_aspect_ratio.16.9
-                   #xl_magic_object_scaling.6
-                 }
-                 // 16:9 os6
-                 // {
-                 // "width": 2048,
-                 // "height": 1152,
-                 // "originalImageWidth": 768,
-                 // "originalImageHeight": 576,
-                 // "targetImageWidth": 1536,
-                 // "targetImageHeight": 1152,
-                 // "negativeOriginalImageWidth": 1792,
-                 // "negativeOriginalImageHeight": 1344,
-                 // "hiresFix": true,
-                 // "hiresFixWidth": 1024,
-                 // "hiresFixHeight": 576,
-                 // "hiresFixStrength": 0.6
-                 // }
+@xl_magic_large_16_to_9_os6 =
+{ %w    = 2048; %h    = 1152;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// 16:9 os6
+// {
+// "width": 2048,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 1024,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
 
 
-                 // --------------------------------------------------------------------------------------------------
-                 // pickers:
-                 // -------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------
+// pickers:
+// -------------------------------------------------------------------------------------------------
 
-                 @xl_magic_small_random =
-                 { @xl_magic_small_1_to_1
-                   | @xl_magic_small_2_to_3
-                   | @xl_magic_small_3_to_2
-                   | @xl_magic_small_3_to_4
-                   | @xl_magic_small_4_to_3
-                   | @xl_magic_small_9_to_16
-                   | @xl_magic_small_16_to_9
-                 }
+@xl_magic_small_random =
+{ @xl_magic_small_1_to_1
+  | @xl_magic_small_2_to_3
+  | @xl_magic_small_3_to_2
+  | @xl_magic_small_3_to_4
+  | @xl_magic_small_4_to_3
+  | @xl_magic_small_9_to_16
+  | @xl_magic_small_16_to_9
+}
 
-                 @xl_magic_small_random_os6 = 
-                 { @xl_magic_small_1_to_1_os6
-                   | @xl_magic_small_2_to_3_os6
-                   | @xl_magic_small_3_to_2_os6
-                   | @xl_magic_small_3_to_4_os6
-                   | @xl_magic_small_4_to_3_os6
-                   | @xl_magic_small_9_to_16_os6
-                   | @xl_magic_small_16_to_9_os6
-                 }
+@xl_magic_small_random_os6 = 
+{ @xl_magic_small_1_to_1_os6
+  | @xl_magic_small_2_to_3_os6
+  | @xl_magic_small_3_to_2_os6
+  | @xl_magic_small_3_to_4_os6
+  | @xl_magic_small_4_to_3_os6
+  | @xl_magic_small_9_to_16_os6
+  | @xl_magic_small_16_to_9_os6
+}
 
-                 @xl_magic_smallish_random =
-                 { @xl_magic_smallish_1_to_1
-                   | @xl_magic_smallish_2_to_3
-                   | @xl_magic_smallish_3_to_2
-                   | @xl_magic_smallish_3_to_4
-                   | @xl_magic_smallish_4_to_3
-                   | @xl_magic_smallish_9_to_16
-                   | @xl_magic_smallish_16_to_9
-                 }
+@xl_magic_smallish_random =
+{ @xl_magic_smallish_1_to_1
+  | @xl_magic_smallish_2_to_3
+  | @xl_magic_smallish_3_to_2
+  | @xl_magic_smallish_3_to_4
+  | @xl_magic_smallish_4_to_3
+  | @xl_magic_smallish_9_to_16
+  | @xl_magic_smallish_16_to_9
+}
 
-                 @xl_magic_smallish_random_os6 = 
-                 { @xl_magic_smallish_1_to_1_os6
-                   | @xl_magic_smallish_2_to_3_os6
-                   | @xl_magic_smallish_3_to_2_os6
-                   | @xl_magic_smallish_3_to_4_os6
-                   | @xl_magic_smallish_4_to_3_os6
-                   | @xl_magic_smallish_9_to_16_os6
-                   | @xl_magic_smallish_16_to_9_os6
-                 }
+@xl_magic_smallish_random_os6 = 
+{ @xl_magic_smallish_1_to_1_os6
+  | @xl_magic_smallish_2_to_3_os6
+  | @xl_magic_smallish_3_to_2_os6
+  | @xl_magic_smallish_3_to_4_os6
+  | @xl_magic_smallish_4_to_3_os6
+  | @xl_magic_smallish_9_to_16_os6
+  | @xl_magic_smallish_16_to_9_os6
+}
 
-                 @xl_magic_medium_random =
-                 { @xl_magic_medium_1_to_1
-                   | @xl_magic_medium_2_to_3
-                   | @xl_magic_medium_3_to_2
-                   | @xl_magic_medium_3_to_4
-                   | @xl_magic_medium_4_to_3
-                   | @xl_magic_medium_9_to_16
-                   | @xl_magic_medium_16_to_9
-                 }
+@xl_magic_medium_random =
+{ @xl_magic_medium_1_to_1
+  | @xl_magic_medium_2_to_3
+  | @xl_magic_medium_3_to_2
+  | @xl_magic_medium_3_to_4
+  | @xl_magic_medium_4_to_3
+  | @xl_magic_medium_9_to_16
+  | @xl_magic_medium_16_to_9
+}
 
-                 @xl_magic_medium_random_os6 =
-                 { @xl_magic_medium_1_to_1_os6
-                   | @xl_magic_medium_2_to_3_os6
-                   | @xl_magic_medium_3_to_2_os6
-                   | @xl_magic_medium_3_to_4_os6
-                   | @xl_magic_medium_4_to_3_os6
-                   | @xl_magic_medium_9_to_16_os6
-                   | @xl_magic_medium_16_to_9_os6
-                 }
+@xl_magic_medium_random_os6 =
+{ @xl_magic_medium_1_to_1_os6
+  | @xl_magic_medium_2_to_3_os6
+  | @xl_magic_medium_3_to_2_os6
+  | @xl_magic_medium_3_to_4_os6
+  | @xl_magic_medium_4_to_3_os6
+  | @xl_magic_medium_9_to_16_os6
+  | @xl_magic_medium_16_to_9_os6
+}
 
-                 @xl_magic_large_random =
-                 { @xl_magic_large_1_to_1
-                   | @xl_magic_large_2_to_3
-                   | @xl_magic_large_3_to_2
-                   | @xl_magic_large_3_to_4
-                   | @xl_magic_large_4_to_3
-                   | @xl_magic_large_9_to_16
-                   | @xl_magic_large_16_to_9
-                 }
+@xl_magic_large_random =
+{ @xl_magic_large_1_to_1
+  | @xl_magic_large_2_to_3
+  | @xl_magic_large_3_to_2
+  | @xl_magic_large_3_to_4
+  | @xl_magic_large_4_to_3
+  | @xl_magic_large_9_to_16
+  | @xl_magic_large_16_to_9
+}
 
-                 @xl_magic_large_random_os6 =
-                 { @xl_magic_large_1_to_1_os6
-                   | @xl_magic_large_2_to_3_os6
-                   | @xl_magic_large_3_to_2_os6
-                   | @xl_magic_large_3_to_4_os6
-                   | @xl_magic_large_4_to_3_os6
-                   | @xl_magic_large_9_to_16_os6
-                   | @xl_magic_large_16_to_9_os6
-                 }
+@xl_magic_large_random_os6 =
+{ @xl_magic_large_1_to_1_os6
+  | @xl_magic_large_2_to_3_os6
+  | @xl_magic_large_3_to_2_os6
+  | @xl_magic_large_3_to_4_os6
+  | @xl_magic_large_4_to_3_os6
+  | @xl_magic_large_9_to_16_os6
+  | @xl_magic_large_16_to_9_os6
+}
 
-                 //--------------------------------------------------------------------------------------------------
-                 // Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
-                 // Artist Summoning':
-                 //--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+// Integrated content adapted from @Wizard Whitebeard's 'Wizard's Large Scroll of
+// Artist Summoning':
+//--------------------------------------------------------------------------------------------------
 
-                 @__set_wizards_artists_artist_if_unset =
-                 { !wizards_artist.#zacharias_martin_aagaard
-                   | !wizards_artist.#slim_aarons
-                   | !wizards_artist.#elenore_abbott
-                   | !wizards_artist.#tomma_abts
-                   | !wizards_artist.#vito_acconci
-                   | !wizards_artist.#andreas_achenbach
-                   | !wizards_artist.#ansel_adams
-                   | !wizards_artist.#josh_adamski
-                   | !wizards_artist.#charles_addams
-                   | !wizards_artist.#etel_adnan
-                   | !wizards_artist.#alena_aenami
-                   | !wizards_artist.#leonid_afremov
-                   | !wizards_artist.#petros_afshar
-                   | !wizards_artist.#yaacov_agam
-                   | !wizards_artist.#eileen_agar
-                   | !wizards_artist.#craigie_aitchison
-                   | !wizards_artist.#ivan_aivazovsky
-                   | !wizards_artist.#francesco_albani
-                   | !wizards_artist.#alessio_albi
-                   | !wizards_artist.#miles_aldridge
-                   | !wizards_artist.#john_white_alexander
-                   | !wizards_artist.#alessandro_allori
-                   | !wizards_artist.#mike_allred
-                   | !wizards_artist.#lawrence_alma_tadema
-                   | !wizards_artist.#lilia_alvarado
-                   | !wizards_artist.#tarsila_do_amaral
-                   | !wizards_artist.#ghada_amer
-                   | !wizards_artist.#cuno_amiet
-                   | !wizards_artist.#el_anatsui
-                   | !wizards_artist.#helga_ancher
-                   | !wizards_artist.#sarah_andersen
-                   | !wizards_artist.#richard_anderson
-                   | !wizards_artist.#sophie_gengembre_anderson
-                   | !wizards_artist.#wes_anderson
-                   | !wizards_artist.#alex_andreev
-                   | !wizards_artist.#sofonisba_anguissola
-                   | !wizards_artist.#louis_anquetin
-                   | !wizards_artist.#mary_jane_ansell
-                   | !wizards_artist.#chiho_aoshima
-                   | !wizards_artist.#sabbas_apterus
-                   | !wizards_artist.#hirohiko_araki
-                   | !wizards_artist.#howard_arkley
-                   | !wizards_artist.#rolf_armstrong
-                   | !wizards_artist.#gerd_arntz
-                   | !wizards_artist.#guy_aroch
-                   | !wizards_artist.#miki_asai
-                   | !wizards_artist.#clemens_ascher
-                   | !wizards_artist.#henry_asencio
-                   | !wizards_artist.#andrew_atroshenko
-                   | !wizards_artist.#deborah_azzopardi
-                   | !wizards_artist.#lois_van_baarle
-                   | !wizards_artist.#ingrid_baars
-                   | !wizards_artist.#anne_bachelier
-                   | !wizards_artist.#francis_bacon
-                   | !wizards_artist.#firmin_baes
-                   | !wizards_artist.#tom_bagshaw
-                   | !wizards_artist.#karol_bak
-                   | !wizards_artist.#christopher_balaskas
-                   | !wizards_artist.#benedick_bana
-                   | !wizards_artist.#banksy
-                   | !wizards_artist.#george_barbier
-                   | !wizards_artist.#cicely_mary_barker
-                   | !wizards_artist.#wayne_barlowe
-                   | !wizards_artist.#will_barnet
-                   | !wizards_artist.#matthew_barney
-                   | !wizards_artist.#angela_barrett
-                   | !wizards_artist.#jean_michel_basquiat
-                   | !wizards_artist.#lillian_bassman
-                   | !wizards_artist.#pompeo_batoni
-                   | !wizards_artist.#casey_baugh
-                   | !wizards_artist.#chiara_bautista
-                   | !wizards_artist.#herbert_bayer
-                   | !wizards_artist.#mary_beale
-                   | !wizards_artist.#alan_bean
-                   | !wizards_artist.#romare_bearden
-                   | !wizards_artist.#cecil_beaton
-                   | !wizards_artist.#cecilia_beaux
-                   | !wizards_artist.#jasmine_becket_griffith
-                   | !wizards_artist.#vanessa_beecroft
-                   | !wizards_artist.#beeple
-                   | !wizards_artist.#zdzislaw_beksinski
-                   | !wizards_artist.#katerina_belkina
-                   | !wizards_artist.#julie_bell
-                   | !wizards_artist.#vanessa_bell
-                   | !wizards_artist.#bernardo_bellotto
-                   | !wizards_artist.#ambrosius_benson
-                   | !wizards_artist.#stan_berenstain
-                   | !wizards_artist.#laura_berger
-                   | !wizards_artist.#jody_bergsma
-                   | !wizards_artist.#john_berkey
-                   | !wizards_artist.#gian_lorenzo_bernini
-                   | !wizards_artist.#marta_bevacqua
-                   | !wizards_artist.#john_t_biggers
-                   | !wizards_artist.#enki_bilal
-                   | !wizards_artist.#ivan_bilibin
-                   | !wizards_artist.#butcher_billy
-                   | !wizards_artist.#george_caleb_bingham
-                   | !wizards_artist.#ed_binkley
-                   | !wizards_artist.#george_birrell
-                   | !wizards_artist.#robert_bissell
-                   | !wizards_artist.#charles_blackman
-                   | !wizards_artist.#mary_blair
-                   | !wizards_artist.#john_blanche
-                   | !wizards_artist.#don_blanding
-                   | !wizards_artist.#albert_bloch
-                   | !wizards_artist.#hyman_bloom
-                   | !wizards_artist.#peter_blume
-                   | !wizards_artist.#don_bluth
-                   | !wizards_artist.#umberto_boccioni
-                   | !wizards_artist.#anna_bocek
-                   | !wizards_artist.#lee_bogle
-                   | !wizards_artist.#louis_leopold_boily
-                   | !wizards_artist.#giovanni_boldini
-                   | !wizards_artist.#enoch_bolles
-                   | !wizards_artist.#david_bomberg
-                   | !wizards_artist.#chesley_bonestell
-                   | !wizards_artist.#lee_bontecou
-                   | !wizards_artist.#michael_borremans
-                   | !wizards_artist.#matt_bors
-                   | !wizards_artist.#flora_borsi
-                   | !wizards_artist.#hieronymus_bosch
-                   | !wizards_artist.#sam_bosma
-                   | !wizards_artist.#johfra_bosschart
-                   | !wizards_artist.#fernando_botero
-                   | !wizards_artist.#sandro_botticelli
-                   | !wizards_artist.#william_adolphe_bouguereau
-                   | !wizards_artist.#susan_seddon_boulet
-                   | !wizards_artist.#louise_bourgeois
-                   | !wizards_artist.#annick_bouvattier
-                   | !wizards_artist.#david_michael_bowers
-                   | !wizards_artist.#noah_bradley
-                   | !wizards_artist.#aleksi_briclot
-                   | !wizards_artist.#frederick_arthur_bridgman
-                   | !wizards_artist.#renie_britenbucher
-                   | !wizards_artist.#romero_britto
-                   | !wizards_artist.#gerald_brom
-                   | !wizards_artist.#bronzino
-                   | !wizards_artist.#herman_brood
-                   | !wizards_artist.#mark_brooks
-                   | !wizards_artist.#romaine_brooks
-                   | !wizards_artist.#troy_brooks
-                   | !wizards_artist.#broom_lee
-                   | !wizards_artist.#allie_brosh
-                   | !wizards_artist.#ford_madox_brown
-                   | !wizards_artist.#charles_le_brun
-                   | !wizards_artist.#elisabeth_vigee_le_brun
-                   | !wizards_artist.#james_bullough
-                   | !wizards_artist.#laurel_burch
-                   | !wizards_artist.#alejandro_burdisio
-                   | !wizards_artist.#daniel_buren
-                   | !wizards_artist.#jon_burgerman
-                   | !wizards_artist.#richard_burlet
-                   | !wizards_artist.#jim_burns
-                   | !wizards_artist.#stasia_burrington
-                   | !wizards_artist.#kaethe_butcher
-                   | !wizards_artist.#saturno_butto
-                   | !wizards_artist.#paul_cadmus
-                   | !wizards_artist.#zhichao_cai
-                   | !wizards_artist.#randolph_caldecott
-                   | !wizards_artist.#alexander_calder_milne
-                   | !wizards_artist.#clyde_caldwell
-                   | !wizards_artist.#vincent_callebaut
-                   | !wizards_artist.#fred_calleri
-                   | !wizards_artist.#charles_camoin
-                   | !wizards_artist.#mike_campau
-                   | !wizards_artist.#eric_canete
-                   | !wizards_artist.#josef_capek
-                   | !wizards_artist.#leonetto_cappiello
-                   | !wizards_artist.#eric_carle
-                   | !wizards_artist.#larry_carlson
-                   | !wizards_artist.#bill_carman
-                   | !wizards_artist.#jean_baptiste_carpeaux
-                   | !wizards_artist.#rosalba_carriera
-                   | !wizards_artist.#michael_carson
-                   | !wizards_artist.#felice_casorati
-                   | !wizards_artist.#mary_cassatt
-                   | !wizards_artist.#a_j_casson
-                   | !wizards_artist.#giorgio_barbarelli_da_castelfranco
-                   | !wizards_artist.#paul_catherall
-                   | !wizards_artist.#george_catlin
-                   | !wizards_artist.#patrick_caulfield
-                   | !wizards_artist.#nicoletta_ceccoli
-                   | !wizards_artist.#agnes_cecile
-                   | !wizards_artist.#paul_cezanne
-                   | !wizards_artist.#paul_chabas
-                   | !wizards_artist.#marc_chagall
-                   | !wizards_artist.#tom_chambers
-                   | !wizards_artist.#katia_chausheva
-                   | !wizards_artist.#hsiao_ron_cheng
-                   | !wizards_artist.#yanjun_cheng
-                   | !wizards_artist.#sandra_chevrier
-                   | !wizards_artist.#judy_chicago
-                   | !wizards_artist.#dale_chihuly
-                   | !wizards_artist.#frank_cho
-                   | !wizards_artist.#james_c_christensen
-                   | !wizards_artist.#mikalojus_konstantinas_ciurlionis
-                   | !wizards_artist.#alson_skinner_clark
-                   | !wizards_artist.#amanda_clark
-                   | !wizards_artist.#harry_clarke
-                   | !wizards_artist.#george_clausen
-                   | !wizards_artist.#francesco_clemente
-                   | !wizards_artist.#alvin_langdon_coburn
-                   | !wizards_artist.#clifford_coffin
-                   | !wizards_artist.#vince_colletta
-                   | !wizards_artist.#beth_conklin
-                   | !wizards_artist.#john_constable
-                   | !wizards_artist.#darwyn_cooke
-                   | !wizards_artist.#richard_corben
-                   | !wizards_artist.#vittorio_matteo_corcos
-                   | !wizards_artist.#paul_corfield
-                   | !wizards_artist.#fernand_cormon
-                   | !wizards_artist.#norman_cornish
-                   | !wizards_artist.#camille_corot
-                   | !wizards_artist.#gemma_correll
-                   | !wizards_artist.#petra_cortright
-                   | !wizards_artist.#lorenzo_costa_the_elder
-                   | !wizards_artist.#olive_cotton
-                   | !wizards_artist.#peter_coulson
-                   | !wizards_artist.#gustave_courbet
-                   | !wizards_artist.#frank_cadogan_cowper
-                   | !wizards_artist.#kinuko_y_craft
-                   | !wizards_artist.#clayton_crain
-                   | !wizards_artist.#lucas_cranach_the_elder
-                   | !wizards_artist.#lucas_cranach_the_younger
-                   | !wizards_artist.#walter_crane
-                   | !wizards_artist.#martin_creed
+@__set_wizards_artists_artist_if_unset =
+{0
+| !wizards_artist.#zacharias_martin_aagaard
+| !wizards_artist.#slim_aarons
+| !wizards_artist.#elenore_abbott
+| !wizards_artist.#tomma_abts
+| !wizards_artist.#vito_acconci
+| !wizards_artist.#andreas_achenbach
+| !wizards_artist.#ansel_adams
+| !wizards_artist.#josh_adamski
+| !wizards_artist.#charles_addams
+| !wizards_artist.#etel_adnan
+| !wizards_artist.#alena_aenami
+| !wizards_artist.#leonid_afremov
+| !wizards_artist.#petros_afshar
+| !wizards_artist.#yaacov_agam
+| !wizards_artist.#eileen_agar
+| !wizards_artist.#craigie_aitchison
+| !wizards_artist.#ivan_aivazovsky
+| !wizards_artist.#francesco_albani
+| !wizards_artist.#alessio_albi
+| !wizards_artist.#miles_aldridge
+| !wizards_artist.#john_white_alexander
+| !wizards_artist.#alessandro_allori
+| !wizards_artist.#mike_allred
+| !wizards_artist.#lawrence_alma_tadema
+| !wizards_artist.#lilia_alvarado
+| !wizards_artist.#tarsila_do_amaral
+| !wizards_artist.#ghada_amer
+| !wizards_artist.#cuno_amiet
+| !wizards_artist.#el_anatsui
+| !wizards_artist.#helga_ancher
+| !wizards_artist.#sarah_andersen
+| !wizards_artist.#richard_anderson
+| !wizards_artist.#sophie_gengembre_anderson
+| !wizards_artist.#wes_anderson
+| !wizards_artist.#alex_andreev
+| !wizards_artist.#sofonisba_anguissola
+| !wizards_artist.#louis_anquetin
+| !wizards_artist.#mary_jane_ansell
+| !wizards_artist.#chiho_aoshima
+| !wizards_artist.#sabbas_apterus
+| !wizards_artist.#hirohiko_araki
+| !wizards_artist.#howard_arkley
+| !wizards_artist.#rolf_armstrong
+| !wizards_artist.#gerd_arntz
+| !wizards_artist.#guy_aroch
+| !wizards_artist.#miki_asai
+| !wizards_artist.#clemens_ascher
+| !wizards_artist.#henry_asencio
+| !wizards_artist.#andrew_atroshenko
+| !wizards_artist.#deborah_azzopardi
+| !wizards_artist.#lois_van_baarle
+| !wizards_artist.#ingrid_baars
+| !wizards_artist.#anne_bachelier
+| !wizards_artist.#francis_bacon
+| !wizards_artist.#firmin_baes
+| !wizards_artist.#tom_bagshaw
+| !wizards_artist.#karol_bak
+| !wizards_artist.#christopher_balaskas
+| !wizards_artist.#benedick_bana
+| !wizards_artist.#banksy
+| !wizards_artist.#george_barbier
+| !wizards_artist.#cicely_mary_barker
+| !wizards_artist.#wayne_barlowe
+| !wizards_artist.#will_barnet
+| !wizards_artist.#matthew_barney
+| !wizards_artist.#angela_barrett
+| !wizards_artist.#jean_michel_basquiat
+| !wizards_artist.#lillian_bassman
+| !wizards_artist.#pompeo_batoni
+| !wizards_artist.#casey_baugh
+| !wizards_artist.#chiara_bautista
+| !wizards_artist.#herbert_bayer
+| !wizards_artist.#mary_beale
+| !wizards_artist.#alan_bean
+| !wizards_artist.#romare_bearden
+| !wizards_artist.#cecil_beaton
+| !wizards_artist.#cecilia_beaux
+| !wizards_artist.#jasmine_becket_griffith
+| !wizards_artist.#vanessa_beecroft
+| !wizards_artist.#beeple
+| !wizards_artist.#zdzislaw_beksinski
+| !wizards_artist.#katerina_belkina
+| !wizards_artist.#julie_bell
+| !wizards_artist.#vanessa_bell
+| !wizards_artist.#bernardo_bellotto
+| !wizards_artist.#ambrosius_benson
+| !wizards_artist.#stan_berenstain
+| !wizards_artist.#laura_berger
+| !wizards_artist.#jody_bergsma
+| !wizards_artist.#john_berkey
+| !wizards_artist.#gian_lorenzo_bernini
+| !wizards_artist.#marta_bevacqua
+| !wizards_artist.#john_t_biggers
+| !wizards_artist.#enki_bilal
+| !wizards_artist.#ivan_bilibin
+| !wizards_artist.#butcher_billy
+| !wizards_artist.#george_caleb_bingham
+| !wizards_artist.#ed_binkley
+| !wizards_artist.#george_birrell
+| !wizards_artist.#robert_bissell
+| !wizards_artist.#charles_blackman
+| !wizards_artist.#mary_blair
+| !wizards_artist.#john_blanche
+| !wizards_artist.#don_blanding
+| !wizards_artist.#albert_bloch
+| !wizards_artist.#hyman_bloom
+| !wizards_artist.#peter_blume
+| !wizards_artist.#don_bluth
+| !wizards_artist.#umberto_boccioni
+| !wizards_artist.#anna_bocek
+| !wizards_artist.#lee_bogle
+| !wizards_artist.#louis_leopold_boily
+| !wizards_artist.#giovanni_boldini
+| !wizards_artist.#enoch_bolles
+| !wizards_artist.#david_bomberg
+| !wizards_artist.#chesley_bonestell
+| !wizards_artist.#lee_bontecou
+| !wizards_artist.#michael_borremans
+| !wizards_artist.#matt_bors
+| !wizards_artist.#flora_borsi
+| !wizards_artist.#hieronymus_bosch
+| !wizards_artist.#sam_bosma
+| !wizards_artist.#johfra_bosschart
+| !wizards_artist.#fernando_botero
+| !wizards_artist.#sandro_botticelli
+| !wizards_artist.#william_adolphe_bouguereau
+| !wizards_artist.#susan_seddon_boulet
+| !wizards_artist.#louise_bourgeois
+| !wizards_artist.#annick_bouvattier
+| !wizards_artist.#david_michael_bowers
+| !wizards_artist.#noah_bradley
+| !wizards_artist.#aleksi_briclot
+| !wizards_artist.#frederick_arthur_bridgman
+| !wizards_artist.#renie_britenbucher
+| !wizards_artist.#romero_britto
+| !wizards_artist.#gerald_brom
+| !wizards_artist.#bronzino
+| !wizards_artist.#herman_brood
+| !wizards_artist.#mark_brooks
+| !wizards_artist.#romaine_brooks
+| !wizards_artist.#troy_brooks
+| !wizards_artist.#broom_lee
+| !wizards_artist.#allie_brosh
+| !wizards_artist.#ford_madox_brown
+| !wizards_artist.#charles_le_brun
+| !wizards_artist.#elisabeth_vigee_le_brun
+| !wizards_artist.#james_bullough
+| !wizards_artist.#laurel_burch
+| !wizards_artist.#alejandro_burdisio
+| !wizards_artist.#daniel_buren
+| !wizards_artist.#jon_burgerman
+| !wizards_artist.#richard_burlet
+| !wizards_artist.#jim_burns
+| !wizards_artist.#stasia_burrington
+| !wizards_artist.#kaethe_butcher
+| !wizards_artist.#saturno_butto
+| !wizards_artist.#paul_cadmus
+| !wizards_artist.#zhichao_cai
+| !wizards_artist.#randolph_caldecott
+| !wizards_artist.#alexander_calder_milne
+| !wizards_artist.#clyde_caldwell
+| !wizards_artist.#vincent_callebaut
+| !wizards_artist.#fred_calleri
+| !wizards_artist.#charles_camoin
+| !wizards_artist.#mike_campau
+| !wizards_artist.#eric_canete
+| !wizards_artist.#josef_capek
+| !wizards_artist.#leonetto_cappiello
+| !wizards_artist.#eric_carle
+| !wizards_artist.#larry_carlson
+| !wizards_artist.#bill_carman
+| !wizards_artist.#jean_baptiste_carpeaux
+| !wizards_artist.#rosalba_carriera
+| !wizards_artist.#michael_carson
+| !wizards_artist.#felice_casorati
+| !wizards_artist.#mary_cassatt
+| !wizards_artist.#a_j_casson
+| !wizards_artist.#giorgio_barbarelli_da_castelfranco
+| !wizards_artist.#paul_catherall
+| !wizards_artist.#george_catlin
+| !wizards_artist.#patrick_caulfield
+| !wizards_artist.#nicoletta_ceccoli
+| !wizards_artist.#agnes_cecile
+| !wizards_artist.#paul_cezanne
+| !wizards_artist.#paul_chabas
+| !wizards_artist.#marc_chagall
+| !wizards_artist.#tom_chambers
+| !wizards_artist.#katia_chausheva
+| !wizards_artist.#hsiao_ron_cheng
+| !wizards_artist.#yanjun_cheng
+| !wizards_artist.#sandra_chevrier
+| !wizards_artist.#judy_chicago
+| !wizards_artist.#dale_chihuly
+| !wizards_artist.#frank_cho
+| !wizards_artist.#james_c_christensen
+| !wizards_artist.#mikalojus_konstantinas_ciurlionis
+| !wizards_artist.#alson_skinner_clark
+| !wizards_artist.#amanda_clark
+| !wizards_artist.#harry_clarke
+| !wizards_artist.#george_clausen
+| !wizards_artist.#francesco_clemente
+| !wizards_artist.#alvin_langdon_coburn
+| !wizards_artist.#clifford_coffin
+| !wizards_artist.#vince_colletta
+| !wizards_artist.#beth_conklin
+| !wizards_artist.#john_constable
+| !wizards_artist.#darwyn_cooke
+| !wizards_artist.#richard_corben
+| !wizards_artist.#vittorio_matteo_corcos
+| !wizards_artist.#paul_corfield
+| !wizards_artist.#fernand_cormon
+| !wizards_artist.#norman_cornish
+| !wizards_artist.#camille_corot
+| !wizards_artist.#gemma_correll
+| !wizards_artist.#petra_cortright
+| !wizards_artist.#lorenzo_costa_the_elder
+| !wizards_artist.#olive_cotton
+| !wizards_artist.#peter_coulson
+| !wizards_artist.#gustave_courbet
+| !wizards_artist.#frank_cadogan_cowper
+| !wizards_artist.#kinuko_y_craft
+| !wizards_artist.#clayton_crain
+| !wizards_artist.#lucas_cranach_the_elder
+| !wizards_artist.#lucas_cranach_the_younger
+| !wizards_artist.#walter_crane
+| !wizards_artist.#martin_creed
 | !wizards_artist.#gregory_crewdson
 | !wizards_artist.#debbie_criswell
 | !wizards_artist.#victoria_crowe
@@ -9062,6 +9063,43 @@ function load_prelude(into_context = new Context()) {
     if (rule_match_counter_enabled)
       lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
   }
+
+  function mark(thing, visited) {
+    if (!thing &&
+        visited instanceof Set) {
+      throw new Error(`bar mark args: ${inspect_fun(arguments)}`);
+    }
+
+    if (is_primitive(thing))
+      return;
+
+    if (visited.has(thing))
+      return;
+    
+    visited.add(thing);
+
+    // lm.log(`marking ${abbreviate(compress(inspect_fun(thing)))}`);
+
+    lm.indent(() => {
+      if (Array.isArray(thing)) {
+        for (const elem of thing.filget(x => !is.primitive(x)))
+          mark(elem, visited);
+      }
+      else if (thing instanceof ASTNode) {
+        thing.__provenance = 'prelude';
+        
+        for (const child of thing.direct_children())
+          mark(child, visited);
+      }
+      else {
+        throw new Error(`wat do? ` +
+                        `${abbreviate(comptess(inspect_fun(thing)))}`);
+      }
+    });
+  }
+
+  for (const nwc_awc of into_context.named_wildcards.values())
+    mark(nwc_awc, new Set());
   
   return into_context;
 }
@@ -9884,8 +9922,6 @@ const audit_semantics_modes = Object.freeze({
   // no_track:          'no_track',
 });
 // -------------------------------------------------------------------------------------------------
-const scalar_init_states = Object.freeze({});
-// -------------------------------------------------------------------------------------------------
 function audit_semantics(root_ast_node,
                          { base_context = null,
                            audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
@@ -9896,28 +9932,36 @@ function audit_semantics(root_ast_node,
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw(msg, mode) {
-    if (!(typeof msg === 'string' &&
+  function warn_or_throw(about_thing, msg, mode) {
+    if (!(about_thing &&
+          typeof msg === 'string' &&
           Object.values(audit_semantics_modes).includes(mode)))
       throw new Error(`bad warn_or_throw args: ` +
                       `${inspect_fun(arguments)}`);
+
+    if (about_thing.__provenance === 'prelude')
+      return;
+    
     msg = `${mode.toUpperCase()}: ${msg}`;
 
-    if (mode === audit_semantics_mode.throw_error) {
+    if (mode === audit_semantics_modes.throw_error) {
       throw new Error(msg);
     }
-    else if (mode === audit_semantics_modes.warnings) {  
-      if (log_level__audit >= 2)
-        lm.log(`PUSH WARNING '${msg}'`);
-      warnings.push(msg);
+    else if (mode === audit_semantics_modes.warnings) {
+      if (!warnings.has(about_thing)) {
+        if (log_level__audit >= 2)
+          lm.log(`PUSH WARNING '${msg}'`);
+        warnings.set(about_thing, msg);
+      }
     }
     else {
       throw new Error(`what do?" ${inspect_fun(mode)}`);
     }
   }
   // -----------------------------------------------------------------------------------------------
-  function warn_or_throw_unless_flag_could_be_set_by_now(verb, flag, local_context, local_audit_semantics_mode, visited) {
-    if (!(typeof verb == 'string' &&
+  function warn_or_throw_unless_flag_could_be_set_by_now(about_thing, verb, flag, local_context, local_audit_semantics_mode, visited) {
+    if (!(about_thing &&
+          typeof verb == 'string' &&
           Array.isArray(flag) &&
           local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
@@ -9925,26 +9969,30 @@ function audit_semantics(root_ast_node,
       throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
 
+    // lm.log(`warn unless set ${inspect_fun(flag)}`);
+
     if (local_context.flag_is_set(flag)) {
-      if (log_level__audit >= 1)
-        lm.log(`flag ${flag} could be set by now`);
+      // if (log_level__audit >= 1)
+      //   lm.log(`flag ${flag} could be set by now`);
       return;
     }
     
     const flag_str = flag.join(".").toLowerCase();
+    // lm.log(`joined flag ${flag_str}`);
     const known_flags = local_context.flags.map(f => f.join("."));
     const suggestion = suggest_closest(flag_str, known_flags);
-    warn_or_throw(`flag '${flag_str}' is ${verb} before it could possibly be set. ` +
+    warn_or_throw(about_thing,
+                  `flag '${flag_str}' is ${verb} before it could possibly be set. ` +
                   `Maybe this was intentional, but it could suggest that you may made have ` +
                   `a typo or other error in your template.${suggestion}`,
                   local_audit_semantics_mode);
   }
   // -----------------------------------------------------------------------------------------------
-  function walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) {
+  function walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) {
     if (!(thing instanceof ASTNode &&
           local_context instanceof Context && 
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-          typeof as_if_parallel == 'boolean' &&
+          typeof in_named_wildcard_reference == 'boolean' &&
           visited instanceof Set))
       throw new Error(`bad walk_children args: ` +
                       `${abbreviate(compress(inspect_fun(arguments)))}`);
@@ -9952,14 +10000,14 @@ function audit_semantics(root_ast_node,
     const children = thing.direct_children().filter(child => !is_primitive(child));
 
     if (children.length > 0)
-      walk(children, local_context, local_audit_semantics_mode, as_if_parallel, visited); 
+      walk(children, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited); 
   }
   // ===============================================================================================
-  function walk(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited) { 
+  function walk(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) { 
     if (!(thing &&
           local_context instanceof Context &&
           Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
-          typeof as_if_parallel == 'boolean' &&
+          typeof in_named_wildcard_reference == 'boolean' &&
           visited instanceof Set))
       throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
@@ -9974,14 +10022,17 @@ function audit_semantics(root_ast_node,
       return;
     }
 
-    visited.add(thing);
+    if (! // (thing instanceof ASTNamedWildcardReference ||
+        (thing instanceof ASTAnonWildcard && in_named_wildcard_reference)) { // ) {
+      visited.add(thing);
+    }
 
     if (log_level__audit >= 2)
       lm.log(
         `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
-          `${as_if_parallel? 'speculatively ' : ''}audit semantics in ` +
+          `${in_named_wildcard_reference? 'speculatively ' : ''}audit semantics in ` +
           `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-          `flags: ${abbreviate(compress(inspect_fun(local_context.flags)), 200)}`);
+          `flags: ${compress(inspect_fun(local_context.flags))}`);
 
     lm.indent(() => {
       // ===========================================================================================
@@ -9990,7 +10041,7 @@ function audit_semantics(root_ast_node,
       if (Array.isArray(thing)) {
         for (const elem of thing.filter(elem => !is_primitive(elem)))
           if (!is_primitive(elem))
-            walk(elem, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+            walk(elem, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
         // ^ propagate local_audit_semantics_mode
       }
       // -------------------------------------------------------------------------------------------
@@ -10004,7 +10055,7 @@ function audit_semantics(root_ast_node,
         if (!got) 
           throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
         else 
-          walk(got, local_context, local_audit_semantics_mode, true, visited); // start as_if_parallel
+          walk(got, local_context, local_audit_semantics_mode, true, visited); // start in_named_wildcard_reference
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUpdateConfigurationBinary) {
@@ -10025,6 +10076,9 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
+        // if (thing.__no_reaudit)
+        //   return;
+        
         const all_options = thing.picker.options.map(x => x.value);
         const split_options = thing.picker
               .split_options(local_context.picker_allow_fun,
@@ -10034,13 +10088,13 @@ function audit_semantics(root_ast_node,
         const currently_illlegal_options =
               split_options .legal_options.map(x => x.value);
         
-        if (as_if_parallel) {
+        if (in_named_wildcard_reference) {
           // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
           // then, for the second pass we'll switch back to the original to allow revisiting:
           const visited_copy = new Set(visited);
           
           if (log_level__audit >= 1)
-            lm.log(`NO_ERRORS PASS (legal):`);
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
           lm.indent(() => {
             for (const option of currently_legal_options)
               walk(option,
@@ -10050,40 +10104,52 @@ function audit_semantics(root_ast_node,
                    audit_semantics_modes.no_errors, 
                    true, // or maybe false? nah, i think this is corect... any children could also
                    // get evaluated twice and so should be juded as_if_parralel, right?
-                   visited_copy);
+                   visited);
           });
 
           if (log_level__audit >= 1)
-            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
-          lm.indent(() => {
-            for (const option of all_options)
-              walk(option,
-                   local_context.clone(),
-                   local_audit_semantics_mode,
-                   false, // not 100% sure 'bout this yet but it seems to work.
-                   visited);
-          }); 
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS ON ALL OPTIONS TO CHECK ` +
+                   `SEMANTICS, MAY REVISIT SOME LATER:`);
+
+          if (thing.__provenance !== 'prelude')
+            lm.indent(() => {
+              for (const option of all_options)
+                walk(option,
+                     local_context.clone(),
+                     local_audit_semantics_mode,
+                     true, // false, // not 100% sure 'bout this yet but it seems to work.
+                     visited_copy);
+            });
+
+          // not sure how much this helps, but why not: 
+          if (all_options.every(x => visited.has(x)))
+            visited.add(thing);
         }
         else {
+          const visited_copy = new Set(visited);
+
           if (log_level__audit >= 1)
-            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS:`);
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS TO CHECK SEMANTICS, MAY ` +
+                   `REVISIT SOME LATER:`);
           lm.indent(() => {
             for (const option of all_options)
               walk(option,
                    local_context.clone(),
                    local_audit_semantics_mode,
-                   as_if_parallel,
-                   visited);
+                   in_named_wildcard_reference,
+                   visited_copy); /* we'll need to revisit these some of these nodes in a non-cloned
+                                     context next, so we'll use a copy of visited.
+                                  */
           });
 
           if (log_level__audit >= 1)
-            lm.log(`NO_ERRORS PASS (legal):`);
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
           lm.indent(() =>  {
             for (const option of currently_legal_options)
               walk(option,
                    local_context,
                    audit_semantics_modes.no_errors,
-                   as_if_parallel,
+                   in_named_wildcard_reference,
                    visited);
           });
         }
@@ -10103,7 +10169,7 @@ function audit_semantics(root_ast_node,
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
         local_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
@@ -10112,12 +10178,15 @@ function audit_semantics(root_ast_node,
           local_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
-          for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now('checked',
+          for (const flag of thing.flags) {
+            // lm.log(`check ${inspect_fun(flag)}`);
+            warn_or_throw_unless_flag_could_be_set_by_now(`?${flag.join(".")}`, // thing,
+                                                          'checked',
                                                           flag,
                                                           local_context,
                                                           local_audit_semantics_mode,
                                                           visited);
+          }
         }
       }
       // -------------------------------------------------------------------------------------------
@@ -10129,7 +10198,8 @@ function audit_semantics(root_ast_node,
           // this case probably doesn't deserve a warning, avoid one:
           local_context.set_flag(thing.flag, false);
         else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
-          warn_or_throw_unless_flag_could_be_set_by_now('checked',
+          warn_or_throw_unless_flag_could_be_set_by_now(thing,
+                                                        'checked',
                                                         thing.flag,
                                                         local_context,
                                                         local_audit_semantics_mode,
@@ -10151,7 +10221,7 @@ function audit_semantics(root_ast_node,
       }
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, local_context, local_audit_semantics_mode, as_if_parallel, visited);
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
       // -------------------------------------------------------------------------------------------
       else {
@@ -10162,21 +10232,23 @@ function audit_semantics(root_ast_node,
   // ===============================================================================================
   
   const dummy_context                  = base_context.clone();
-  const warnings                       = [];
+  const warnings                       = new Map();
   const scalars_referenced_before_init = [];
   
   walk(root_ast_node, dummy_context, audit_semantics_mode, false, new Set());
   
   for (const { name, suggestion } of scalars_referenced_before_init) {
     const msg = (dummy_context.scalar_variables.has(name)
-                 ? `scalar variable '$${name}' referenced before it could have been initialized `
+                 ? `scalar variable '$${name}' is referenced before it could have been initialized `
                  : `scalar variable '$${name}' is referenced but is never initialized `) +
           `and so the reference will produce an empty string, ` +
           `which may not be what you intended to do. ` +
           `this could be intentional or it could ` +
           `suggest that you may have a made typo or other error ` +
           `in your template.${suggestion}`;
-    warn_or_throw(msg, audit_semantics_mode);
+    warn_or_throw(Symbol(msg), // just a unique dummy object
+                  msg,
+                  audit_semantics_mode); 
     
     if (!dummy_context.scalar_variables.has(name) &&
         !base_context.scalar_variables.has(name))
@@ -10190,7 +10262,7 @@ function audit_semantics(root_ast_node,
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return warnings;
+  return Array.from(warnings.values());
 }
 // =================================================================================================
 // END OF THE SEMANTICS AUDITING FUNCTION.
@@ -11097,27 +11169,38 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
       .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, { can_have_trailer = false, reducable_to_value } = {}) => {
+      (alternative_rule, { can_have_trailer = false, reduce_to_value } = {}) => {
         const new_ASTAnonWildcard_or_reduced_value = arr => {
+          // lm.log(`ARR: ${inspect_fun(arr)}`)
+          
           arr[0] = arr[0].filter(x => x.weight !== 0);
 
-          if (reducable_to_value !== undefined) {
+          if (reduce_to_value !== undefined) {
             if (arr[0].length === 0)
-              return reducable_to_value;
+              return reduce_to_value;
             if (arr[0].length                === 1 &&
                 arr[0][0].check_flags.length === 0 && 
                 arr[0][0].not_flags.length   === 0 &&
-                arr[0][0].body.length        === 1 &&
-                typeof arr[0][0].body[0]     === 'string') {
-              let str = arr[0][0].body[0];
-              if (can_have_trailer && arr[1])
-                str += arr[1];
-              return str;
+                arr[0][0].body.length        === 1) {
+              if (typeof arr[0][0].body[0]     === 'string') {
+                let str = arr[0][0].body[0];
+                if (can_have_trailer && arr[1])
+                  str += arr[1];
+                return str;
+              }
+              else {
+                if (can_have_trailer &&
+                    arr[1] &&
+                    'trailer' in arr[0][0].body[0]) {
+                  arr[0][0].body[0].trailer = arr[1];
+                }
+                return arr[0][0].body[0];
+              }
             }
           }
           return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
         };
-        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+        const body_rule = wst_brc_enc(wst_star(alternative_rule, pipe));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
@@ -11129,22 +11212,22 @@ const make_AnonWildcard_rule            =
 // -------------------------------------------------------------------------------------------------
 const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, reducable_to_value: DISCARD })
+                             { can_have_trailer: true, reduce_to_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
 // no empty value because values that are going to go on the rhs of context.named_wildcards need
 // to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, reducable_to_value: undefined })
+                             { can_have_trailer: true, reduce_to_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
 // note differing empty values due their contexts of use:
 const AnonWildcardNoSJMergeArticleCorrection =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: true, reducable_to_value: '' }) // DISCARD })
+                             { can_have_trailer: true, reduce_to_value: '' }) // DISCARD })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
 const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: false, reducable_to_value:  '' })
+                             { can_have_trailer: false, reduce_to_value:  '' })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrectionOrTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
@@ -11280,7 +11363,7 @@ const SpecialFunctionNotInclude =
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
-const NamedWildcardReference  =
+const make_NamedWildcardReference_rule  = can_have_trailer => 
       xform(seq(at,                                        // [0]
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
@@ -11288,7 +11371,9 @@ const NamedWildcardReference  =
                                cadr(dash, uint))),
                 optional(/[,\.&|;]/),                      // [4]
                 ident,                                     // [5]
-                optional_punctuation_trailer,  // [6]
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer),  // [6]
                ), 
             arr => {
               const ident   = arr[5];
@@ -11313,9 +11398,9 @@ const NamedWildcardReference  =
                                                    caret,
                                                    min_ct,
                                                    max_ct,
-                                                   trailer);
-            })
-      .abbreviate_str_repr('NamedWildcardReference');
+                                                   trailer) ;
+            }).abbreviate_str_repr(`make_NamedWildcardReference_rule<${can_have_trailer}>`);
+const NamedWildcardReference = make_NamedWildcardReference_rule(true);
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
@@ -11350,15 +11435,18 @@ const NamedWildcardUsage      =
             })
       .abbreviate_str_repr('NamedWildcardUsage');
 // -------------------------------------------------------------------------------------------------
-const ScalarReference         =
+const make_ScalarReference_rule = can_have_trailer =>
       xform(seq(dollar,
                 optional(caret),
                 ident,
-                optional_punctuation_trailer),
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer)),
             arr => new ASTScalarReference(arr[2],
                                           arr[1],
                                           arr[3]))
-      .abbreviate_str_repr('ScalarReference');
+      .abbreviate_str_repr(`make_ScalarReference_rule<${can_have_trailer}>`);
+const ScalarReference = make_ScalarReference_rule(true) ;
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        =
       xform(seq(dollar, ident),
