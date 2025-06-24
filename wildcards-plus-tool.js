@@ -9809,8 +9809,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
             }
           }
           else {
-            value = expand_wildcards(thing.value, context, 
-                                     { correct_articles: false });
+            lm.indent(() => value = expand_wildcards(thing.value, context, 
+                                                     { correct_articles: false }));
           }
 
           if (thing instanceof ASTUpdateConfigurationUnary) { 
