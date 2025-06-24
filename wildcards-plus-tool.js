@@ -3677,7 +3677,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const maybe_correct_articles = () => {
     // correct article if needed:
     if (correct_articles) {
-      const article_match = left_word.match(/([Aa]n?)$/);
+      // const article_match = left_word.match(/([Aa]n?)$/);
+      const article_match = left_word.match(/\b([Aa]n?)\b\s*$/);
+
       
       if (article_match) {
         const original_article = article_match[1];
