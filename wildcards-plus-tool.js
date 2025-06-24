@@ -11475,7 +11475,12 @@ const make_AnonWildcard_rule            =
               }
             }
           }
-          return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
+          const awc = new ASTAnonWildcard(arr[0], { trailer: arr[1] });
+
+          if (!can_have_trailer)
+            awc.__trailer_not_permitted = true;
+          
+          return awc;
         };
         const body_rule = wst_brc_enc(wst_star(alternative_rule, pipe));
         const tail_rule = can_have_trailer
@@ -12029,8 +12034,8 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
     
-    log_level__expand_and_walk = 2;
-    log_level__smart_join      = 2;
+    // log_level__expand_and_walk = 2;
+    // log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
