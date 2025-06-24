@@ -11466,12 +11466,14 @@ const make_AnonWildcard_rule            =
                 return str;
               }
               else {
-                if (can_have_trailer &&
-                    arr[1] &&
-                    'trailer' in arr[0][0].body[0]) {
+                if (!arr[1] || !arr[0][0].body[0].trailer) {
+                  return arr[0][0].body[0];
+                } else if (can_have_trailer &&
+                           arr[1] &&
+                           'trailer' in arr[0][0].body[0]) {
                   arr[0][0].body[0].trailer = arr[1];
+                  return arr[0][0].body[0];
                 }
-                return arr[0][0].body[0];
               }
             }
           }
