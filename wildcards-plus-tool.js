@@ -9959,7 +9959,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
           throw new ThrownReturn(''); // produce nothing
         }
         finally {
-          context.munge_configuration();
+          lm.indent(() => context.munge_configuration());
         }
       }
       // -------------------------------------------------------------------------------------------
