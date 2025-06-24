@@ -312,7 +312,7 @@ let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
 let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
-let print_ast_before_includes_enabled             = false;
+let print_ast_before_includes_enabled             = true;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -11163,6 +11163,14 @@ class ASTUINegPrompt extends ASTLeafNode {
 }
 // =================================================================================================
 // END OF SD PROMPT AST CLASSES SECTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// FIND A BETTER PLACE TO PUT THIS...
+// =================================================================================================
+const early_unescape_chars = ``;
+const late_unescape_chars = ``;
 // =================================================================================================
 
 
