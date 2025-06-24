@@ -142,7 +142,7 @@
 | 2 %conf += { width: 1152,  height: 768, steps: 40  }
 | 6 %conf += { width: 1280,  height: 640, steps: 45  }
 }
-| 2 ?chroma // still experimenting with settings for Chroma...
+| 2 ?chroma
 
 %model     = chroma_v38_detail_calibrated_q8p.ckpt
 %sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
@@ -151,9 +151,9 @@
 %n_iter    = 2
 %clip_skip = 1
 
-{ 1 %conf += { width: 960,   height: 960, steps: {\35|\40|\45|\50|\55|\60} }
-| 2 %conf += { width: 1152,  height: 768, steps: {\35|\40|\45|\50|\55|\60} }
-| 6 %conf += { width: 1280,  height: 640, steps: {\35|\40|\45|\50|\55|\60} }
+{ 1 %conf += { width: 960,   height: 960 } %steps = {\35|\40|\45|\50|\55|\60} 
+| 2 %conf += { width: 1152,  height: 768 } %steps = {\35|\40|\45|\50|\55|\60} 
+| 6 %conf += { width: 1280,  height: 640 } %steps = {\35|\40|\45|\50|\55|\60} 
 }
 }
 
@@ -303,7 +303,7 @@
 @char_late_adj =
 {4
 |alien #alien
-|android
+|20 android
 |cyborg #cyborg
 |!inhuman human #human
 // |?traveller Vargr // unrecognized!
