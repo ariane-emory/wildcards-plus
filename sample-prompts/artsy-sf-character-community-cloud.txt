@@ -515,7 +515,7 @@
 A
 {?wizards_artist {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting} a }
-// @0-2&char_early_adj
+@0-2&char_early_adj
 @char_late_adj @role
 {2|@early_alien_feature_phrase}
 {2|@early_cyborg_feature_phrase}
