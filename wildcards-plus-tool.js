@@ -11471,7 +11471,7 @@ const make_AnonWildcard_rule            =
                 if (!arr[1] || !arr[0][0].body[0].trailer) {
                   return arr[0][0].body[0];
                 }
-                // the new object can have and does have trailer a and the inner object has a 'trailer'
+                // the new object can have and does have a trailer and the inner object has a 'trailer'
                 // property, copy the trailer from our argument to the inner object and return it.
                 else if (can_have_trailer &&
                          arr[1] &&
