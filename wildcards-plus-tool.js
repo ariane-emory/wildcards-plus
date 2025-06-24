@@ -9418,10 +9418,21 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
       typeof correct_articles !== 'boolean')
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
+  function maybe_late_unescape(str) {
+    if (!unescape_other_chars_early) {
+      const new_str = str.replace(/\\([^<])/g, '$1');
+      
+      lm.log(`LATE UNESCAPE ${inspect_fun(str)} => ${inspect_fun(new_str)}`);
+
+      str = new_str;
+    }
+    return str;
+  }
+  // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
     if (log_level__expand_and_walk >= 1)
       lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
-    return thing;
+    return maybe_late_unescape(thing);
   }
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
@@ -9766,6 +9777,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
           let value = thing.value;
           
           if (value instanceof ASTNode) {
+            lm.log(`DOING THIS TO ${thing_str_repr(value)}`);
+            
             const expanded_value = lm.indent(() =>
               // don't correct articles in config values so that we don't mess up, e.g.,
               // %sampled = { Euler A AYS };
@@ -9789,7 +9802,8 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
             }
           }
           else {
-            value = structured_clone(value); // do we need to clone this? I forget.
+            value = expand_wildcards(thing.value, context, 
+                                     { correct_articles: false });
           }
 
           if (thing instanceof ASTUpdateConfigurationUnary) { 
@@ -10147,10 +10161,10 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
   let str = ret.replace(/\\</g, '<');
 
-  if (!unescape_other_chars_early)
-    str = str.replace(/\\([^<])/g, '$1');
-
-  return str;
+  if (unescape_other_chars_early)
+    throw new Error("trap");
+  
+  return maybe_late_unescape(str);
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -12059,7 +12073,7 @@ async function main() {
     const old_log_level__expand_and_walk = log_level__expand_and_walk;
     const old_log_level__smart_join      = log_level__smart_join
     
-    // log_level__expand_and_walk = 2;
+    log_level__expand_and_walk = 2;
     // log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
