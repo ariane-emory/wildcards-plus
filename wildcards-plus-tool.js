@@ -11476,10 +11476,6 @@ const make_AnonWildcard_rule            =
             }
           }
           const awc = new ASTAnonWildcard(arr[0], { trailer: arr[1] });
-
-          if (!can_have_trailer)
-            awc.__trailer_not_permitted = true;
-          
           return awc;
         };
         const body_rule = wst_brc_enc(wst_star(alternative_rule, pipe));
