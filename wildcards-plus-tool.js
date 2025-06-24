@@ -3678,7 +3678,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     // correct article if needed:
     if (correct_articles) {
       // const article_match = left_word.match(/([Aa]n?)$/);
-      const article_match = left_word.match(/\b([Aa]n?)$/);
+      // const article_match = left_word.match(/\b([Aa]n?)$/);
+      const article_match = left_word.match(/(?<!\\)([Aa]n?)$/);
+
       // const article_match = left_word.match(/\b([Aa]n?)\b\s*$/);
 
       
@@ -3960,15 +3962,15 @@ function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
 }
 thing_str_repr.abbrev_length = 100;
 // -------------------------------------------------------------------------------------------------
-function unescape(str) {
-  if (typeof str !== 'string')
-    return str;
-  
-  return str
-    .replace(/\\n/g,   '\n')
-    .replace(/\\ /g,   ' ')
-    .replace(/\\(.)/g, '$1')
-}
+// function unescape(str) {
+//   if (typeof str !== 'string')
+//     return str;
+
+//   return str
+//     .replace(/\\n/g,   '\n')
+//     .replace(/\\ /g,   ' ')
+//     .replace(/\\(.)/g, '$1')
+// }
 // -------------------------------------------------------------------------------------------------
 function warning_str(str) {
   return `\\<WARNING: ${str}!>`;
@@ -10143,7 +10145,12 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
-  return ret.replace(/\\</g, '<');
+  let str = ret.replace(/\\</g, '<');
+
+  if (!unescape_other_chars_early)
+    str = str.replace(/\\([^<])/g, '$1');
+
+  return str;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.
@@ -11169,8 +11176,9 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // FIND A BETTER PLACE TO PUT THIS...
 // =================================================================================================
-const early_unescape_chars = ``;
-const late_unescape_chars = ``;
+const early_unescape_chars = ``; // not yet used
+const late_unescape_chars = ``;  // not yet used
+const unescape_other_chars_early = false;
 // =================================================================================================
 
 
@@ -11239,12 +11247,18 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
   // lm.log(`RE: ${plain_text_re_src}`);
 
   return xform(r(plain_text_re_src),
-               str => str
-               .replace(/^<+/,    '<')
-               .replace(/<+$/,    '<')
-               .replace(/\\n/g,   '\n')
-               .replace(/\\ /g,   ' ')
-               .replace(/\\([^<])/g, '$1')); // unescape any other backslash escaped chars except \<
+               str => {
+                 str =  str
+                   .replace(/^<+/,    '<')
+                   .replace(/<+$/,    '<')
+                   .replace(/\\n/g,   '\n')
+                   .replace(/\\ /g,   ' ');
+
+                 if (unescape_other_chars_early)
+                   str = str.replace(/\\([^<])/g, '$1');
+
+                 return str;
+               }); // unescape any other backslash escaped chars except \<
 };
 // -------------------------------------------------------------------------------------------------
 const plain_text_no_semis  = make_plain_text_rule(';')
