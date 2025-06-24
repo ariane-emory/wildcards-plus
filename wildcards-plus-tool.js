@@ -10157,12 +10157,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     ret = walked;
   });
 
-  if (log_level__expand_and_walk)
-    lm.log(`expanding wildcards in ` +
-           `${thing_str_repr(thing)} ` + 
-           `=> ` +
-           `${thing_str_repr(ret, { always_include_type_str: true, length: 200 })}`);
-
+  
   if (ret === '""' || ret === "''")
     throw new Error(`sus expansion ${inspect_fun(ret)} of ${inspect_fun(thing)}`);
 
@@ -10170,8 +10165,19 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
   if (unescape_other_chars_early)
     throw new Error("trap");
+  else
+    str = maybe_late_unescape(str);
+
+  if (log_level__expand_and_walk)
+    lm.log(`expanding ` +
+           (unescape_other_chars_early ? '' : ' (and unescaping) ') +
+           `wildcards in ` +
+           `${thing_str_repr(thing)} ` + 
+           `=> ` +
+           `${thing_str_repr(str, { always_include_type_str: true, length: 200 })}`);
+
   
-  return maybe_late_unescape(str);
+  return str;
 }
 // =================================================================================================
 // END OF THE MAIN AST-WALKING FUNCTION.

@@ -1,6 +1,7 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-%sampler = { Euler \A AYS }
+// %sampler = { Euler \A AYS }
+%sampler = { Euler \A AYS | Euler \A AYS }
 
 // { Euler \A AYS }
