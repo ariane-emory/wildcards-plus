@@ -9422,17 +9422,24 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
     if (!unescape_other_chars_early) {
       const new_str = str.replace(/\\([^<])/g, '$1');
       
-      lm.log(`LATE UNESCAPE ${inspect_fun(str)} => ${inspect_fun(new_str)}`);
-
+      // lm.indent(() => lm.log(`LATE UNESCAPE ${inspect_fun(str)} => ${inspect_fun(new_str)}`));
+      
       str = new_str;
     }
     return str;
   }
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
-    if (log_level__expand_and_walk >= 1)
-      lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
-    return maybe_late_unescape(thing);
+    const str = maybe_late_unescape(thing);
+
+    if (log_level__expand_and_walk >= 1) {
+      if (!unescape_other_chars_early)
+        lm.log(`just unescaping instead of expanding ${thing_str_repr(thing)} => ${thing_str_repr(str)}`);
+      else 
+        lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(str)}`);
+    }
+      
+    return str;
   }
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
