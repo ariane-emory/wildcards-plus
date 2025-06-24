@@ -9808,7 +9808,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
                         inspect_fun(jsconc_parsed_expanded_value));
             }
           }
-          else {
+          else if (typeof thing === 'string') {
             lm.indent(() => value = expand_wildcards(thing.value, context, 
                                                      { correct_articles: false }));
           }
