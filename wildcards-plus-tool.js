@@ -11279,7 +11279,7 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
                    .replace(/^<+/,    '<')         // collapse repeated <s at the beginning of a string down to just one 
                    .replace(/<+$/,    '<')         // collapse repeated <s at the endof a string down to just one 
                    .replace(/(?<!\\)\\n/g,   '\n') // turn escaped newlines into actual newlines.
-                   .replace(/(?<!\\)\\ /g,   ' '); // replace escaped spaces into actual newlines.
+                   .replace(/(?<!\\)\\ /g,   ' '); // turn escaped spaces into actual newlines.
 
                  if (unescape_other_chars_early)
                    str = str.replace(/\\([^<])/g, '$1');
