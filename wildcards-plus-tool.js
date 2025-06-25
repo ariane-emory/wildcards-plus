@@ -63,7 +63,7 @@ function parse_file(filename) {
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
   const old_log_level__smart_join      = log_level__smart_join;
 
-  // log_level__smart_join = 2;
+  log_level__smart_join = 2;
   
   //log_match_enabled          = true;
   // log_flags_enabled          = true;
@@ -77,6 +77,7 @@ function parse_file(filename) {
   else {
     try {
       result = Prompt.match(prompt_input, 0, cache);
+  
       if (rule_match_counter_enabled)
         lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
     }
@@ -312,7 +313,7 @@ let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
 let prelude_disabled                              = false;
 let print_ast_then_die                            = false;
-let print_ast_before_includes_enabled             = false;
+let print_ast_before_includes_enabled             = true;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -9420,7 +9421,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
   // -----------------------------------------------------------------------------------------------
   function maybe_late_unescape(str) {
     if (!unescape_other_chars_early) {
-      const new_str = str.replace(/\\([^<])/g, '$1');
+      const new_str = str.replace(/\\([^<\ \n])/g, '$1');
       
       // lm.indent(() => lm.log(`LATE UNESCAPE ${inspect_fun(str)} => ${inspect_fun(new_str)}`));
       
