@@ -10170,7 +10170,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
 
   if (log_level__expand_and_walk)
     lm.log(`expanding ` +
-           (unescape_other_chars_early ? '' : ' (and unescaping) ') +
+           (unescape_other_chars_early ? '' : '(and unescaping) ') +
            `wildcards in ` +
            `${thing_str_repr(thing)} ` + 
            `=> ` +

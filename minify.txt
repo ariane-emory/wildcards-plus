@@ -2,6 +2,6 @@
 // =======================================================================================
 
 // %sampler = { Euler \A AYS }
-%sampler = { Euler \A AYS | Euler \A AYS }
+%sampler = { Euler A AYS | Euler \A AYS }
 
 // { Euler \A AYS }
