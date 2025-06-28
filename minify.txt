@@ -1,6 +1,4 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
 
-@neg_random_weight          = {\-1.< @digit }
-
-foo @neg_random_weight
+(foo: @neg_random_weight)

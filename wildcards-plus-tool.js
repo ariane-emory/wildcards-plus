@@ -4660,6 +4660,14 @@ const prelude_text = `
 @gt1_random_weight      = {1.< @digit      }
 @high_random_weight     = {1.< @high_digit }
 
+@neg_low_random_weight      = {\\-0.< @low_digit  }
+@neg_lt1_random_weight      = {\\-0.< @digit      } 
+@neg_lowish_random_weight   = {\\-0.< @high_digit }
+@neg_random_weight          = {\\-1.< @digit      }
+@neg_highish_random_weight  = {\\-1.< @low_digit  }
+@neg_gt1_random_weight      = {\\-1.< @digit      }
+@neg_high_random_weight     = {\\-1.< @high_digit }
+
 @pony_score_9           = { score_9,                                                             }
 @pony_score_8_up        = { score_9, score_8_up,                                                 }
 @pony_score_7_up        = { score_9, score_8_up, score_7_up,                                     }
@@ -12087,7 +12095,7 @@ async function main() {
     const old_log_level__smart_join      = log_level__smart_join
     
     // log_level__expand_and_walk = 2;
-    log_level__smart_join      = 2;
+    // log_level__smart_join      = 2;
     
     const prompt  = expand_wildcards(AST, context);
     context.munge_configuration(); // for good measure...
