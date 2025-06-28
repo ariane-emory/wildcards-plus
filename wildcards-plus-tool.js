@@ -63,7 +63,7 @@ function parse_file(filename) {
   const old_log_level__expand_and_walk = log_level__expand_and_walk;
   const old_log_level__smart_join      = log_level__smart_join;
 
-  log_level__smart_join = 2;
+  // log_level__smart_join = 2;
   
   //log_match_enabled          = true;
   // log_flags_enabled          = true;
@@ -312,8 +312,8 @@ let log_level__expand_and_walk                    = 0;
 let log_level__process_named_wildcard_definitions = 0;
 let log_level__smart_join                         = 0;
 let prelude_disabled                              = false;
-let print_ast_then_die                            = true;
-let print_ast_before_includes_enabled             = true;
+let print_ast_then_die                            = false;
+let print_ast_before_includes_enabled             = false;
 let print_ast_after_includes_enabled              = false;
 let print_ast_json_enabled                        = false;
 let print_packrat_cache_counts_enabled            = false;
@@ -3741,14 +3741,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
     if (!right_word())
       continue;
 
-    if (prev_char                                                   &&
-        !chomped                                                    &&
-        !'\n '                               .includes(prev_char()) && // might remove this one..
-        !'\n '                               .includes(next_char()) && // and this one.
-        !right_collapsible_punctuation_chars .includes(next_char()) && 
-        !linking_chars                       .includes(prev_char()) &&
-        !linking_chars                       .includes(next_char()) &&
-        !'(['                                .includes(prev_char()))
+    if (prev_char                                                                               &&
+        !chomped                                                                                &&
+        !'\n '                                                          .includes(prev_char())  && // might remove this one..
+        !'\n '                                                          .includes(next_char())  && // and this one.
+        !(!next_char_is_escaped() && right_collapsible_punctuation_chars.includes(next_char())) && 
+        !(!prev_char_is_escaped() && linking_chars.includes(prev_char()))                       &&
+        !(!next_char_is_escaped() && linking_chars.includes(next_char()))                       &&
+        !'(['                                     .includes(prev_char()))
       add_a_space();
 
     if (log_level__smart_join >= 2)
