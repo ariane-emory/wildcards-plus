@@ -163,7 +163,7 @@ function post_prompt({ prompt = '', configuration = {}, hostname = '127.0.0.1', 
         lm.log(`POSTing...`);
         socket.on('data', chunk => {
           if (! printed)
-            lm.log(`Response: ${abbreviate(chunk.toString(), 1000)}`);
+            lm.log(`Response: ${abbreviate(chunk.toString(), true, 1000)}`);
           printed = true;
         });
       }
@@ -556,7 +556,7 @@ class Rule {
                       `this likely a programmer error`);
     
     if (! abbreviate_str_repr_enabled)
-      return;
+      return this;
     
     if (str)
       this.__impl_toString = () => str;
@@ -743,7 +743,7 @@ class Rule {
           .replace('() => ', '');
     
     if (this.abbreviated || this.direct_children().length == 0)
-      return abbreviate(__call_impl_toString(), 64);
+      return abbreviate(__call_impl_toString(), true, 64);
     
     if (visited.has(this)) 
       return `#${visited.get(this)}#`;
@@ -1313,13 +1313,13 @@ class Label extends Rule {
     return [ this.rule ];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     this.rule = this.__vivify(this.rule);
     lm.indent(() => this.rule.__finalize(visited));
   }
   // -----------------------------------------------------------------------------------------------
   __match(input, index, cache) {
-    const rule_match_result = this.rule.match(input, index, indent, cache);
+    const rule_match_result = this.rule.match(input, index, cache);
 
     if (! rule_match_result)
       return null;
@@ -1803,7 +1803,7 @@ class Fail extends Rule {
       : new FatalParseError(`hit automatic failure Rule`, input, index);
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     // do nothing
   }
   // -----------------------------------------------------------------------------------------------
@@ -1831,7 +1831,7 @@ class Literal extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
@@ -1886,7 +1886,7 @@ class Regex extends Rule {
     return [];
   }
   // -----------------------------------------------------------------------------------------------
-  __impl_finalize(indent, visited) {
+  __impl_finalize(visited) {
     // do nothing.
   }
   // -----------------------------------------------------------------------------------------------
