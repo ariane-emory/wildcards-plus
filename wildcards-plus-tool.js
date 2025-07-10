@@ -533,7 +533,7 @@ class FatalParseError extends Error {
   }
   // -----------------------------------------------------------------------------------------------
   get message() {
-    return __format_FatalParseError_message(this.message, this.input, this.indent);
+    return __format_FatalParseError_message(this.message, this.input, this.index);
   }
 }
 // -------------------------------------------------------------------------------------------------
