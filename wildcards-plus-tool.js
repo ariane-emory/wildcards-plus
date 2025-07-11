@@ -1800,11 +1800,6 @@ function index_is_at_end_of_input(index, input) {
     return index === input.length;
 }
 // -------------------------------------------------------------------------------------------------
-function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
-  lm.log(char.repeat(width));
-}
-LOG_LINE.line_width = 100;
-// -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
     if (typeof thing === 'string')
         return new Literal(thing);
@@ -3188,18 +3183,18 @@ function get_indices_from_arr(indices, arr, { invert = false } = {}) {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function indent_lines(indent, str, indent_str = "| ") {
-  if (typeof str !== 'string')
-    throw new Error(`not a string: ${inspect.fun(str)}`);
+// function indent_lines(indent, str, indent_str = "| ") {
+//   if (typeof str !== 'string')
+//     throw new Error(`not a string: ${inspect.fun(str)}`);
   
-  const indent_string = indent_str.repeat(indent);
-  const indented_str  = str
-        .split("\n")
-        .map(line => `${indent_string}${line}`)
-        .join("\n");
+//   const indent_string = indent_str.repeat(indent);
+//   const indented_str  = str
+//         .split("\n")
+//         .map(line => `${indent_string}${line}`)
+//         .join("\n");
 
-  return indented_str;
-}
+//   return indented_str;
+// }
 // -------------------------------------------------------------------------------------------------
 function intercalate(separator, array, { final_separator = null } = {}) {
   if (log_intercalate_enabled)
@@ -3281,6 +3276,11 @@ function levenshtein(a, b) {
 
   return dp[m][n];
 }
+// -------------------------------------------------------------------------------------------------
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
+  lm.log(char.repeat(width));
+}
+LOG_LINE.line_width = 100;
 // -------------------------------------------------------------------------------------------------
 function measure_time(fun) {
   const now = dt_hosted
