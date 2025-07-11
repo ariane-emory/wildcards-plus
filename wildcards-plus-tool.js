@@ -1938,28 +1938,28 @@ const make_wst_quantified_combinator = (base_combinator, lws_rule) => ((rule, se
 const make_wst_seq_combinator = (base_combinator, lws_rule) => (...rules) => base_combinator(lws_rule(rules[0]), ...rules.slice(1).map(x => lws_rule(x)));
 // // -------------------------------------------------------------------------------------------------
 const wst_choice = (...options) => (0, exports.lws)((0, choice)(...options));
-const wst_star = (0, exports.make_wst_quantified_combinator)(star, exports.lws);
-const wst_plus = (0, exports.make_wst_quantified_combinator)(plus, exports.lws);
-const wst_seq = (0, exports.make_wst_seq_combinator)(seq, exports.lws);
-const wst_enc = (0, exports.make_wst_seq_combinator)(enc, exports.lws);
-const wst_cutting_seq = (0, exports.make_wst_seq_combinator)(cutting_seq, exports.lws);
-const wst_cutting_enc = (0, exports.make_wst_seq_combinator)(cutting_enc, exports.lws);
-const wst_par_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lpar, rule, exports.rpar);
-const wst_brc_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lbrc, rule, exports.rbrc);
-const wst_sqr_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lsqr, rule, exports.rsqr);
-const wst_tri_enc = (rule) => (0, exports.wst_cutting_enc)(exports.ltri, rule, exports.rtri);
+const wst_star = make_wst_quantified_combinator(star, lws);
+const wst_plus = make_wst_quantified_combinator(plus, lws);
+const wst_seq = make_wst_seq_combinator(seq, lws);
+const wst_enc = make_wst_seq_combinator(enc, lws);
+const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
+const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
+const wst_par_enc = (rule) => wst_cutting_enc(lpar, rule, rpar);
+const wst_brc_enc = (rule) => wst_cutting_enc(lbrc, rule, rbrc);
+const wst_sqr_enc = (rule) => wst_cutting_enc(lsqr, rule, rsqr);
+const wst_tri_enc = (rule) => wst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
-const hwst_choice = (...options) => (0, exports.lws)((0, choice)(...options));
-const hwst_star = (0, exports.make_wst_quantified_combinator)(star, exports.lhws);
-const hwst_plus = (0, exports.make_wst_quantified_combinator)(plus, exports.lhws);
-const hwst_seq = (0, exports.make_wst_seq_combinator)(seq, exports.lhws);
-const hwst_enc = (0, exports.make_wst_seq_combinator)(enc, exports.lhws);
-const hwst_cutting_seq = (0, exports.make_wst_seq_combinator)(cutting_seq, exports.lhws);
-const hwst_cutting_enc = (0, exports.make_wst_seq_combinator)(cutting_enc, exports.lhws);
-const hwst_par_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lpar, rule, exports.rpar);
-const hwst_brc_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lbrc, rule, exports.rbrc);
-const hwst_sqr_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lsqr, rule, exports.rsqr);
-const hwst_tri_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.ltri, rule, exports.rtri);
+const hwst_choice = (...options) => lws(choice(...options));
+const hwst_star = make_wst_quantified_combinator(star, lhws);
+const hwst_plus = make_wst_quantified_combinator(plus, lhws);
+const hwst_seq = make_wst_seq_combinator(seq, lhws);
+const hwst_enc = make_wst_seq_combinator(enc, lhws);
+const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
+const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
+const hwst_par_enc = (rule) => hwst_cutting_enc(lpar, rule, rpar);
+const hwst_brc_enc = (rule) => hwst_cutting_enc(lbrc, rule, rbrc);
+const hwst_sqr_enc = (rule) => hwst_cutting_enc(lsqr, rule, rsqr);
+const hwst_tri_enc = (rule) => hwst_cutting_enc(ltri, rule, rtri);
 // -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
@@ -1994,9 +1994,9 @@ const plus_whites_sep = (rule) => (0, plus)(rule, exports.whites_plus);
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
 const stringlike = (quote_str) => (0, r_raw) `${quote_str}(?:[^${quote_str}\\]|\\.)*${quote_str}`;
-const dq_string = (0, exports.stringlike)('"');
+const dq_string = stringlike('"');
 const raw_dq_string = r(/r"[^"]*"/);
-const sq_string = (0, exports.stringlike)("'");
+const sq_string = stringlike("'");
 const template_string = r(/`(?:[^\\`]|\\.)*`/);
 const triple_dq_string = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
 dq_string.abbreviate_str_repr('dq_string');
@@ -2129,10 +2129,10 @@ const c_ident = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
 const c_octal = r(/0o[0-7]+/);
 const c_sfloat = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
 const c_sint = r(/[+-]?\d+/);
-const c_snumber = (0, choice)(exports.c_hex, exports.c_octal, exports.c_sfloat, exports.c_sint);
+const c_snumber =choice(c_hex, c_octal, c_sfloat, c_sint);
 const c_ufloat = r(/\d*\.\d+(e[+-]?\d+)?/i);
 const c_uint = r(/\d+/);
-const c_unumber = (0, choice)(exports.c_hex, exports.c_octal, exports.c_ufloat, exports.c_uint);
+const c_unumber = choice(c_hex, c_octal, c_ufloat, c_uint);
 c_bin.abbreviate_str_repr('c_bin');
 c_char.abbreviate_str_repr('c_char');
 c_hex.abbreviate_str_repr('c_hex');
@@ -2176,7 +2176,7 @@ const dot_chained = rule => (0, plus)(rule, exports.dot);
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
 const c_block_comment = r(/\/\*[^]*?\*\//);
-const c_comment = (0, choice)(() => exports.c_line_comment, () => exports.c_block_comment);
+const c_comment = choice(() => c_line_comment, () => c_block_comment);
 const c_line_comment = r(/\/\/[^\n]*/);
 const py_line_comment = r(/#[^\n]*/);
 c_block_comment.abbreviate_str_repr('c_block_comment');
@@ -2192,11 +2192,11 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-// export const c_funcall = (fun_rule: rule_param, arg_rule: rule_param, { open = lpar, close = rpar, sep = comma } = {}) =>
-//   seq(fun_rule,
-//       wst_cutting_enc(open,
-//                       wst_star(arg_rule, sep),
-//                       close));
+const c_funcall = (fun_rule, arg_rule, { open = lpar, close = rpar, sep = comma } = {}) =>
+  seq(fun_rule,
+      wst_cutting_enc(open,
+                      wst_star(arg_rule, sep),
+                      close));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
@@ -2205,14 +2205,14 @@ const push = (value, rule) => (0, xform)(rule, (arr) => [value, ...arr]);
 const enclosing = (left, enclosed, right) => (0, xform)((arr) => [arr[0], arr[2]], (0, seq)(left, enclosed, right));
 const head = (...rules) => (0, first)((0, seq)(...rules));
 const cadr = (...rules) => (0, second)((0, seq)(...rules));
-const wst_head = (...rules) => (0, first)((0, exports.wst_seq)(...rules));
-const wst_cadr = (...rules) => (0, second)((0, exports.wst_seq)(...rules));
-const wst_cutting_head = (...rules) => (0, first)((0, exports.wst_cutting_seq)(...rules));
-const wst_cutting_cadr = (...rules) => (0, second)((0, exports.wst_cutting_seq)(...rules));
-const cutting_head = (...rules) => (0, first)((0, cutting_seq)(rules[0], rules[1], ...rules.slice(2)));
-const cutting_cadr = (...rules) => (0, second)((0, cutting_seq)(rules[0], rules[1], ...rules.slice(2)));
-const flat1 = (rule) => (0, exports.flat)(rule, 1);
-const flat = (rule, depth = Infinity) => (0, xform)(rule, (arr) => arr.flat(depth));
+const wst_head = (...rules) => first(wst_seq(...rules));
+const wst_cadr = (...rules) => second(wst_seq(...rules));
+const wst_cutting_head = (...rules) => first(wst_cutting_seq(...rules));
+const wst_cutting_cadr = (...rules) => second(wst_cutting_seq(...rules));
+const cutting_head = (...rules) => first(cutting_seq(rules[0], rules[1], ...rules.slice(2)));
+const cutting_cadr = (...rules) => second(cutting_seq(rules[0], rules[1], ...rules.slice(2)));
+const flat1 = (rule) => flat(rule, 1);
+const flat = (rule, depth = Infinity) => xform(rule, (arr) => arr.flat(depth));
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
