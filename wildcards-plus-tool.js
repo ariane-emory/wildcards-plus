@@ -514,7 +514,7 @@ class FatalParseError extends Error {
         // if (!(typeof message_body === 'string' &&
         //       typeof input === 'string' &&
         //       typeof index === 'number'))
-        //   throw new Error(`bad arges: ${inspect(arguments)}`);
+        //   throw new Error(`bad arges: ${inspect_fun(arguments)}`);
         super(__format_FatalParseError_message(message_body, input, index));
         this.name = 'FatalParseError';
         this.message_body = message_body;
@@ -541,7 +541,7 @@ class Rule {
     // -----------------------------------------------------------------------------------------------
     abbreviate_str_repr(str) {
         if (this.abbreviated)
-            throw new Error(`${inspect(this)} is already abbreviated, ` +
+            throw new Error(`${inspect_fun(this)} is already abbreviated, ` +
                 `this likely a programmer error`);
         if (!abbreviate_str_repr_enabled)
             return this;
@@ -556,13 +556,13 @@ class Rule {
         const ret = this.__direct_children();
         // if (ret === null)
         //   throw new Error(`${this.constructor.name}.__direct children() must return an Array, ` +
-        //                   `got ${inspect(ret)}` +
+        //                   `got ${inspect_fun(ret)}` +
         //                   `this most likely indicated a programmer error`);
         // if (ret.includes(undefined))
         //   throw new Error(`direct_children ` +
-        //                   `${inspect(ret)} ` +
+        //                   `${inspect_fun(ret)} ` +
         //                   `included undefined for ` +
-        //                   `${inspect(this)}`);
+        //                   `${inspect_fun(this)}`);
         return ret;
     }
     // -----------------------------------------------------------------------------------------------
@@ -578,7 +578,7 @@ class Rule {
         ref_counts.set(this, 1);
         if (!this.abbreviated)
             for (const direct_child of this.direct_children()) {
-                // lm.log(`direct_child = ${inspect(direct_child)}`);
+                // lm.log(`direct_child = ${inspect_fun(direct_child)}`);
                 this.__vivify(direct_child).collect_ref_counts(ref_counts);
             }
         return ref_counts;
@@ -592,9 +592,9 @@ class Rule {
     // -----------------------------------------------------------------------------------------------
     __finalize(visited) {
         // if (unexpected !== undefined || ! (visited instanceof Set))
-        //   throw new Error(`bad args: (${typeof visited} ${inspect(visited)}, `+
+        //   throw new Error(`bad args: (${typeof visited} ${inspect_fun(visited)}, `+
         //                   `${unexpected}) ` +
-        //                   `args: ${inspect(arguments)}}`);
+        //                   `args: ${inspect_fun(arguments)}}`);
         if (visited.has(this)) {
             if (log_finalize_enabled)
                 lm.log(`skipping ${this}.`);
@@ -614,9 +614,9 @@ class Rule {
         if (rule_match_counter_enabled)
             Rule.match_counter += 1;
         if (!(cache instanceof Map))
-            throw new Error(`bad match args: ${inspect(arguments)}`);
+            throw new Error(`bad match args: ${inspect_fun(arguments)}`);
         if (typeof input !== 'string')
-            throw new Error(`not a string: ${typeof input} ${abbreviate(inspect(input))}!`);
+            throw new Error(`not a string: ${typeof input} ${abbreviate(inspect_fun(input))}!`);
         if (log_match_enabled) {
             if (index_is_at_end_of_input(index, input))
                 lm.indent(() => lm.log(`Matching ${this.constructor.name} ${this.toString()}, ` +
@@ -645,11 +645,11 @@ class Rule {
         }
         const ret = this.__match(input, index, cache);
         if (ret && ret?.value === undefined)
-            throw new Error(`got undefined from ${inspect(this)}: ${inspect(ret)}, ` +
+            throw new Error(`got undefined from ${inspect_fun(this)}: ${inspect_fun(ret)}, ` +
                 `this is likely a programmer error`);
         if (log_match_enabled)
             lm.log(`<= ${this.constructor.name} ${abbreviate(this.toString())} ` +
-                `returned: ${abbreviate(compress(inspect(ret)))}`);
+                `returned: ${abbreviate(compress(inspect_fun(ret)))}`);
         return ret;
     }
     // -----------------------------------------------------------------------------------------------
@@ -666,7 +666,7 @@ class Rule {
         //   lm.log(`REF_COUNTS:`);
         //   lm.log('{');
         //   for (const [key, value] of ref_counts)
-        //     lm.log(`  ${inspect(key, true)} ` +
+        //     lm.log(`  ${inspect_fun(key, true)} ` +
         //                 `=> ${value},`);
         //   lm.log('}');
         // }
@@ -955,7 +955,7 @@ class Discard extends Rule {
         if (!match_result)
             return null;
         const mr = new MatchResult(DISCARD, input, match_result.index);
-        // lm.log(`MR: ${inspect(mr)}`);
+        // lm.log(`MR: ${inspect_fun(mr)}`);
         return mr;
     }
     // -----------------------------------------------------------------------------------------------
@@ -999,8 +999,8 @@ class Element extends Rule {
             : rule_match_result.value[this.index];
         if (log_match_enabled)
             lm.log(`get elem ${this.index} from ` +
-                `${compress(inspect(rule_match_result.value))} = ` +
-                `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect(ret)))}`);
+                `${compress(inspect_fun(rule_match_result.value))} = ` +
+                `${typeof ret === 'symbol' ? ret.toString() : abbreviate(compress(inspect_fun(ret)))}`);
         rule_match_result.value = ret;
         return rule_match_result;
     }
@@ -1267,7 +1267,7 @@ class Optional extends Rule {
         if (match_result === null) {
             const mr = new MatchResult(this.default_value, input, index);
             if (log_match_enabled)
-                lm.log(`returning default ${inspect(mr)}`);
+                lm.log(`returning default ${inspect_fun(mr)}`);
             return mr;
         }
         match_result.value = match_result.value;
@@ -1327,7 +1327,7 @@ class Sequence extends Rule {
         const start_rule_match_result = lm.indent2(() => this.elements[0].match(input, index, cache));
         let last_match_result = start_rule_match_result;
         // if (log_match_enabled && last_match_result !== null)
-        //   log(indent + 1, `first last_match_result = ${abbreviate(inspect(last_match_result))}`);
+        //   log(indent + 1, `first last_match_result = ${abbreviate(inspect_fun(last_match_result))}`);
         if (last_match_result === null) {
             if (log_match_enabled)
                 lm.indent(() => lm.log(`did not match sequence element #1.`));
@@ -1337,21 +1337,21 @@ class Sequence extends Rule {
         index = last_match_result.index;
         if (log_match_enabled)
             lm.indent(() => lm.log(`matched first sequence element #1: ` +
-                `${compress(inspect(last_match_result))}, ` +
+                `${compress(inspect_fun(last_match_result))}, ` +
                 `now at char #${index}: ` +
                 `'${abbreviate(input.substring(index))}'`));
         // if (log_match_enabled)
-        //   log(indent + 1, `last_match_result = ${inspect(last_match_result)}`);
+        //   log(indent + 1, `last_match_result = ${inspect_fun(last_match_result)}`);
         if (last_match_result.value !== DISCARD) {
             if (log_match_enabled)
                 lm.indent(() => lm.log(`seq pushing first item ` +
-                    `${abbreviate(compress(inspect(last_match_result.value)))}`));
+                    `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
             values.push(last_match_result.value);
             // if (values.includes(null))
             //   throw new Error("STOP @ PUSH 1");
         }
         else if (log_match_enabled)
-            lm.indent(() => lm.log(`discarding ${inspect(last_match_result)}!`));
+            lm.indent(() => lm.log(`discarding ${inspect_fun(last_match_result)}!`));
         for (let ix = 1; ix < this.elements.length; ix++) {
             if (log_match_enabled)
                 lm.indent(() => lm.log(`matching sequence element #${ix + 1} out of ` +
@@ -1368,13 +1368,13 @@ class Sequence extends Rule {
             }
             if (log_match_enabled)
                 lm.indent(() => lm.log(`matched sequence element #${ix + 1}: ` +
-                    `${compress(inspect(last_match_result))}, ` +
+                    `${compress(inspect_fun(last_match_result))}, ` +
                     `now at char #${last_match_result.index}: ` +
                     `'${abbreviate(input.substring(last_match_result.index))}'`));
             if (last_match_result.value !== DISCARD) {
                 if (log_match_enabled)
                     lm.indent(() => lm.log(`seq pushing ` +
-                        `${abbreviate(compress(inspect(last_match_result.value)))}`));
+                        `${abbreviate(compress(inspect_fun(last_match_result.value)))}`));
                 values.push(last_match_result.value);
                 // if (values.includes(null))
                 //   throw new Error(`STOP @ PUSH 2 AFTER ${this.elements[ix]}`);
@@ -1384,7 +1384,7 @@ class Sequence extends Rule {
         // if (values.includes(null))
         //   throw new Error("STOP @ RET");
         const mr = new MatchResult(values, input, last_match_result.index);
-        // lm.log(`SEQ MR = ${inspect(mr)}`);
+        // lm.log(`SEQ MR = ${inspect_fun(mr)}`);
         return mr;
     }
     // -----------------------------------------------------------------------------------------------
@@ -1687,7 +1687,7 @@ class Regex extends Rule {
         if (re_match.groups) {
             const tmp = re_match;
             delete tmp.input;
-            lm.log(`re_match: ${inspect(tmp)}`);
+            lm.log(`re_match: ${inspect_fun(tmp)}`);
         }
         return new MatchResult(re_match[re_match.length - 1], input, index + re_match[0].length);
     }
@@ -1764,7 +1764,7 @@ class MatchResult {
 // -------------------------------------------------------------------------------------------------
 function abbreviate(str, normalize_newlines = true, length = 100) {
     if (typeof str !== 'string')
-        throw new Error(`compress: not a string, got ${typeof str}: ${inspect(str)}`);
+        throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
     // Normalize all newlines first
     if (normalize_newlines)
         str = str.replace(/\r?\n/g, '\\n');
@@ -1792,7 +1792,7 @@ function abbreviate(str, normalize_newlines = true, length = 100) {
 // -------------------------------------------------------------------------------------------------
 function compress(str) {
     if (typeof str !== 'string')
-        throw new Error(`compress: not a string, got ${typeof str}: ${inspect(str)}`);
+        throw new Error(`compress: not a string, got ${typeof str}: ${inspect_fun(str)}`);
     return str.replace(/\s+/g, ' ');
 }
 // -------------------------------------------------------------------------------------------------
@@ -1842,262 +1842,59 @@ function RegExp_raw(strings, ...values) {
 // =================================================================================================
 // Whitespace combinators, these should go somewhere else?
 // =================================================================================================
-const prettify_whitespace_combinators = true;
-// =================================================================================================
-const lws0                = rule => {
-  rule = second(seq(whites_star, rule));
-  
-  if (prettify_whitespace_combinators) {
-    rule.__impl_toString = function(visited, next_id, ref_counts) {
-      const rule_str = this.rule.elements[1].__toString(visited, next_id, ref_counts);
-      return `LWS0(${rule_str})`;
-    }
-  }
-
-  return rule;
-};
-const tws0                = rule => { 
-  rule = first(seq(rule, whites_star));
-
-  if (prettify_whitespace_combinators) {
-    rule.__impl_toString = function(visited, next_id, ref_counts) {
-      const rule_str = this.rule.elements[0].__toString(visited, next_id, ref_counts);
-      return `TWS0(${rule_str})`;
-    }
-  }
-  
-  return rule;
-};
-// =================================================================================================
-
-
-// =================================================================================================
-function make_whitespace_Rule_class_and_factory_fun(class_name_str, builder) {
-  let klass = {
-    [class_name_str]: class extends Rule {
-      // -------------------------------------------------------------------------------------------
-      constructor(rule) {
-        super();
-        this.base_rule = make_rule_func(rule);
-        this.rule = builder(this.base_rule);
-      }
-      // -------------------------------------------------------------------------------------------
-      __direct_children() {
-        return [this.rule];
-      }
-      // -------------------------------------------------------------------------------------------
-      __impl_finalize(indent, visited) {
-        this.rule = this.__vivify(this.rule);
-        lm.indent(() => this.rule.__finalize(visited))
-        this.base_rule = this.__vivify(this.base_rule);
-        lm.indent(() => this.base_rule.__finalize(visited));
-      }
-      // -------------------------------------------------------------------------------------------
-      __match(input, index, cache) {
-        return lm.indent(() => this.rule.match(input, index, cache));
-      }
-      // -------------------------------------------------------------------------------------------
-      __impl_toString(visited, next_id, ref_counts) {
-        if (typeof this.base_rule.__toString !== 'function')
-          throw new Error(inspect_fun(this));
-        
-        return prettify_whitespace_combinators
-          ? `${class_name_str}(${this.base_rule.__toString(visited, next_id, ref_counts)})`
-          : this.base_rule.toString();
-      }
-    }
-  }[class_name_str];
-
-  let factory_fun = (rule, noisy = false) => {
-    if (noisy)
-      throw new Error('noisy bomb');
-    
-    rule = make_rule_func(rule);
-
-    let stringified_rule = null;
-
-    try {
-      stringified_rule = 
-        dt_hosted && typeof rule === 'function'
-        ? 'function'
-        : abbreviate(compress(inspect_fun(rule)));
-    }
-    catch (err) {
-      if (!dt_hosted)
-        throw err;
-      
-      stringified_rule = '<unprintable>';
-    }
-
-    if (!rule) {
-      if (noisy)
-        lm.log(`return original null rule ${stringified_rule}`);
-      return rule;
-    }
-
-    if (typeof rule === 'function') {
-      if (noisy)
-        lm.log(`return klassed function ${stringified_rule}`);
-      return new klass(rule);
-    }
-    
-    if (rule instanceof klass) {
-      if (noisy)
-        lm.log(`return original klassed rule ${stringified_rule}`);
-      return rule;
-    }
-    
-    if (rule.direct_children().length > 0 && rule.direct_children().every(x => x instanceof klass)) {
-      if (noisy)
-        lm.log(`return original rule ${stringified_rule}`);
-      return rule;
-    }
-
-    if (noisy)
-      lm.log(`return klassed ${stringified_rule}`);
-    
-    return new klass(rule);
-  }
-  
-  return [ klass, factory_fun ];
-}
-// -------------------------------------------------------------------------------------------------
-const [ WithLWS, lws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("LWS1", rule => second(seq(whites_star, rule)));
-const [ WithTWS, tws1 ] =
-      make_whitespace_Rule_class_and_factory_fun("TWS1", rule => first(seq(rule, whites_star)));
-// =================================================================================================
-
-
-// =================================================================================================
-function make_whitespace_decorator0(name, builder, extractor) {
-  return rule => {
-    const built = builder(rule);
-
-    if (prettify_whitespace_combinators)
-      built.__impl_toString = function(visited, next_id, ref_counts) {
-        const rule_str = extractor(this).__toString(visited, next_id, ref_counts);
-        return `${name}(${rule_str})`;
-      };
-
-    return built;
-  }
-}
-// -------------------------------------------------------------------------------------------------
-const lws2 = make_whitespace_decorator0("LWS2",
-                                        rule => second(seq(whites_star, rule)),
-                                        rule => rule.elements[1]  // your original form
-                                       );
-const tws2 = make_whitespace_decorator0("TWS2",
-                                        rule => first(seq(rule, whites_star)),
-                                        rule => rule.elements[0]
-                                       );
-// =================================================================================================
-
-
-// =================================================================================================
-function make_whitespace_decorator1(name, builder) {
-  const tag = Symbol(name);
-  
-  return function (rule) {
-    rule = make_rule_func(rule);
-
-    if (!rule) return rule;
-
-    if (rule[tag]) return rule;
-    
-    if (rule instanceof Rule  &&
-        rule.direct_children().length > 0 &&
-        rule.direct_children().every(x => x[tag]))
-      return rule;
-    
-    const built = builder(rule);
-    built[tag] = true;
-
-    if (prettify_whitespace_combinators)
-      built.__impl_toString = function(visited, next_id, ref_counts) {
-        return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-      };
-
-    return built;
-  };
-}
-// -------------------------------------------------------------------------------------------------
-const lws3 = make_whitespace_decorator1("LWS3", rule => second(seq(whites_star, rule)));
-const tws3 = make_whitespace_decorator1("TWS3", rule => first(seq(rule, whites_star)));
-// =================================================================================================
-
-
-// =================================================================================================
-function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
-  const tag = Symbol(name);
-
-  const decorate = function (rule) {
-    rule = make_rule_func(rule);
-
-    if (!rule)
-      return rule;
-
-    if (rule[tag])
-      return rule;
-
-    // Unwrap if Choice of tagged rules
-    if (rule instanceof Choice &&
-        rule.options.every(option => option[tag])) {
-      const unwrapped_options = rule.options.map(option => option.__original_rule || option);
-      const rebuilt_choice = new Choice(...unwrapped_options);
-      
-      // lm.log(`constructed ${inspect_fun(rebuilt_choice)}`);
-      const decorated = decorate(rebuilt_choice);  // ✅ Use the same closure with stable tag
-      // lm.log(`decorated ${inspect_fun(decorated)}`);
-      return decorated;
-    }
-
-    if (rule instanceof Sequence) {
-      if (elem_index == 1 &&
-          rule.elements[0][tag])
-        return rule;
-      else if (elem_index == 0 &&
-               rule.elements[rule.elements.length - 1][tag])
-        return rule;
-    }
-    
-    if (rule instanceof Rule &&
-        rule.direct_children().length > 0 &&
-        rule.direct_children().every(x => x[tag]))
-      return rule;
-
-    const builder = elem_index == 0 ? first : second;
-    
-    const built = builder(elem_index == 0
-                          ? seq(rule, whitespace_rule)
-                          : seq(whitespace_rule, rule));
-    
-    built[tag] = true;
-    built.__original_rule = rule;
-
-    // if (prettify_whitespace_combinators)
-    //   built.__impl_toString = function(visited, next_id, ref_counts) {
-    //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
-    //   };
-
-    // if (prettify_whitespace_combinators)
-    //   built.__impl_toString = function(visited, next_id, ref_counts) {
-    //     if (typeof this.__toString !== 'function')
-    //       lm.log(`suspiciousa: ${inspect_fun(this)}`);
-    //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
-    //   };
-
-    return built;
-  };
-
-  return decorate;
+function make_whitespace_decorator(name, elem_index, whitespace_rule) {
+    const tag = Symbol.for(name);
+    const decorate = function (rule) {
+        rule = (0, make_rule_func)(rule);
+        if (!rule)
+            return rule;
+        if (rule[tag])
+            return rule;
+        // Unwrap if Choice of tagged rules
+        if (rule instanceof Choice &&
+            rule.options.every(option => option[tag])) {
+            const unwrapped_options = rule.options.map(option => option.__original_rule || option);
+            const rebuilt_choice = new Choice(...unwrapped_options);
+            // lm.log(`constructed ${inspect(rebuilt_choice)}`);
+            const decorated = decorate(rebuilt_choice); // ✅ Use the same closure with stable tag
+            // lm.log(`decorated ${inspect(decorated)}`);
+            return decorated;
+        }
+        if (rule instanceof Sequence) {
+            if (elem_index == 1 &&
+                rule.elements[0][tag])
+                return rule;
+            else if (elem_index == 0 &&
+                rule.elements[rule.elements.length - 1][tag])
+                return rule;
+        }
+        if (rule instanceof Rule &&
+            rule.direct_children().length > 0 &&
+            rule.direct_children().every(x => x[tag]))
+            return rule;
+        const builder = elem_index == 0 ? first : second;
+        const built = builder(elem_index == 0
+            ? (0, seq)(rule, whitespace_rule)
+            : (0, seq)(whitespace_rule, rule));
+        built[tag] = true;
+        built.__original_rule = rule;
+        // if (prettify_whitespace_combinators)
+        //   built.__impl_toString = function(visited, next_id, ref_counts) {
+        //     return `${name}(${rule.__toString(visited, next_id, ref_counts)})`;
+        //   };
+        // if (prettify_whitespace_combinators)
+        //   built.__impl_toString = function(visited, next_id, ref_counts) {
+        //     if (typeof this.__toString !== 'function')
+        //       lm.log(`suspiciousa: ${inspect(this)}`);
+        //     return `${name}(${this.__original_rule.__toString(visited, next_id, ref_counts)})`;
+        //   };
+        return built;
+    };
+    return decorate;
 }
 // =================================================================================================
 // end of whitespace combinators.
 // =================================================================================================
-
-
 // =================================================================================================
 // COMMON-GRAMMAR.JS CONTENT SECTION:
 // =================================================================================================
@@ -2117,59 +1914,58 @@ const ABORT = expect(never_match);
 ABORT.abbreviate_str_repr("ABORT");
 // -------------------------------------------------------------------------------------------------
 // whitespace:
-const whites_star        = r(/\s*/);
-const whites_plus        = r(/\s+/);
-const hwhites_star       = r(/[ \t]*/);
-const hwhites_plus       = r(/[ \t]+/);
-// whites_star.memoize = false;
-// whites_plus.memoize = false;
+const whites_star = r(/\s*/);
+const whites_plus = r(/\s+/);
+const hwhites_star = r(/[ \t]*/);
+const hwhites_plus = r(/[ \t]+/);
 whites_star.abbreviate_str_repr('whites*');
 whites_plus.abbreviate_str_repr('whites+');
 hwhites_star.abbreviate_str_repr('hwhites*');
 hwhites_plus.abbreviate_str_repr('hwhites+');
 // -------------------------------------------------------------------------------------------------
-const lws  = make_whitespace_decorator2("LWS",  1, whites_star);
-const tws  = make_whitespace_decorator2("TWS",  0, whites_star);
-const lhws = make_whitespace_decorator2("LHWS", 1, hwhites_star);
-const thws = make_whitespace_decorator2("THWS", 0, hwhites_star);
+const lws = make_whitespace_decorator("LWS", 1, whites_star);
+const tws = make_whitespace_decorator("TWS", 0, whites_star);
+const lhws = make_whitespace_decorator("LHWS", 1, hwhites_star);
+const thws = make_whitespace_decorator("THWS", 0, hwhites_star);
 // -------------------------------------------------------------------------------------------------
 // whitespace tolerant combinators:
 // -------------------------------------------------------------------------------------------------
-const make_wst_quantified_combinator = (base_combinator, lws_rule) => 
-      ((rule, sep = null) => base_combinator(lws_rule(rule), lws_rule(sep)));
-const make_wst_seq_combinator = (base_combinator, lws_rule) =>
-      //      (...rules) => tws(base_combinator(...rules.map(x => lws_rule(x))));
-      (...rules) => base_combinator(...rules.map(x => lws_rule(x)));
+const make_wst_quantified_combinator = (base_combinator, lws_rule) => ((rule, sep) => {
+    return sep === undefined
+        ? base_combinator(lws_rule(rule))
+        : base_combinator(lws_rule(rule), lws_rule(sep));
+});
+const make_wst_seq_combinator = (base_combinator, lws_rule) => (...rules) => base_combinator(lws_rule(rules[0]), ...rules.slice(1).map(x => lws_rule(x)));
+// // -------------------------------------------------------------------------------------------------
+const wst_choice = (...options) => (0, exports.lws)((0, choice)(...options));
+const wst_star = (0, exports.make_wst_quantified_combinator)(star, exports.lws);
+const wst_plus = (0, exports.make_wst_quantified_combinator)(plus, exports.lws);
+const wst_seq = (0, exports.make_wst_seq_combinator)(seq, exports.lws);
+const wst_enc = (0, exports.make_wst_seq_combinator)(enc, exports.lws);
+const wst_cutting_seq = (0, exports.make_wst_seq_combinator)(cutting_seq, exports.lws);
+const wst_cutting_enc = (0, exports.make_wst_seq_combinator)(cutting_enc, exports.lws);
+const wst_par_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lpar, rule, exports.rpar);
+const wst_brc_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lbrc, rule, exports.rbrc);
+const wst_sqr_enc = (rule) => (0, exports.wst_cutting_enc)(exports.lsqr, rule, exports.rsqr);
+const wst_tri_enc = (rule) => (0, exports.wst_cutting_enc)(exports.ltri, rule, exports.rtri);
 // -------------------------------------------------------------------------------------------------
-const wst_choice      = (...options) => lws(choice(...options));
-const wst_star        = make_wst_quantified_combinator(star, lws);
-const wst_plus        = make_wst_quantified_combinator(plus, lws);
-const wst_seq         = make_wst_seq_combinator(seq, lws);
-const wst_enc         = make_wst_seq_combinator(enc, lws);
-const wst_cutting_seq = make_wst_seq_combinator(cutting_seq, lws);
-const wst_cutting_enc = make_wst_seq_combinator(cutting_enc, lws);
-const wst_par_enc     = rule => wst_cutting_enc(lpar, rule, rpar);
-const wst_brc_enc     = rule => wst_cutting_enc(lbrc, rule, rbrc);
-const wst_sqr_enc     = rule => wst_cutting_enc(lsqr, rule, rsqr);
-const wst_tri_enc     = rule => wst_cutting_enc(ltri, rule, rtri);
-// -------------------------------------------------------------------------------------------------
-const hwst_choice      = (...options) => lws(choice(...options));
-const hwst_star        = make_wst_quantified_combinator(star, lhws);
-const hwst_plus        = make_wst_quantified_combinator(plus, lhws);
-const hwst_seq         = make_wst_seq_combinator(seq, lhws);
-const hwst_enc         = make_wst_seq_combinator(enc, lhws);
-const hwst_cutting_seq = make_wst_seq_combinator(cutting_seq, lhws);
-const hwst_cutting_enc = make_wst_seq_combinator(cutting_enc, lhws);
-const hwst_par_enc     = rule => hwst_cutting_enc(lpar, rule, rpar);
-const hwst_brc_enc     = rule => hwst_cutting_enc(lbrc, rule, rbrc);
-const hwst_sqr_enc     = rule => hwst_cutting_enc(lsqr, rule, rsqr);
-const hwst_tri_enc     = rule => hwst_cutting_enc(ltri, rule, rtri);
+const hwst_choice = (...options) => (0, exports.lws)((0, choice)(...options));
+const hwst_star = (0, exports.make_wst_quantified_combinator)(star, exports.lhws);
+const hwst_plus = (0, exports.make_wst_quantified_combinator)(plus, exports.lhws);
+const hwst_seq = (0, exports.make_wst_seq_combinator)(seq, exports.lhws);
+const hwst_enc = (0, exports.make_wst_seq_combinator)(enc, exports.lhws);
+const hwst_cutting_seq = (0, exports.make_wst_seq_combinator)(cutting_seq, exports.lhws);
+const hwst_cutting_enc = (0, exports.make_wst_seq_combinator)(cutting_enc, exports.lhws);
+const hwst_par_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lpar, rule, exports.rpar);
+const hwst_brc_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lbrc, rule, exports.rbrc);
+const hwst_sqr_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.lsqr, rule, exports.rsqr);
+const hwst_tri_enc = (rule) => (0, exports.hwst_cutting_enc)(exports.ltri, rule, exports.rtri);
 // -------------------------------------------------------------------------------------------------
 // simple 'words':
 // -------------------------------------------------------------------------------------------------
-const alpha_snake             = r(/[a-zA-Z_]+/);
-const lc_alpha_snake          = r(/[a-z_]+/);
-const uc_alpha_snake          = r(/[A-Z_]+/);
+const alpha_snake = r(/[a-zA-Z_]+/);
+const lc_alpha_snake = r(/[a-z_]+/);
+const uc_alpha_snake = r(/[A-Z_]+/);
 alpha_snake.abbreviate_str_repr('alpha_snake');
 lc_alpha_snake.abbreviate_str_repr('lc_alpha_snake');
 uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
@@ -2177,12 +1973,12 @@ uc_alpha_snake.abbreviate_str_repr('uc_alpha_snake');
 // leading/trailing whitespace:
 // -------------------------------------------------------------------------------------------------
 // common numbers:
-const udecimal           = r(/\d+\.\d+/);
-const urational          = r(/\d+\/[1-9]\d*/);
-const uint               = r(/\d+/);
-const sdecimal           = r(/[+-]?\d+\.\d+/);
-const srational          = r(/[+-]?\d+\/[1-9]\d*/);
-const sint               = r(/[+-]?\d+/)
+const udecimal = r(/\d+\.\d+/);
+const urational = r(/\d+\/[1-9]\d*/);
+const uint = r(/\d+/);
+const sdecimal = r(/[+-]?\d+\.\d+/);
+const srational = r(/[+-]?\d+\/[1-9]\d*/);
+const sint = r(/[+-]?\d+/);
 udecimal.abbreviate_str_repr('udecimal');
 urational.abbreviate_str_repr('urational');
 uint.abbreviate_str_repr('uint');
@@ -2191,46 +1987,44 @@ srational.abbreviate_str_repr('srational');
 sint.abbreviate_str_repr('sint');
 // -------------------------------------------------------------------------------------------------
 // common separated quantified rules:
-const star_comma_sep     = rule => star(rule, /\s*\,\s*/);
-const plus_comma_sep     = rule => plus(rule, /\s*\,\s*/);
-const star_whites_sep    = rule => star(rule, whites_plus);
-const plus_whites_sep    = rule => plus(rule, whites_plus);
+const star_comma_sep = (rule) => (0, star)(rule, /\s*\,\s*/);
+const plus_comma_sep = (rule) => (0, plus)(rule, /\s*\,\s*/);
+const star_whites_sep = (rule) => (0, star)(rule, exports.whites_plus);
+const plus_whites_sep = (rule) => (0, plus)(rule, exports.whites_plus);
 // -------------------------------------------------------------------------------------------------
 // string-like terminals:
-const stringlike         = quote => r_raw`${quote}(?:[^${quote}\\]|\\.)*${quote}`;
-const dq_string          = stringlike('"');
-const raw_dq_string      = r(/r"[^"]*"/);
-const sq_string          = stringlike("'");
-const template_string    = r(/`(?:[^\\`]|\\.)*`/);
-const triple_dq_string   = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
+const stringlike = (quote_str) => (0, r_raw) `${quote_str}(?:[^${quote_str}\\]|\\.)*${quote_str}`;
+const dq_string = (0, exports.stringlike)('"');
+const raw_dq_string = r(/r"[^"]*"/);
+const sq_string = (0, exports.stringlike)("'");
+const template_string = r(/`(?:[^\\`]|\\.)*`/);
+const triple_dq_string = r(/"""(?:[^\\]|\\.|\\n)*?"""/);
 dq_string.abbreviate_str_repr('dq_string');
 raw_dq_string.abbreviate_str_repr('raw_dq_string');
 sq_string.abbreviate_str_repr('sq_string');
 template_string.abbreviate_str_repr('template_string');
 triple_dq_string.abbreviate_str_repr('triple_dq_string');
-// -------------------------------------------------------------------------------------------------
+// // -------------------------------------------------------------------------------------------------
 // keyword helper:
-const keyword            = word => {
-  if (word instanceof Regex)
-    return keyword(word.regexp);
-
-  if (word instanceof RegExp)
-    return keyword(word.source);
-  
-  return r(RegExp_raw(`\b${word}\b`));
+const keyword = (word) => {
+    if (word instanceof Regex)
+        return (0, exports.keyword)(word.regexp);
+    if (word instanceof RegExp)
+        return (0, exports.keyword)(word.source);
+    return r((0, RegExp_raw) `\b${word}\b`);
 };
-// -------------------------------------------------------------------------------------------------
-// parenthesis-like terminals:
-const gt                 = l('>');
-const rtri               = l('>');
-const lbrc               = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
-const lpar               = l('(');
-const lsqr               = l('[]'[0]);
-const lt                 = l('<');
-const ltri               = l('<');
-const rbrc               = l('{}'[1]);
-const rpar               = l(')');
-const rsqr               = l('[]'[1]);
+// // -------------------------------------------------------------------------------------------------
+// // parenthesis-like terminals:
+const gt = l('>');
+const rtri = l('>');
+const lbrc = l('{}'[0]); // dumb hack to keep rainbow brackets extension happy.
+const lpar = l('(');
+const lsqr = l('[]'[0]);
+const lt = l('<');
+const ltri = l('<');
+const rbrc = l('{}'[1]);
+const rpar = l(')');
+const rsqr = l('[]'[1]);
 gt.abbreviate_str_repr('gt');
 lbrc.abbreviate_str_repr('lbrc');
 lpar.abbreviate_str_repr('lpar');
@@ -2243,65 +2037,63 @@ rsqr.abbreviate_str_repr('rsqr');
 rtri.abbreviate_str_repr('rtri');
 // -------------------------------------------------------------------------------------------------
 // common enclosed rules:
-const par_enc            = rule => cutting_enc(lpar, rule, rpar);
-const brc_enc            = rule => cutting_enc(lbrc, rule, rbrc);
-const sqr_enc            = rule => cutting_enc(lsqr, rule, rsqr);
-const tri_enc            = rule => cutting_enc(lt,   rule, gt);
-// const wse                = rule => enc(whites_star, rule, whites_star);
-// const wse                = rule => {
+const par_enc = (rule) => (0, cutting_enc)(exports.lpar, rule, exports.rpar);
+const brc_enc = (rule) => (0, cutting_enc)(exports.lbrc, rule, exports.rbrc);
+const sqr_enc = (rule) => (0, cutting_enc)(exports.lsqr, rule, exports.rsqr);
+const tri_enc = (rule) => (0, cutting_enc)(exports.lt, rule, exports.gt);
+// export const wse                = (rule: rule_param): Rule => enc(whites_star, rule, whites_star);
+// export const wse                = (rule: rule_param): Rule => {
 //   rule = enc(whites_star, rule, whites_star);
-
 //   rule.__impl_toString = function(visited, next_id, ref_counts) {
 //     const rule_str = this.body_rule.__toString(visited, next_id, ref_counts);
 //     return `WSE(${rule_str})`;
 //   }
-
 //   return rule;
 // };
 // -------------------------------------------------------------------------------------------------
 // basic arithmetic ops:
-const factor_op          = r(/[\/\*\%]/);
-const term_op            = r(/[\+\-]/);
+const factor_op = r(/[\/\*\%]/);
+const term_op = r(/[\+\-]/);
 factor_op.abbreviate_str_repr('factor_op');
 term_op.abbreviate_str_repr('term_op');
 // -------------------------------------------------------------------------------------------------
 // Pascal-like terminals:
-const pascal_assign_op   = l('=');
+const pascal_assign_op = l('=');
 pascal_assign_op.abbreviate_str_repr('pascal_assign_op');
 // -------------------------------------------------------------------------------------------------
 // Python-like terminals:
 const python_exponent_op = l('**');
-const python_logic_word  = r(/and|or|not|xor/);
+const python_logic_word = r(/and|or|not|xor/);
 python_exponent_op.abbreviate_str_repr('python_exponent_op');
 python_logic_word.abbreviate_str_repr('python_logic_word');
 // -------------------------------------------------------------------------------------------------
 // common punctuation:
-const at                 = l('@');
-const ampersand          = l('&');
-const asterisk           = l('*');
-const bang               = l('!');
-const bslash             = l('\\');
-const caret              = l('^');
-const colon              = l(':');
-const comma              = l(',');
-const dash               = l('-');
-const dash_arrow         = l('->');
-const dollar             = l('$');
-const dot                = l('.');
-const ellipsis           = l('...');
-const equals             = l('=');
-const equals_arrow       = l('=>');
-const hash               = l('#');
-const decr_equals        = l('-=');
-const plus_equals        = l('+=');
-const percent            = l('%');
-const pipe               = l('|');
-const pound              = l('#');
-const question           = l('?');
-const range              = l('..');
-const semicolon          = l(';');
-const shebang            = l('#!');
-const slash              = l('/');
+const at = l('@');
+const ampersand = l('&');
+const asterisk = l('*');
+const bang = l('!');
+const bslash = l('\\');
+const caret = l('^');
+const colon = l(':');
+const comma = l(',');
+const dash = l('-');
+const dash_arrow = l('->');
+const dollar = l('$');
+const dot = l('.');
+const ellipsis = l('...');
+const equals = l('=');
+const equals_arrow = l('=>');
+const hash = l('#');
+const decr_equals = l('-=');
+const plus_equals = l('+=');
+const percent = l('%');
+const pipe = l('|');
+const pound = l('#');
+const question = l('?');
+const range = l('..');
+const semicolon = l(';');
+const shebang = l('#!');
+const slash = l('/');
 ampersand.abbreviate_str_repr('ampersand');
 at.abbreviate_str_repr('at');
 asterisk.abbreviate_str_repr('asterisk');
@@ -2330,102 +2122,97 @@ shebang.abbreviate_str_repr('shebang');
 slash.abbreviate_str_repr('slash');
 // -------------------------------------------------------------------------------------------------
 // C-like numbers:
-const c_bin              = r(/0b[01]/);
-const c_char             = r(/'\\?[^\']'/);
-const c_hex              = r(/0x[0-9a-f]+/);
-const c_ident            = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
-const c_octal            = r(/0o[0-7]+/);
-const c_sfloat           = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
-const c_sint             = r(/[+-]?\d+/)
-const c_snumber          = choice(c_hex, c_octal, c_sfloat, c_sint);
-const c_ufloat           = r(/\d*\.\d+(e[+-]?\d+)?/i);
-const c_uint             = r(/\d+/);
-const c_unumber          = choice(c_hex, c_octal, c_ufloat, c_uint);
-c_bin                    .abbreviate_str_repr('c_bin');
-c_char                   .abbreviate_str_repr('c_char');
-c_hex                    .abbreviate_str_repr('c_hex');
-c_ident                  .abbreviate_str_repr('c_ident');
-c_octal                  .abbreviate_str_repr('c_octal');
-c_sfloat                 .abbreviate_str_repr('c_sfloat');
-c_sint                   .abbreviate_str_repr('c_sint');
-c_snumber                .abbreviate_str_repr('c_snumber');
-c_ufloat                 .abbreviate_str_repr('c_ufloat');
-c_uint                   .abbreviate_str_repr('c_uint');
+const c_bin = r(/0b[01]/);
+const c_char = r(/'\\?[^\']'/);
+const c_hex = r(/0x[0-9a-f]+/);
+const c_ident = r(/[a-zA-Z_][0-9a-zA-Z_]*/);
+const c_octal = r(/0o[0-7]+/);
+const c_sfloat = r(/[+-]?\d*\.\d+(e[+-]?\d+)?/i);
+const c_sint = r(/[+-]?\d+/);
+const c_snumber = (0, choice)(exports.c_hex, exports.c_octal, exports.c_sfloat, exports.c_sint);
+const c_ufloat = r(/\d*\.\d+(e[+-]?\d+)?/i);
+const c_uint = r(/\d+/);
+const c_unumber = (0, choice)(exports.c_hex, exports.c_octal, exports.c_ufloat, exports.c_uint);
+c_bin.abbreviate_str_repr('c_bin');
+c_char.abbreviate_str_repr('c_char');
+c_hex.abbreviate_str_repr('c_hex');
+c_ident.abbreviate_str_repr('c_ident');
+c_octal.abbreviate_str_repr('c_octal');
+c_sfloat.abbreviate_str_repr('c_sfloat');
+c_sint.abbreviate_str_repr('c_sint');
+c_snumber.abbreviate_str_repr('c_snumber');
+c_ufloat.abbreviate_str_repr('c_ufloat');
+c_uint.abbreviate_str_repr('c_uint');
 // -------------------------------------------------------------------------------------------------
 // other C-like terminals:
-const c_arith_assign     = r(/\+=|\-=|\*=|\/=|\%=/)
-const c_bitwise_and      = l('&');
-const c_bitwise_bool_op  = r(/&&|\|\|/);
-const c_bitwise_not      = l('~');
-const c_bitwise_or       = l('|');
-const c_bitwise_xor      = l('^');
-const c_bool             = choice('true', 'false');
-const c_ccomparison_op   = r(/<=?|>=?|[!=]/);
-const c_incr_decr        = r(/\+\+|--/);
-const c_shift            = r(/<<|>>/);
-const c_shift_assign     = r(/<<=|>>=/);
-const c_unicode_ident    = r(/[\p{L}_][\p{L}\p{N}_]*/u);
-c_arith_assign           .abbreviate_str_repr('c_arith_assign');
-c_bitwise_and            .abbreviate_str_repr('c_bitwise_and');
-c_bitwise_bool_op        .abbreviate_str_repr('c_bitwise_bool_ops');
-c_bitwise_not            .abbreviate_str_repr('c_bitwise_not');
-c_bitwise_or             .abbreviate_str_repr('c_bitwise_or');
-c_bitwise_xor            .abbreviate_str_repr('c_bitwise_xor');
-c_bool                   .abbreviate_str_repr('c_bool');
-c_ccomparison_op         .abbreviate_str_repr('c_ccomparison_op');
-c_incr_decr              .abbreviate_str_repr('c_incr_decr');
-c_shift                  .abbreviate_str_repr('c_shift');
-c_shift_assign           .abbreviate_str_repr('c_shift_assign');
-c_unicode_ident          .abbreviate_str_repr('c_unicode_ident');
+const c_arith_assign = r(/\+=|\-=|\*=|\/=|\%=/);
+const c_bitwise_and = l('&');
+const c_bitwise_bool_op = r(/&&|\|\|/);
+const c_bitwise_not = l('~');
+const c_bitwise_or = l('|');
+const c_bitwise_xor = l('^');
+const c_bool = (0, choice)('true', 'false');
+const c_ccomparison_op = r(/<=?|>=?|[!=]/);
+const c_incr_decr = r(/\+\+|--/);
+const c_shift = r(/<<|>>/);
+const c_shift_assign = r(/<<=|>>=/);
+const c_unicode_ident = r(/[\p{L}_][\p{L}\p{N}_]*/u);
+c_arith_assign.abbreviate_str_repr('c_arith_assign');
+c_bitwise_and.abbreviate_str_repr('c_bitwise_and');
+c_bitwise_bool_op.abbreviate_str_repr('c_bitwise_bool_ops');
+c_bitwise_not.abbreviate_str_repr('c_bitwise_not');
+c_bitwise_or.abbreviate_str_repr('c_bitwise_or');
+c_bitwise_xor.abbreviate_str_repr('c_bitwise_xor');
+c_bool.abbreviate_str_repr('c_bool');
+c_ccomparison_op.abbreviate_str_repr('c_ccomparison_op');
+c_incr_decr.abbreviate_str_repr('c_incr_decr');
+c_shift.abbreviate_str_repr('c_shift');
+c_shift_assign.abbreviate_str_repr('c_shift_assign');
+c_unicode_ident.abbreviate_str_repr('c_unicode_ident');
 // -------------------------------------------------------------------------------------------------
 // dotted chains:
-const dot_chained        = rule => plus(rule, dot); 
+// type rule_maker_fun = ((rule: rule_param) => Rule);
+const dot_chained = rule => (0, plus)(rule, exports.dot);
 // -------------------------------------------------------------------------------------------------
 // common comment styles:
-const c_block_comment    = r(/\/\*[^]*?\*\//);
-const c_comment          = choice(() => c_line_comment,
-                                  () => c_block_comment);
-const c_line_comment     = r(/\/\/[^\n]*/);
-const py_line_comment    = r(/#[^\n]*/); 
-c_block_comment          .abbreviate_str_repr('c_block_comment');
-c_comment                .abbreviate_str_repr('c_comment');
-c_line_comment           .abbreviate_str_repr('c_line_comment');
-py_line_comment          .abbreviate_str_repr('py_line_comment');
+const c_block_comment = r(/\/\*[^]*?\*\//);
+const c_comment = (0, choice)(() => exports.c_line_comment, () => exports.c_block_comment);
+const c_line_comment = r(/\/\/[^\n]*/);
+const py_line_comment = r(/#[^\n]*/);
+c_block_comment.abbreviate_str_repr('c_block_comment');
+c_comment.abbreviate_str_repr('c_comment');
+c_line_comment.abbreviate_str_repr('c_line_comment');
+py_line_comment.abbreviate_str_repr('py_line_comment');
 // -------------------------------------------------------------------------------------------------
 // ternary helper combinator:
-const ternary            =
-      ((cond_rule, then_rule = cond_rule, else_rule = then_rule) =>
-        xform(seq(cond_rule, question, then_rule, colon, else_rule),
-              arr => [ arr[0], arr[2], arr[4] ]));
+const ternary = ((cond_rule, then_rule, else_rule) => (0, xform)((0, seq)(cond_rule, exports.question, then_rule, exports.colon, else_rule), (arr) => [arr[0], arr[2], arr[4]]));
 // -------------------------------------------------------------------------------------------------
 // misc unsorted Rules:
 const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
-// -------------------------------------------------------------------------------------------------
+// // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, { open = lpar, close = rpar, sep = comma } = {}) =>
-      seq(fun_rule,
-          wst_cutting_enc(open,
-                          wst_star(arg_rule, sep),
-                          close));
+// export const c_funcall = (fun_rule: rule_param, arg_rule: rule_param, { open = lpar, close = rpar, sep = comma } = {}) =>
+//   seq(fun_rule,
+//       wst_cutting_enc(open,
+//                       wst_star(arg_rule, sep),
+//                       close));
 // -------------------------------------------------------------------------------------------------
 // convenience combinators:
 // -------------------------------------------------------------------------------------------------
-const end_quantified_match_if = rule => xform(rule, () => END_QUANTIFIED_MATCH);
-const push                    = (value, rule) => xform(rule, arr => [value, ...arr]);
-const enclosing               = (left, enclosed, right) =>
-      xform(arr => [ arr[0], arr[2] ], seq(left, enclosed, right));
-const head                    = (...rules) => first (seq            (...rules));
-const cadr                    = (...rules) => second(seq            (...rules));
-const wst_head                = (...rules) => first (wst_seq        (...rules));
-const wst_cadr                = (...rules) => second(wst_seq        (...rules));
-const cutting_head            = (...rules) => first (cutting_seq    (...rules));
-const cutting_cadr            = (...rules) => second(cutting_seq    (...rules));
-const wst_cutting_head        = (...rules) => first (wst_cutting_seq(...rules));
-const wst_cutting_cadr        = (...rules) => second(wst_cutting_seq(...rules));
-const flat1                   = rule => flat(rule, 1); 
-const flat                    = (rule, depth = Infinity) =>
-      xform(rule, arr => arr.flat(depth));
+const end_quantified_match_if = (rule) => (0, xform)(rule, () => END_QUANTIFIED_MATCH);
+const push = (value, rule) => (0, xform)(rule, (arr) => [value, ...arr]);
+const enclosing = (left, enclosed, right) => (0, xform)((arr) => [arr[0], arr[2]], (0, seq)(left, enclosed, right));
+const head = (...rules) => (0, first)((0, seq)(...rules));
+const cadr = (...rules) => (0, second)((0, seq)(...rules));
+const wst_head = (...rules) => (0, first)((0, exports.wst_seq)(...rules));
+const wst_cadr = (...rules) => (0, second)((0, exports.wst_seq)(...rules));
+const wst_cutting_head = (...rules) => (0, first)((0, exports.wst_cutting_seq)(...rules));
+const wst_cutting_cadr = (...rules) => (0, second)((0, exports.wst_cutting_seq)(...rules));
+const cutting_head = (...rules) => (0, first)((0, cutting_seq)(rules[0], rules[1], ...rules.slice(2)));
+const cutting_cadr = (...rules) => (0, second)((0, cutting_seq)(rules[0], rules[1], ...rules.slice(2)));
+const flat1 = (rule) => (0, exports.flat)(rule, 1);
+const flat = (rule, depth = Infinity) => (0, xform)(rule, (arr) => arr.flat(depth));
 // =================================================================================================
 // END of COMMON-GRAMMAR.JS CONTENT SECTION.
 // =================================================================================================
