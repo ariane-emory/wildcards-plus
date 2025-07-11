@@ -1800,6 +1800,11 @@ function index_is_at_end_of_input(index, input) {
     return index === input.length;
 }
 // -------------------------------------------------------------------------------------------------
+function LOG_LINE(char = '-', width = LOG_LINE.line_width) {
+  lm.log(char.repeat(width));
+}
+LOG_LINE.line_width = 100;
+// -------------------------------------------------------------------------------------------------
 function maybe_make_RE_or_Literal_from_Regexp_or_string(thing) {
     if (typeof thing === 'string')
         return new Literal(thing);
