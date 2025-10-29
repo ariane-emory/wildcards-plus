@@ -113,8 +113,7 @@
 
 %Model     = { // 4 playground_v2.5
              // 6 juggernaut_xl_ragnarok %Steps = 100
-             //|
-             6 shuttle_v3.1_aesthetic_q5p_svd
+             | 6 shuttle_v3.1_aesthetic_q5p_svd
              | 6 artsy_vibe_v1_q5p_svd
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd

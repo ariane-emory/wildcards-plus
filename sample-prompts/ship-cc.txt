@@ -1,0 +1,185 @@
+// -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
+// =================================================================================================
+// use wildcards to randomize some parts of the configuration before we get on with the
+// actual textual content of the prompt:
+// =================================================================================================
+// {|foo|?flag bar|2 baz}
+
+// -------------------------------------------------------------------------------------------------
+// template config flags to enable model families or other features:
+// -------------------------------------------------------------------------------------------------
+
+#flux
+#hidream.full
+#hidream.fast
+#chroma
+
+// -------------------------------------------------------------------------------------------------
+// force an artist from this small list instead of picking from all of the 1000-plus
+// artists from Wizard Whitebeard's list:
+// -------------------------------------------------------------------------------------------------
+
+{ 1 #wizards_artist.al_williamson
+| 1 #wizards_artist.alan_bean
+| 1 #wizards_artist.alan_moore
+| 1 #wizards_artist.alejandro_burdisio
+| 1 #wizards_artist.andy_fairhurst
+| 1 #wizards_artist.angus_mckie
+| 1 #wizards_artist.anne_mccaffrey
+| 1 #wizards_artist.barclay_shaw
+| 1 #wizards_artist.beeple
+| 1 #wizards_artist.benedick_bana
+| 1 #wizards_artist.bruce_pennington
+| 4 #wizards_artist.boris_vallejo
+| 1 #wizards_artist.chesley_bonestell 
+| 1 #wizards_artist.chris_foss
+| 1 #wizards_artist.christopher_balaskas
+| 1 #wizards_artist.clayton_crain
+| 1 #wizards_artist.clyde_caldwell
+| 4 #wizards_artist.dan_mcpharlin
+| 1 #wizards_artist.dave_dorman
+| 1 #wizards_artist.don_maitz
+| 1 #wizards_artist.donato_giancola
+| 1 #wizards_artist.drew_struzan
+| 1 #wizards_artist.ed_emshwiller
+| 1 #wizards_artist.enki_bilal
+| 1 #wizards_artist.filip_hodas
+| 2 #wizards_artist.frank_frazetta
+| 4 #wizards_artist.gerald_brom
+| 1 #wizards_artist.glenn_fabry
+| 1 #wizards_artist.hajime_sorayama
+| 1 #wizards_artist.hr_giger
+| 1 #wizards_artist.ian_mcque
+| 4 #wizards_artist.ian_miller
+| 1 #wizards_artist.jack_gaughan
+| 1 #wizards_artist.jean_giraud
+| 1 #wizards_artist.jim_burns
+| 1 #wizards_artist.john_berkey
+| 2 #wizards_artist.john_blanche
+| 1 #wizards_artist.john_harris
+| 2 #wizards_artist.john_zeleznik
+| 1 #wizards_artist.josan_gonzalez
+| 1 #wizards_artist.joseba_elorza
+| 1 #wizards_artist.kelly_freas
+| 1 #wizards_artist.kenneth_rocafort
+| 1 #wizards_artist.kilian_eng
+| 1 #wizards_artist.liam_wong
+| 1 #wizards_artist.lorenz_hideyoshi
+| 1 #wizards_artist.louise_bourgeois
+| 1 #wizards_artist.mamoru_oshii
+| 1 #wizards_artist.mark_brooks
+| 1 #wizards_artist.masamune_shirow
+| 1 #wizards_artist.michael_hutter
+| 1 #wizards_artist.michael_whelan
+| 1 #wizards_artist.michal_karcz
+| 1 #wizards_artist.moebius
+| 1 #wizards_artist.noriyoshi_ohrai
+| 1 #wizards_artist.osamu_tezuka
+| 1 #wizards_artist.patrick_woodroffe
+| 1 #wizards_artist.paul_lehr
+| 1 #wizards_artist.peter_andrew_jones
+| 1 #wizards_artist.peter_elson
+| 1 #wizards_artist.philippe_druillet
+| 1 #wizards_artist.ralph_mcquarrie
+| 1 #wizards_artist.richard_corben
+| 1 #wizards_artist.robert_mccall
+| 1 #wizards_artist.rodney_matthews
+| 1 #wizards_artist.roger_dean
+| 1 #wizards_artist.simon_stalenhag
+| 1 #wizards_artist.sparth
+| 1 #wizards_artist.stephan_martiniere
+| 1 #wizards_artist.syd_mead
+| 1 #wizards_artist.terry_oakes
+| 1 #wizards_artist.tim_white
+| 1 #wizards_artist.todd_nauck
+| 2 #wizards_artist.tony_diterlizzi
+| 1 #wizards_artist.tsutomu_nihei
+| 1 #wizards_artist.vincent_callebaut
+| 4 #wizards_artist.virgil_finlay
+| 2 #wizards_artist.wayne_barlowe
+}
+
+// -------------------------------------------------------------------------------------------------
+%Loras     = [] // clear any LoRAs that are set up the DT UI first.
+%Neg       = { signature, watermark, text, }
+%strength  = 1.0
+
+{6 ?flux // Flux finetunes:
+
+{ 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
+| 2 %Width = 1152; %Height = 1024; %Steps = 50; // 1.179 mpx, 12,082 cu
+| 4 %Width = 1536; %Height = 768;  %Steps = 50; // 1.179 mpx, 12,082 cu
+}
+
+%Model     = { // 4 playground_v2.5
+             // 6 juggernaut_xl_ragnarok %Steps = 100
+             | 6 shuttle_v3.1_aesthetic_q5p_svd
+             | 6 artsy_vibe_v1_q5p_svd
+             | 6 pixelwave_flux_1_schnell_04_q5p_svd
+             | 2 devmode_v0.3_turbo_q5p_svd
+             | 2 flux_1_dev_q8p 
+             }
+%Sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
+%CFG_Scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
+%Shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%N_Iter    = 2
+%clip_skip = 1
+
+| 2 ?hidream.fast,hidream.full
+// Hidream with some basic settings that seem to work alright:
+
+%model     = { ?hidream.fast hidream.i1_fast_q5p
+             | ?hidream.full hidream.i1_full_q5p } 
+
+%sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
+%cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+%shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%n_iter    = 2
+%clip_skip = 1
+
+{ 1 %conf += { width: 960,   height: 960, steps: 40  }
+| 2 %conf += { width: 1152,  height: 768, steps: 40  }
+| 6 %conf += { width: 1280,  height: 640, steps: 45  }
+}
+| 2 ?chroma
+
+%model     = chroma_v38_detail_calibrated_q8p.ckpt
+%sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
+%cfg_scale = { 8 5.0  | 7 10.0 | 6 15.0 | 5 20.0 | 4 25.0 | 3 30.0 | 2 35.0 | 1 40.0}
+%shift     = { 1.10 | 1.20 | 1.30 | 1.40 | 1.50 }
+%n_iter    = 2
+%clip_skip = 1
+
+{ 1 %conf += { width: 960,   height: 960 } %steps = {\35|\40|\45|\50|\55|\60} 
+| 2 %conf += { width: 1152,  height: 768 } %steps = {\35|\40|\45|\50|\55|\60} 
+| 6 %conf += { width: 1280,  height: 640 } %steps = {\35|\40|\45|\50|\55|\60} 
+}
+}
+
+// =================================================================================================
+// make random sci-fi characters:
+// =================================================================================================
+
+{
+ {3|@aris_defaults,}
+ {3|3 illustration,|2 sketch,|1 drawing,}
+ science fiction,
+ {3|greebles,|greeblies,}
+ {|#traveller Traveller RPG,}
+ {|futuristic,}
+ {|extremely detailed,}
+ // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
+}
+
+@ship_adj = {|!#high-tech high-tech|!#advanced advanced|alien
+             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+
+@ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
+@object      = {asteroid|planet|star|comet|moon|space station};
+@weapon_adj  = {plasma|laser|ion|rail gun};
+@weapon_noun = {cannon|turret|battery};
+\n\n
+{?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
+                 {featuring|which depicts|depicting} a }
+
+@ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through space past a @object with a @object in the background.
