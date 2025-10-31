@@ -201,4 +201,4 @@
                  {featuring|which depicts|depicting}}
 .a
 
-@ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through space past a @object with a @object in the background.
+@ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through (({deep|interstellar} space)) with distant stars in the background.
