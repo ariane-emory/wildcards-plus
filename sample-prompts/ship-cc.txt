@@ -177,8 +177,12 @@
              |!#biomechanical biomechanical
              |!#insect insect-like
              |!#alien alien
-             |!#highly-detailed highly-detailed
-             |!#greebled {|highly} greebled
+             |!#exotic exotic
+             |!#mysterious mysterious
+             |!#intimidating intimidating
+             |!#interstellar interstellar
+             |!#ominous ominous
+                
             };
 
 @ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
