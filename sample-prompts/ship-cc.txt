@@ -194,10 +194,11 @@
 
 @ship_word   = {starship|spaceship|shuttle|frigate|battleship|cruiser|starfighter|dreadnought|star destroyer|rocket {|ship}|assault ship};
 @object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
-@weapon_adj  = {plasma|laser|ion|rail gun};
-@weapon_noun = {cannon|turret|battery};
+@weapon_adj  = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
+@weapon_noun = {cannon|turret|batteries|torpedos};
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
-                 {featuring|which depicts|depicting} a }
+                 {featuring|which depicts|depicting}}
+.a
 
 @ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through space past a @object with a @object in the background.
