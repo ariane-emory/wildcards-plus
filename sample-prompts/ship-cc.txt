@@ -192,8 +192,8 @@
              |!#scout scout
             };
 
-@ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
-@object      = {asteroid|planet|star|comet|moon|space station};
+@ship_word   = {starship|spaceship|shuttle|frigate|battleship|cruiser|starfighter|dreadnought|star destroyer|rocket {|ship}|assault ship};
+@object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
 @weapon_adj  = {plasma|laser|ion|rail gun};
 @weapon_noun = {cannon|turret|battery};
 \n\n
