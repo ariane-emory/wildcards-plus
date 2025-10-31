@@ -9326,7 +9326,7 @@ function expand_wildcards(thing, context, { correct_articles = true } = {}) {
           let value = thing.value;
           
           if (value instanceof ASTNode) {
-            lm.log(`DOING THIS TO ${thing_str_repr(value)}`);
+            // lm.log(`DOING THIS TO ${thing_str_repr(value)}`);
             
             const expanded_value = lm.indent(() =>
               // don't correct articles in config values so that we don't mess up, e.g.,

@@ -190,7 +190,6 @@
              |!#mining mining
              |!#pirate pirate
              |!#scout scout
- 
             };
 
 @ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
