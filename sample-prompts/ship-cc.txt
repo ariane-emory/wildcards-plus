@@ -199,6 +199,10 @@
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting}}
-.a
-
-@ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through (({deep|interstellar} space)) with distant stars in the background.
+{4 @1-2,ship_adj @ship_word {|{equipped|armed|studded} with @weapon_adj @weapon_noun}
+|asteroid
+|missile
+|torpedo
+|{laser|energy} beam
+}
+ flying through (({deep|interstaller|empty} space)) with distant stars in the background.
