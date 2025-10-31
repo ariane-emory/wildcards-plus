@@ -30,13 +30,13 @@
 | 1 #wizards_artist.beeple
 | 1 #wizards_artist.benedick_bana
 | 1 #wizards_artist.bruce_pennington
-| 4 #wizards_artist.boris_vallejo
+| 1 #wizards_artist.boris_vallejo
 | 1 #wizards_artist.chesley_bonestell 
-| 1 #wizards_artist.chris_foss
+| 4 #wizards_artist.chris_foss
 | 1 #wizards_artist.christopher_balaskas
 | 1 #wizards_artist.clayton_crain
 | 1 #wizards_artist.clyde_caldwell
-| 4 #wizards_artist.dan_mcpharlin
+| 1 #wizards_artist.dan_mcpharlin
 | 1 #wizards_artist.dave_dorman
 | 1 #wizards_artist.don_maitz
 | 1 #wizards_artist.donato_giancola
@@ -44,19 +44,19 @@
 | 1 #wizards_artist.ed_emshwiller
 | 1 #wizards_artist.enki_bilal
 | 1 #wizards_artist.filip_hodas
-| 2 #wizards_artist.frank_frazetta
-| 4 #wizards_artist.gerald_brom
+| 1 #wizards_artist.frank_frazetta
+| 1 #wizards_artist.gerald_brom
 | 1 #wizards_artist.glenn_fabry
 | 1 #wizards_artist.hajime_sorayama
-| 1 #wizards_artist.hr_giger
+| 2 #wizards_artist.hr_giger
 | 1 #wizards_artist.ian_mcque
-| 4 #wizards_artist.ian_miller
-| 1 #wizards_artist.jack_gaughan
+| 6 #wizards_artist.ian_miller
+| 3 #wizards_artist.jack_gaughan
 | 1 #wizards_artist.jean_giraud
 | 1 #wizards_artist.jim_burns
 | 1 #wizards_artist.john_berkey
 | 2 #wizards_artist.john_blanche
-| 1 #wizards_artist.john_harris
+| 3 #wizards_artist.john_harris
 | 2 #wizards_artist.john_zeleznik
 | 1 #wizards_artist.josan_gonzalez
 | 1 #wizards_artist.joseba_elorza
@@ -78,7 +78,7 @@
 | 1 #wizards_artist.patrick_woodroffe
 | 1 #wizards_artist.paul_lehr
 | 1 #wizards_artist.peter_andrew_jones
-| 1 #wizards_artist.peter_elson
+| 6 #wizards_artist.peter_elson
 | 1 #wizards_artist.philippe_druillet
 | 1 #wizards_artist.ralph_mcquarrie
 | 1 #wizards_artist.richard_corben
@@ -96,7 +96,7 @@
 | 1 #wizards_artist.tsutomu_nihei
 | 1 #wizards_artist.vincent_callebaut
 | 4 #wizards_artist.virgil_finlay
-| 2 #wizards_artist.wayne_barlowe
+| 4 #wizards_artist.wayne_barlowe
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -106,9 +106,9 @@
 
 {6 ?flux // Flux finetunes:
 
-{ 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
+{ /* 1 %Width = 1088; %Height = 1088; %Steps = 50; // 1.183 mpx, 12,162 cu
 | 2 %Width = 1152; %Height = 1024; %Steps = 50; // 1.179 mpx, 12,082 cu
-| 4 %Width = 1536; %Height = 768;  %Steps = 50; // 1.179 mpx, 12,082 cu
+| */ 4 %Width = 1536; %Height = 768;  %Steps = 50; // 1.179 mpx, 12,082 cu
 }
 
 %Model     = { // 4 playground_v2.5
@@ -118,6 +118,7 @@
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd
              | 2 flux_1_dev_q8p 
+             | 4 flux_1_krea_dev_q8p
              }
 %Sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %CFG_Scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
@@ -171,15 +172,38 @@
  // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
 
-@ship_adj = {|!#high-tech high-tech|!#advanced advanced|alien
-             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+@ship_adj    = {|!#high-tech high-tech
+                |!#advanced advanced
+                |#!biomechanical biomechanical
+                |#!insect insect-like
+                |#!alien alien
+                |#!exotic exotic
+                |#!mysterious mysterious
+                |#!intimidating intimidating
+                |#!interstellar interstellar
+                |#!ominous ominous
+                
+                |!#highly-detailed highly-detailed
+                |!#greebled {|highly} greebled
+                |!#merchant merchant
+                |!#trading trading
+                |!#mining mining
+                |!#pirate pirate
+                |!#scou# scout
+}
 
-@ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
-@object      = {asteroid|planet|star|comet|moon|space station};
-@weapon_adj  = {plasma|laser|ion|rail gun};
-@weapon_noun = {cannon|turret|battery};
+@ship_word   = {starship|spaceship|shuttle|frigate|battleship|cruiser|starfighter|dreadnought|star destroyar|{space|interstaller| cruiser|rocket {|ship}|assault ship};
+@object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
+@weapon_adj  = {plasma|laser|ion|rail gun|rocket|missile|beam|phaser|fusion};
+@weapon_noun = {cannon|turret|batteries|torpedos};
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
-                 {featuring|which depicts|depicting} a }
-
-@ship_adj @ship_word {equipped|armed|studded} with @weapon_adj @weapon_noun flying through space past a @object with a @object in the background.
+                 {featuring|which depicts|depicting}}
+a
+{4 @1-2,ship_adj @ship_word {|{equipped|armed|studded} with @weapon_adj @weapon_noun}
+|asteroid
+|missile
+|torpedo
+|{laser|energy} beam
+}
+ flying through (({deep|interstaller|empty} space)) with distant stars in the background.
