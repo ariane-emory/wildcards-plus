@@ -118,6 +118,7 @@
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd
              | 2 flux_1_dev_q8p 
+             | 4 flux_1_krea_dev_q8p
              }
 %Sampler   = { DDIM Trailing | Euler A | Euler A Trailing }
 %CFG_Scale = { 1 1.0 | 2 1.5 | 3 2.0 | 4 2.5| 5 3.0 | 4 3.5| 3 4.0 | 2 4.5 | 1 5.0 }
@@ -171,8 +172,12 @@
  // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
 
-@ship_adj = {|!#high-tech high-tech|!#advanced advanced|alien
-             |!#highly-detailed highly-detailed|!#greebled {|highly} greebled}
+@ship_adj = {|!#high-tech high-tech
+             |!#advanced advanced
+             |!#alien alien
+             |!#highly-detailed highly-detailed
+             |!#greebled {|highly} greebled
+            };
 
 @ship_word   = {starship|spaceship|shuttle|battleship|cruiser|starfighter};
 @object      = {asteroid|planet|star|comet|moon|space station};
