@@ -1,4 +1,4 @@
-// -*- fill-column: 100; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
+
 // =================================================================================================
 // use wildcards to randomize some parts of the configuration before we get on with the
 // actual textual content of the prompt:
@@ -113,6 +113,8 @@
 
 %Model     = { // 4 playground_v2.5
              // 6 juggernaut_xl_ragnarok %Steps = 100
+             | qwen_image_1.0_bf16
+             | qwen_image_1.0_bf16_q6p
              | 6 shuttle_v3.1_aesthetic_q5p_svd
              | 6 artsy_vibe_v1_q5p_svd
              | 6 pixelwave_flux_1_schnell_04_q5p_svd
@@ -162,7 +164,7 @@
 // =================================================================================================
 
 {
- {3|@aris_defaults,}
+ {6|@aris_defaults,}
  {3|3 illustration,|2 sketch,|1 drawing,}
  science fiction,
  {3|greebles,|greeblies,}
@@ -200,8 +202,8 @@
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting}}
 a
-{4 @1-2,ship_adj @ship_word {|{equipped|armed|studded} with @weapon_adj @weapon_noun}
-|asteroid
+{12 @1-2,ship_adj @ship_word {|{equipped|armed|studded} with @weapon_adj @weapon_noun}
+|2 asteroid
 |missile
 |torpedo
 |{laser|energy} beam
