@@ -10,7 +10,7 @@
 // -------------------------------------------------------------------------------------------------
 
 #flux
-#hidream.full
+// #hidream.full
 // #hidream.fast
 #chroma
 
@@ -87,7 +87,7 @@
 | 1 #wizards_artist.roger_dean
 | 1 #wizards_artist.simon_stalenhag
 | 1 #wizards_artist.sparth
-| 1 #wizards_artist.stephan_martiniere
+// | 1 #wizards_artist.stephan_martiniere
 | 1 #wizards_artist.syd_mead
 | 1 #wizards_artist.terry_oakes
 | 1 #wizards_artist.tim_white
@@ -115,9 +115,9 @@
              // 6 juggernaut_xl_ragnarok %Steps = 100
              | qwen_image_1.0_bf16
              | qwen_image_1.0_bf16_q6p
-             | 6 shuttle_v3.1_aesthetic_q5p_svd
-             | 6 artsy_vibe_v1_q5p_svd
-             | 6 pixelwave_flux_1_schnell_04_q5p_svd
+             | 4 shuttle_v3.1_aesthetic_q5p_svd
+             | 4 artsy_vibe_v1_q5p_svd
+             | 4 pixelwave_flux_1_schnell_04_q5p_svd
              | 2 devmode_v0.3_turbo_q5p_svd
              | 2 flux_1_dev_q8p 
              | 4 flux_1_krea_dev_q8p
@@ -174,25 +174,30 @@
  // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
 
-@ship_adj = {|!#high-tech high-tech
-             |!#advanced advanced
-             |!#biomechanical biomechanical
-             |!#insect insect-like
-             |!#alien alien
-             |!#exotic exotic
-             |!#mysterious mysterious
-             |!#intimidating intimidating
-             |!#interstellar interstellar
-             |!#ominous ominous
+@ship_early_adj = {0
+                  |!#high-tech high-tech
+                  |!#advanced advanced
+                  |!#biomechanical biomechanical
+                  |!#insect insect-like
+                  |!#exotic exotic
+                  |!#mysterious mysterious
+                  |!#intimidating intimidating
+                  |!#interstellar interstellar
+                  |!#ominous ominous
+                  |!#threatening
+                  |!#highly-detailed highly-detailed
+                  |!#greebled {|highly} greebled
+                  };
 
-             |!#highly-detailed highly-detailed
-             |!#greebled {|highly} greebled
-             |!#merchant merchant
-             |!#trading trading
-             |!#mining mining
-             |!#pirate pirate
-             |!#scout scout
-            };
+@ship_late_adj = {0
+                 |!#alien alien
+                 |!#merchant merchant
+                 |!#millitary millitary
+                 |!#merchant merchant
+                 |!#mining mining
+                 |!#pirate pirate
+                 |!#scout scout
+                 };
 
 @ship_word   = {starship|spaceship|shuttle|frigate|battleship|cruiser|starfighter|dreadnought|star destroyer|rocket {|ship}|assault ship};
 @object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
@@ -202,8 +207,10 @@
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting}}
 a
-top-down view of a 
-{12 @1-2,ship_adj @ship_word {|{equipped|armed|studded} with @weapon_adj @weapon_noun}
+{|top-down view of a}
+{12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {|{equipped|armed|studded} with
+{3|numerous|several}
+@weapon_adj @weapon_noun}
 |1 asteroid
 |0 missile
 |0 torpedo
