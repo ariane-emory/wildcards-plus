@@ -90,7 +90,7 @@
 // | 1 #wizards_artist.stephan_martiniere
 | 1 #wizards_artist.syd_mead
 | 1 #wizards_artist.terry_oakes
-| 1 #wizards_artist.tim_white
+// | 1 #wizards_artist.tim_white
 | 1 #wizards_artist.todd_nauck
 | 2 #wizards_artist.tony_diterlizzi
 | 1 #wizards_artist.tsutomu_nihei
