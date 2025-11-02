@@ -164,75 +164,20 @@
 
 {
  {6|@aris_defaults,}
- {3|3 illustration,|2 sketch,|1 drawing,}
  science fiction,
- {3|greebles,|greeblies,}
  {|#traveller Traveller RPG,}
  {|futuristic,}
  {|extremely detailed,}
- // {?wizards_artist in the style of @wizards_artists, @wizards_artist_styles,}
 }
-
-@ship_early_adj = {0
-                  |advanced
-                  |agile
-                  |bizarre
-                  |cerulean
-                  |emerald
-                  |crimson
-                  |luxurious
-                  |gem-encrusted
-                  |ornate
-                  |baroque
-                  |palatial
-                  |luxurious
-                  |spined
-                  |spikey
-                  |chitinous
-                  |strange
-                  |maneuverable
-                  |heavily armored
-                  |high-tech
-                  |biomechanical
-                  |insect-like
-                  |exotic
-                  |mysterious
-                  |intimidating
-                  |ominous
-                  |threatening
-                  |highly-detailed
-                  |{|highly} greebled
-                  };
-
-@ship_late_adj = {0
-                 |alien
-                 |interstellar
-                 |industrial
-                 |merchant
-                 |millitary
-                 |merchant
-                 |mining
-                 |pirate
-                 |scout
-                 |corporate
-                 };
-
-@space_word  = {3 space|2 star|interstellar|}
-@ship_word   = {starship|spaceship|shuttle|frigate|battleship|@space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship|troop ship};
-@object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
-@weapon_adj  = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
-@weapon_noun = {cannon|turret|batteries|torpedos};
 \n\n
-{?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
-                 {featuring|which depicts|depicting}}
-a
-{|top-down view of a}
-{12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {|2 {equipped|armed|studded} with
-{3|numerous|several}
-@weapon_adj @weapon_noun}
-|2 asteroid
-|0 missile
-|0 torpedo
-|0 {laser|energy} beam
+{
+  { evenly lit
+  | neutral lighting
+  | flat lighting
+  },
+  \n\n
 }
-flying through (({deep|interstaller|empty} space)) with distant stars in the background.
+A
+{6 asteroid|rock}
+{2 flying|2 tumbling|floating|rolling}
+through (({deep|interstaller|empty} space)) with distant stars in the background.
