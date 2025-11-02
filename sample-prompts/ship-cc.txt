@@ -164,7 +164,7 @@
 
 {
  {6|@aris_defaults,}
- {5|3 illustration,|2 sketch,|1 drawing,}
+ {8|3 illustration,|2 sketch,|1 drawing,}
  science fiction,
  {3|greebles,|greeblies,}
  {|#traveller Traveller RPG,}
