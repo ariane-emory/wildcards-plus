@@ -230,7 +230,7 @@ a
 {12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {|2 {equipped|armed|studded} with
 {3|numerous|several}
 @weapon_adj @weapon_noun}
-|2 asteroid
+|1 asteroid
 |0 missile
 |0 torpedo
 |0 {laser|energy} beam
