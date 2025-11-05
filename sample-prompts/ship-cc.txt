@@ -178,6 +178,7 @@
                   |agile
                   |bizarre
                   |cerulean
+                  |5 colorful
                   |emerald
                   |crimson
                   |luxurious
@@ -218,7 +219,7 @@
                  };
 
 @space_word  = {3 space|2 star|interstellar|}
-@ship_word   = {starship|spaceship|shuttle|frigate|battleship|@space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship|troop ship};
+@ship_word   = {3 @space_word {2 freighter|cargo ship|trading ship}|starship|spaceship|shuttle|frigate|battleship|4 @space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship|troop ship};
 @object      = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
 @weapon_adj  = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
 @weapon_noun = {cannon|turret|batteries|torpedos};
@@ -227,7 +228,7 @@
                  {featuring|which depicts|depicting}}
 a
 {|top-down view of a}
-{12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {|2 {equipped|armed|studded} with
+{12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {3|{equipped|armed|studded} with
 {3|numerous|several}
 @weapon_adj @weapon_noun}
 |1 asteroid
