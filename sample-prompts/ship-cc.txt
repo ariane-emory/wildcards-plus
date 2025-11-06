@@ -239,4 +239,4 @@
 a
 {|top-down view of a} 
 @ship_phrase 
-{!station flying through|?station,planet floating in} (({deep|interstaller|empty} space)) with distant stars in the background.
+{?ship flying through|?station,planet floating in} (({deep|interstaller|empty} space)) with distant stars in the background.
