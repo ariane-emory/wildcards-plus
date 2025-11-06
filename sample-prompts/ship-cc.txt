@@ -219,7 +219,7 @@
                  |corporate
                  };
 
-{ #station|#ship }
+{ #station | #ship | #planet }
 
 @space_word     = {3 space|2 star|interstellar|}
 @ship_noun      = { ?ship {3 @space_word {2 freighter|cargo ship|trading ship}|starship|spaceship|shuttle|frigate|battleship
@@ -233,14 +233,14 @@
 @weapon_phrase  = {{equipped|armed|studded} with {3|numerous|several} @weapon_adj @weapon_noun};
 @ship_phrase    = {12 @0-2&ship_early_adj @0-1ship_late_adj @ship_noun {3|@weapon-phrase}};
 @station_phrase = {12 @0-2&ship_early_adj @0-1ship_late_adj @station_noun {3|@weapon-phrase}};
-@planet_adj     = {barren|desert|icy|industrial|urbanr|verdant|watery};
+@planet_adj     = {barren|desert|icy|industrial|urban|verdant|watery};
 @planet_noun    = {planet|moon};
-@planet_phrase  = {@planet_adj @planet_noun};
+@planet_phrase  = {@planet_adj @0-1ship_late_adj @planet_noun};
 
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting}}
 a
-{?ship @ship_phrase|?station @station_phrase}
+{?ship @ship_phrase|?station @station_phrase|?planet @planet_phrase}
 {?ship flying through|?station,planet floating in} (({deep|interstaller|empty} space)) with distant stars in the background.
-@planet_phrase
+// @planet_phrase
