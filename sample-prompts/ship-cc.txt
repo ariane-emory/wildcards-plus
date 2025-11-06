@@ -226,7 +226,6 @@
                           |4 @space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship
                           |troop ship }
                   | ?station {satellite|5 {2| cylindical | ring-shaped } space station
-                  | ?planet {2 planet|moon}}
                   };
 @object         = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
 @weapon_adj     = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
@@ -238,5 +237,5 @@
                  {featuring|which depicts|depicting}}
 a
 {|top-down view of a} 
-@ship_phrase 
+(?ship,station @ship_phrae|?planet {planet|moon}}
 {?ship flying through|?station,planet floating in} (({deep|interstaller|empty} space)) with distant stars in the background.
