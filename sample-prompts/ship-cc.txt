@@ -232,11 +232,11 @@
 @weapon_adj     = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
 @weapon_noun    = {cannon|turret|batteries|torpedos};
 @weapon_phrase  = {{equipped|armed|studded} with {3|numerous|several} @weapon_adj @weapon_noun};
+@ship_phrase    = {12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {3|@weapon-phrase}};
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
                  {featuring|which depicts|depicting}}
 a
-{|top-down view of a}j
-{12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word 
-{3|@weapon-phrase}}
+{|top-down view of a} 
+@ship_phrase 
 {!station flying through|?station,planet floating in} (({deep|interstaller|empty} space)) with distant stars in the background.
