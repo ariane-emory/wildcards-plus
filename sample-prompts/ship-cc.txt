@@ -219,7 +219,7 @@
                  |corporate
                  };
 
-{ #station|#ship|#planet };
+{ #station|#ship|#planet }
 
 @space_word     = {3 space|2 star|interstellar|}
 @ship_word      = { ?ship {3 @space_word {2 freighter|cargo ship|trading ship}|starship|spaceship|shuttle|frigate|battleship
