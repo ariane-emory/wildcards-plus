@@ -233,8 +233,9 @@
 @weapon_noun    = {cannon|turret|batteries|torpedos};
 @weapon_phrase  = {{equipped|armed|studded} with {3|numerous|several} @weapon_adj @weapon_noun};
 @ship_phrase    = {12 @0-2&ship_early_adj @0-1ship_late_adj @ship_word {3|@weapon-phrase}};
+@planet_adj     = {barren|desert|icy|industrial|urbanrr|verdant|watery};
 @planet_noun    = {planet|moon};
-@planet_phrase  = {@planet_noun};
+@planet_phrase  = {@planet_adj @planet_noun};
 
 \n\n
 {?wizards_artist A {masterpiece|piece|piece of art{|<work}} by @wizards_artists
