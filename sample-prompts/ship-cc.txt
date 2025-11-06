@@ -218,11 +218,14 @@
                  |corporate
                  };
 
+{ #station|#ship };
+
 @space_word     = {3 space|2 star|interstellar|}
-@ship_word      = {3 @space_word {2 freighter|cargo ship|trading ship}|starship|spaceship|shuttle|frigate|battleship
-                  |4 @space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship
-                  |troop ship
-                  |8 #station space station};
+@ship_word      = { ?ship {3 @space_word {2 freighter|cargo ship|trading ship}|starship|spaceship|shuttle|frigate|battleship
+                          |4 @space_word cruiser|starfighter|@space_word dreadnought|@space_word destroyer|rocket {|<ship}|assault ship
+                          |troop ship }
+                  | ?station {2| cylindical | ring-shaped } space station
+                  };
 @object         = {asteroid|planet|star|gas giant|comet|moon|space station|nebula|wormhole|black hole};
 @weapon_adj     = {plasma|laser|ion|rail gun|rocket|missile|beam|phase|fusion};
 @weapon_noun    = {cannon|turret|batteries|torpedos};
