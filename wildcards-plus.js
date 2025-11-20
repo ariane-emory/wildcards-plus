@@ -20,33 +20,34 @@
 // -------------------------------------------------------------------------------------------------
 // GLOBAL VARIABLES:
 // -------------------------------------------------------------------------------------------------
-let abbreviate_str_repr_enabled        = true;
-let fire_and_forget_post_enabled       = false;
-let inspect_depth                      = 50;
-let log_configuration_enabled          = true;
-let log_loading_prelude                = true;
-let log_post_enabled                   = true;
-let log_finalize_enabled               = false;
-let log_intercalate_enabled            = false;
-let log_flags_enabled                  = false;
-let log_match_enabled                  = false;
-let log_name_lookups_enabled           = false;
-let log_picker_enabled                 = false;
-let log_level__audit                   = 0;
-let log_level__expand_and_walk         = 0;
-let log_level__smart_join              = 0;
-let prelude_disabled                   = false;
-let print_ast_then_die                 = false;
-let print_ast_before_includes_enabled  = false;
-let print_ast_after_includes_enabled   = false;
-let print_ast_json_enabled             = false;
-let print_packrat_cache_counts_enabled = false;
-let packrat_enabled                    = false;
-let save_post_requests_enabled         = true;
-let unnecessary_choice_is_an_error     = false;
-let double_latching_is_an_error        = false;
-let double_unlatching_is_an_error      = false;
-let rule_match_counter_enabled         = false;
+let abbreviate_str_repr_enabled                   = true;
+let fire_and_forget_post_enabled                  = false;
+let inspect_depth                                 = 50;
+let log_configuration_enabled                     = true;
+let log_loading_prelude                           = true;
+let log_post_enabled                              = true;
+let log_finalize_enabled                          = false;
+let log_intercalate_enabled                       = false;
+let log_flags_enabled                             = false;
+let log_match_enabled                             = false;
+let log_name_lookups_enabled                      = false;
+let log_picker_enabled                            = false;
+let log_level__audit                              = 0;
+let log_level__expand_and_walk                    = 0;
+let log_level__process_named_wildcard_definitions = 0;
+let log_level__smart_join                         = 0;
+let prelude_disabled                              = false;
+let print_ast_then_die                            = false;
+let print_ast_before_includes_enabled             = false;
+let print_ast_after_includes_enabled              = false;
+let print_ast_json_enabled                        = false;
+let print_packrat_cache_counts_enabled            = false;
+let packrat_enabled                               = false;
+let save_post_requests_enabled                    = true;
+let unnecessary_choice_is_an_error                = false;
+let double_latching_is_an_error                   = false;
+let double_unlatching_is_an_error                 = false;
+let rule_match_counter_enabled                    = false;
 // =================================================================================================
 
 
@@ -1818,8 +1819,6 @@ function pipe_funs(...fns) {
 // =================================================================================================
 const prettify_whitespace_combinators = true;
 // =================================================================================================
-
-// =================================================================================================
 const lws0                = rule => {
   rule = second(seq(whites_star, rule));
   
@@ -2069,6 +2068,8 @@ function make_whitespace_decorator2(name, elem_index, whitespace_rule) {
 
   return decorate;
 }
+// =================================================================================================
+// end of whitespace combinators.
 // =================================================================================================
 
 
@@ -2377,7 +2378,7 @@ const kebab_ident = r(/[a-z]+(?:-[a-z0-9]+)*/);
 kebab_ident.abbreviate_str_repr('kebab_ident');
 // -------------------------------------------------------------------------------------------------
 // C-like function calls:
-const c_funcall = (fun_rule, arg_rule, open = lws(lpar), close = lws(rpar), sep = comma) =>
+const c_funcall = (fun_rule, arg_rule, { open = lpar, close = rpar, sep = comma } = {}) =>
       seq(fun_rule,
           wst_cutting_enc(open,
                           wst_star(arg_rule, sep),
@@ -2408,10 +2409,12 @@ const flat                    = (rule, depth = Infinity) =>
 // =================================================================================================
 // BASIC JSON GRAMMAR SECTION:
 // =================================================================================================
-const make_JsonArray_rule = value_rule => 
+const make_JsonArray_rule = (value_rule,
+                             trailing_separator_mode = trailing_separator_modes.forbidden) => 
       wst_cutting_enc(lsqr,
                       wst_star(value_rule,
-                               comma),
+                               comma,
+                               trailing_separator_mode),
                       rsqr);
 // -------------------------------------------------------------------------------------------------
 // JSON ← S? ( Object / Array / String / True / False / Null / Number ) S?
@@ -2503,13 +2506,15 @@ const make_Jsonc_rule = (choice_rule, comment_rule = () => jsonc_comment) =>
                      choice_rule,
                      wst_star(comment_rule)));
 const make_JsoncArray_rule = (value_rule,
-                              comment_rule = () => jsonc_comment) => 
+                              comment_rule = () => jsonc_comment,
+                              trailing_separator_mode = trailing_separator_modes.forbidden) => 
       make_JsonArray_rule(second(seq(wst_star(comment_rule),
                                      value_rule,
                                      wst_star(comment_rule))));
 const make_JsoncObject_rule = (key_rule, value_rule,
                                { comment_rule = () => jsonc_comment,
-                                 sequence_combinator = wst_cutting_seq } = {}) => 
+                                 sequence_combinator = wst_cutting_seq,
+                                 trailing_separator_mode = trailing_separator_modes.forbidden } = {}) => 
       choice(
         xform(arr => ({}), wst_seq(lbrc, rbrc)),
         xform(arr => {
@@ -2532,7 +2537,8 @@ const make_JsoncObject_rule = (key_rule, value_rule,
                                                         value_rule, 
                                                         wst_star(comment_rule)
                                                        )),
-                                          comma)),
+                                          comma,
+                                          trailing_separator_mode)),
                                )),
                 rbrc)))
 // -------------------------------------------------------------------------------------------------
@@ -2564,8 +2570,10 @@ const Rjsonc = make_Jsonc_rule(
   choice(() => RjsoncObject, () => RjsoncArray, rjsonc_string,
          json_null,           json_true,
          json_false,          json_number));
-const RjsoncArray = make_JsoncArray_rule(Rjsonc);
-const RjsoncObject = make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc);
+const RjsoncArray = make_JsoncArray_rule(Rjsonc, trailing_separator_modes.allowed);
+const RjsoncObject =
+      make_JsoncObject_rule(choice(rjsonc_string, c_ident), Rjsonc,
+                            { trailing_separator_mode: trailing_separator_modes.allowed });
 rjsonc_string.abbreviate_str_repr('rjsonc_string');
 rjsonc_single_quoted_string.abbreviate_str_repr('rjsonc_single_quoted_string');
 Rjsonc.abbreviate_str_repr('Rjsonc');
@@ -2642,49 +2650,34 @@ class WeightedPicker {
       this.add(weight, value);
   }
   // -----------------------------------------------------------------------------------------------
-  add(weight, value) {
-    if (! value instanceof ASTAnonWildcardAlternative)
-      throw new Error(`bad value: ${inspect_fun(value)}`);
-    
-    this.options.push({weight: weight, value: value });
-  }
-  // -----------------------------------------------------------------------------------------------
-  __record_index_usage(index) {
-    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
-    this.last_pick_index = index;
-  }
-  // -----------------------------------------------------------------------------------------------
-  pick(min_count = 1, max_count = min_count,
-       allow_if = always, forbid_if = never, each = id,
-       priority = null) {
-    if (!(typeof min_count === 'number'   && 
-          typeof max_count === 'number'   &&
-          typeof allow_if  === 'function' &&
-          typeof forbid_if === 'function' &&
-          typeof each      === 'function' &&
-          typeof priority  === 'string'))
-      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
-
-    // if (! priority)
-    //   throw new Error("no priority");
-
-    if ((min_count > 1 || max_count > 1) && 
-        priority === picker_priority.avoid_repetition_short)
-      this.__clear_used_indices();
-    
-    if (log_picker_enabled)
-      lm.log(`PICK ${min_count}-${max_count}`);
-    
-    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
-    const res = [];
-    
-    for (let ix = 0; ix < count; ix++)
-      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
+  __clear_used_indices() {
+    this.used_indices.clear();
+    this.last_pick_index = null;
 
     if (log_picker_enabled)
-      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
-
-    return res;
+      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
+  }
+  // -----------------------------------------------------------------------------------------------
+  __effective_weight(option_index, priority) {
+    if (! ((option_index || option_index === 0) && priority))
+      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    
+    let ret = null;
+    
+    if (priority === picker_priority.avoid_repetition_long ||
+        priority === picker_priority.avoid_repetition_short) 
+      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
+    else if (priority === picker_priority.ensure_weighted_distribution) 
+      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
+    else if (priority === picker_priority.true_randomness) 
+      ret = this.options[option_index].weight;
+    else
+      throw Error("unexpected priority");
+    
+    if (log_picker_enabled)
+      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
+    
+    return Math.max(0, ret);
   }
   // -----------------------------------------------------------------------------------------------
   __gather_legal_option_indices(allow_if, forbid_if) {
@@ -2700,14 +2693,6 @@ class WeightedPicker {
     }
 
     return legal_option_indices;
-  }
-  // -----------------------------------------------------------------------------------------------
-  __clear_used_indices() {
-    this.used_indices.clear();
-    this.last_pick_index = null;
-
-    if (log_picker_enabled)
-      lm.log(`AFTER __clear: ${inspect_fun(this.used_indices)}`);
   }
   // -----------------------------------------------------------------------------------------------  
   __indices_are_exhausted(option_indices, priority) {
@@ -2748,31 +2733,75 @@ class WeightedPicker {
     return exhausted_indices.isSupersetOf(new Set(option_indices));
   }
   // -----------------------------------------------------------------------------------------------
-  __effective_weight(option_index, priority) {
-    if (! ((option_index || option_index === 0) && priority))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+  __record_index_usage(index) {
+    this.used_indices.set(index, (this.used_indices.get(index)??0) + 1);
+    this.last_pick_index = index;
+  }
+  // -----------------------------------------------------------------------------------------------
+  add(weight, value) {
+    if (! value instanceof ASTAnonWildcardAlternative)
+      throw new Error(`bad value: ${inspect_fun(value)}`);
     
-    let ret = null;
+    this.options.push({weight: weight, value: value });
+  }
+  // -----------------------------------------------------------------------------------------------
+  split_options(allow_if, forbid_if) {
+    const legal_option_indices = new Set(this.__gather_legal_option_indices(allow_if, forbid_if));
+    const res = { illegal_options: [], legal_options: [] };
+
+    for (const [index, value] of this.options.entries()) 
+      (legal_option_indices.has(index) ? res.legal_options : res.illegal_options).push(value);
+
+    return res;
+  }
+  // // -----------------------------------------------------------------------------------------------
+  // illegal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions,
+  //                               { invert: true });
+  // }
+  // // -----------------------------------------------------------------------------------------------
+  // legal_options(allow_if, forbid_if) {
+  //   const legal_option_indices = this.__gather_legal_option_indices(allow_if, forbid_if);
+
+  //   return get_indices_from_arr(legal_option_indices,
+  //                               this.optiions);
+  // }
+  // -----------------------------------------------------------------------------------------------
+  pick(min_count = 1, max_count = min_count,
+       allow_if = undefined, forbid_if = undefined, each = id,
+       priority = null) {
+    if (!(typeof min_count === 'number'   && 
+          typeof max_count === 'number'   &&
+          typeof allow_if  === 'function' &&
+          typeof forbid_if === 'function' &&
+          typeof each      === 'function' &&
+          typeof priority  === 'string'))
+      throw new Error(`bad pick arge: ${inspect_fun(arguments)}`);
+
+    // if (! priority)
+    //   throw new Error("no priority");
+
+    if ((min_count > 1 || max_count > 1) && 
+        priority === picker_priority.avoid_repetition_short)
+      this.__clear_used_indices();
     
-    if (priority === picker_priority.avoid_repetition_long ||
-        priority === picker_priority.avoid_repetition_short) {
-      ret = this.used_indices.has(option_index) ? 0 : this.options[option_index].weight;
-    }
-    else if (priority === picker_priority.ensure_weighted_distribution) {
-      ret = this.options[option_index].weight - (this.used_indices.get(option_index) ?? 0);
-    }
-    else if (priority === picker_priority.true_randomness) {
-      ret = this.options[option_index].weight;
-    }
-    else {
-      throw Error("unexpected priority");
-    }
+    if (log_picker_enabled)
+      lm.log(`PICK ${min_count}-${max_count}`);
+    
+    const count = Math.floor(Math.random() * (max_count - min_count + 1)) + min_count;
+    const res = [];
+    
+    for (let ix = 0; ix < count; ix++)
+      res.push(each(this.#pick_one(allow_if, forbid_if, priority)));
 
     if (log_picker_enabled)
-      lm.log(`RET IS ${typeof ret} ${inspect_fun(ret)}`);
-    
-    return Math.max(0, ret);
-  };
+      lm.log(`PICKED ITEMS: ${inspect_fun(res)}`);
+
+    return res;
+  }
   // -----------------------------------------------------------------------------------------------
   #pick_one(allow_if, forbid_if, priority) {
     if (!(typeof allow_if  === 'function' &&
@@ -2787,8 +2816,8 @@ class WeightedPicker {
       lm.log(`LAST_PICK_INDEX = ${inspect_fun(this.last_pick_index)}`);
     }
     
-    if (! (priority && allow_if && forbid_if))
-      throw new Error(`missing arg: ${inspect_fun(arguments)}`);
+    // if (! (priority && allow_if && forbid_if))
+    //   throw new Error(`missing arg: ${inspect_fun(arguments)}`);
 
     if (log_picker_enabled) {
       lm.log(`PICK_ONE!`);
@@ -2923,7 +2952,8 @@ class WeightedPicker {
 const arr_is_prefix_of_arr = (() => {
   const PREFIX_WILDCARD_NOT_SUPPLIED = Symbol('prefix-wildcard-not-supplied-p');
 
-  return function(prefix_arr, full_arr, prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED) {
+  return function(prefix_arr, full_arr,
+                  { prefix_wildcard_value = PREFIX_WILDCARD_NOT_SUPPLIED } = {}) {
     if (prefix_arr.length > full_arr.length)
       return false;
 
@@ -2952,9 +2982,8 @@ function benchmark(thunk, {
   const start_time = performance.now();
 
   const fn = () => measure_time(() => {
-    for (let ix = 0; ix < reps_per_batch; ix++) {
+    for (let ix = 0; ix < reps_per_batch; ix++)
       result = thunk();
-    }
   });
   
   for (let oix = 0; oix < batch_count; oix++) {
@@ -3117,6 +3146,18 @@ function format_simple_time(date = new Date()) {
   });
 }
 // -------------------------------------------------------------------------------------------------
+// function get_indices_from_arr(indices, arr, { invert = true } = {}) {
+//   return indices.map(i => arr[i]);
+// }
+function get_indices_from_arr(indices, arr, { invert = false } = {}) {
+  if (invert) {
+    const index_set = new Set(indices);
+    return arr.filter((_, i) => !index_set.has(i));
+  } else {
+    return indices.map(i => arr[i]);
+  }
+}
+// -------------------------------------------------------------------------------------------------
 function indent_lines(indent, str, indent_str = "| ") {
   if (typeof str !== 'string')
     throw new Error(`not a string: ${inspect.fun(str)}`);
@@ -3168,6 +3209,23 @@ function is_plain_object(value) {
       value !== null &&
       Object.getPrototypeOf(value) === Object.prototype
   );
+}
+// -------------------------------------------------------------------------------------------------
+function suggest_closest(name, candidates) {
+  let closest = null;
+  let closest_distance = Infinity;
+
+  for (const cand of candidates) {
+    const dist = levenshtein(name, cand);
+    const allowed = Math.floor(Math.min(name.length, cand.length) * 0.4);
+
+    if (dist <= allowed && dist < closest_distance) {
+      closest = cand;
+      closest_distance = dist;
+    }
+  }
+
+  return closest ? ` Did you mean '${closest}'?` : '';
 }
 // -------------------------------------------------------------------------------------------------
 function levenshtein(a, b) {
@@ -3232,6 +3290,10 @@ function rjson_stringify(obj) {
     .replace(/},{/g, '}, {');
 }
 // -------------------------------------------------------------------------------------------------
+function Set_subtract(set, subtrahend_set) {
+  return new Set([...set].filter(x => !subtrahend_set.has(x)));
+}
+// ------------------------------------------------------------------------------------------------
 let smart_join_trap_counter  = 0;
 let smart_join_trap_target;
 // smart_join_trap_target = 5;
@@ -3241,14 +3303,14 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
       typeof correct_articles !== 'boolean')
     throw new Error(`bad smart_join args: ${inspect_fun(arguments)}`);
 
-  if (log_level__smart_join >= 1 || log_level__expand_and_walk >= 1)
+  if (log_level__smart_join >= 1)
     lm.log(`smart_joining ${thing_str_repr(arr, { length: Infinity})} ` +
            `(#${smart_join_trap_counter})`);
 
   const maybe_trap = () => {
     if (++smart_join_trap_counter === smart_join_trap_target)
       throw new Error(`SMART_JOIN TRAPPED`);
-  }
+  };
 
   maybe_trap();
   
@@ -3341,7 +3403,9 @@ function smart_join(arr, { correct_articles = undefined } = {}) {
   const maybe_correct_articles = () => {
     // correct article if needed:
     if (correct_articles) {
-      const article_match = left_word.match(/^([Aa]n?)$/);
+      // const article_match = left_word.match(/([Aa]n?)$/);
+      const article_match = left_word.match(/\b([Aa]n?)\b\s*$/);
+
       
       if (article_match) {
         const original_article = article_match[1];
@@ -3569,24 +3633,6 @@ if (test_structured_clone) {
   }
 }
 // -------------------------------------------------------------------------------------------------
-function suggest_closest(name, candidates) {
-  let closest = null;
-  let closest_distance = Infinity;
-
-  for (const cand of candidates) {
-    const dist = levenshtein(name, cand);
-    if (dist < closest_distance) {
-      closest = cand;
-      closest_distance = dist;
-    }
-  }
-
-  // If it's reasonably close (adjust threshold as needed)
-  return (closest && closest_distance <= 2)
-    ? `Did you mean '${closest}'?`
-    : '';
-}
-// -------------------------------------------------------------------------------------------------
 function thing_str_repr(thing, { length = thing_str_repr.abbrev_length,
                                  always_include_type_str = false } = {}) {
   // lm.log(`length: ${inspect_fun(length)}`);
@@ -3647,7 +3693,11 @@ function unescape(str) {
     .replace(/\\n/g,   '\n')
     .replace(/\\ /g,   ' ')
     .replace(/\\(.)/g, '$1')
-};
+}
+// -------------------------------------------------------------------------------------------------
+function warning_str(str) {
+  return `\\<WARNING: ${str}!>`;
+}
 // =================================================================================================
 // END OF MISCELLANEOUS HELPER FUNCTIONS SECTION.
 // =================================================================================================
@@ -3867,6 +3917,8 @@ const configuration_key_names = [
     expected_type: 'boolean',
     shorthands: [ "znp" ] },
 ];
+const known_configuration_key_names = new Set(configuration_key_names.map(x =>
+  [x.dt_name, x.automatic1111_name, ...(x.shorthands ?? [])]).flat(1).map(x => `%${x}`));
 // -------------------------------------------------------------------------------------------------
 function get_configuration_key_entry(preferred_needle_key, alternate_needle_key, needle_value) {
   if (log_name_lookups_enabled)
@@ -3975,14 +4027,16 @@ function get_next_context_id() {
 // -------------------------------------------------------------------------------------------------
 class Context {
   #configuration;
+  #picker_allow_fun;
+  #picker_forbid_fun;
   // -----------------------------------------------------------------------------------------------
   constructor({ 
     flags                        = [], 
     scalar_variables             = new Map(),
     named_wildcards              = new Map(),
     noisy                        = false,
-    files                        = [],
-    configuration                = {},
+    files                        = [], 
+    configuration                = {}, 
     top_file                     = true,
     pick_one_priority            = picker_priority.ensure_weighted_distribution,
     pick_multiple_priority       = picker_priority.avoid_repetition_long,
@@ -4004,9 +4058,41 @@ class Context {
     this.pick_multiple_priority       = pick_multiple_priority;
     this.prior_pick_multiple_priority = prior_pick_multiple_priority;
     this.in_lora                      = in_lora;
-    
+
     if (dt_hosted && !this.flag_is_set(["dt_hosted"]))
       this.set_flag(["dt_hosted"]);
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_allow_fun() {
+    this.#picker_allow_fun ??=  option => {
+      for (const check_flag of option.check_flags) {
+        let found = false;
+        
+        for (const flag of check_flag.flags) 
+          if (this.flag_is_set(flag)) {
+            found = true;
+            break;
+          }
+        
+        if (!found)
+          return false;
+      }
+
+      return true;
+    };
+    
+    return this.#picker_allow_fun;
+  }
+  // -----------------------------------------------------------------------------------------------
+  get picker_forbid_fun() {
+    this.#picker_forbid_fun ??= option => {
+      for (const not_flag of option.not_flags)
+        if (this.flag_is_set(not_flag.flag))
+          return true;
+      return false;
+    };
+
+    return this.#picker_forbid_fun;
   }
   // -----------------------------------------------------------------------------------------------
   clone(obj = {}) {
@@ -4014,15 +4100,15 @@ class Context {
     
     const copy = new Context({
       flags:                        structured_clone(this.flags),
-      scalar_variables:             new Map(this.scalar_variables), // slightly shared
-      named_wildcards:              new Map(this.named_wildcards),  // slightly shared
+      scalar_variables:             new Map(this.scalar_variables), 
+      named_wildcards:              new Map(this.named_wildcards),  // some sharing
       noisy:                        this.noisy,
       files:                        structured_clone(this.files),
-      configuration:                this.configuration, 
+      configuration:                this.configuration,  // constructer calls settar that copies for us automatically
       top_file:                     this.top_file,
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
-      pick_multiple_priority:       this.pick_multiple_priority,      
+      pick_multiple_priority:       this.pick_multiple_priority,
       prior_pick_multiple_priority: this.pick_multiple_priority,
     });
 
@@ -4048,12 +4134,13 @@ class Context {
       pick_one_priority:            this.pick_one_priority,
       prior_pick_one_priority:      this.prior_pick_one_priority,
       pick_multiple_priority:       this.pick_multiple_priority,
-      prior_pick_multiple_priority: this.pick_multiple_priority,      
+      prior_pick_multiple_priority: this.prior_pick_multiple_priority,      
       negative_prompt:              this.negative_prompt,
     });
 
-    // avoid copying this by assigning to #configuration instead of using
-    // configuration argument to constructor:
+    // avoid copying this by assigning to '#configuration' instead of using
+    // configuration argument to constructor (which would use the 'set configuration' setter (which
+    // would ccopy it)
     copy.#configuration = this.configuration;
 
     Object.assign(copy, obj);
@@ -4089,80 +4176,48 @@ class Context {
   }
   // -------------------------------------------------------------------------------------------------
   flag_is_set(test_flag) {
-    let res = false;
-
-    for (const flag of this.flags) {
-      if (arr_is_prefix_of_arr(test_flag, flag, '*')) {
-        res = true;
-        break;
-      }
-    }
-    
-    return res;
+    return this.flags.some(existing_flag => arr_is_prefix_of_arr(test_flag, existing_flag,
+                                                                 { prefix_wildcard_value: '*' }));
   }
   // -----------------------------------------------------------------------------------------------
   set_flag(new_flag, replace_existing = true) {
     // skip already set flags:
-    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag))) {
-      // if (log_flags_enabled)
-      //   lm.log(`skipping, already set`);
+    if (this.flags.some(existing_flag => arr_is_prefix_of_arr(new_flag, existing_flag)))
       return;
-    }
     
     if (log_flags_enabled) 
       lm.log(`adding ${compress(inspect_fun(new_flag))} to flags ` +
              `${abbreviate(compress(inspect_fun(this.flags)))}`);
 
-    //if (replace_existing)
-    {
-      const new_flag_head = new_flag.slice(0, -1);
-
-      this.flags = this.flags.filter(existing_flag => {
-        if (arr_is_prefix_of_arr(existing_flag, new_flag)) {
-          // if (log_flags_enabled)
-          //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a prefix of ` +
-          //          `new flag ${compress(inspect_fun(new_flag))}`);
-          return false;
-        }
-
-        if (replace_existing)
-          if (new_flag_head.length != 0 &&
-              arr_is_prefix_of_arr(new_flag_head, existing_flag)) {
-            // if (log_flags_enabled)
-            //   lm.log(`discard ${inspect_fun(existing_flag)} because it is a child of ` +
-            //          `new flag's head ${compress(inspect_fun(new_flag_head))}`);
-            return false; 
-          }
-        
-        return true;
-      });
-    }
+    if (replace_existing)
+      this.flags = this.flags.filter(existing_flag => existing_flag[0] !== new_flag[0]);
 
     this.flags.push(new_flag);
   }
   // -----------------------------------------------------------------------------------------------
-  unset_flag(flag) {
+  unset_flag(unset_flag) {
     // if (log_flags_enabled)
-    //   lm.log(`BEFORE UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
+    //   lm.log(`BEFORE UNSET ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
     
-    this.flags = this.flags.filter(f => ! arr_is_prefix_of_arr(flag, f));
+    this.flags = this.flags.filter(existing_flag => !arr_is_prefix_of_arr(unset_flag,
+                                                                          existing_flag));
 
     // if (log_flags_enabled)
     //   lm.log(`AFTER  UNSETTING ${inspect_fun(flag)}: ${inspect_fun(this.flags)}`);
   }
   // -----------------------------------------------------------------------------------------------
-  reset_temporaries() {
+  reset_variables() {
     this.flags = [];
     this.scalar_variables = new Map();
-
-    for (const [name, nwc] of this.named_wildcards) {
+    this.named_wildcards = new Map();
+    
+    for (const [name, nwc] of this.named_wildcards)
       if (nwc instanceof ASTLatchedNamedWildcard) {
         // lm.log(`unlatching @${name} ${abbreviate(nwc.original_value.toString())} during reset`);
         this.named_wildcards.set(name, nwc.original_value);
       } /* else {
            lm.log(`NOT unlatching @${name} ${abbreviate(nwc.toString())} during reset`);
            } */
-    }
   }
   // -------------------------------------------------------------------------------------------------
   munge_configuration() {
@@ -4287,13 +4342,12 @@ class Context {
 // HELPER FUNCTIONS/VARS FOR DEALING WITH THE PRELUDE.
 // =================================================================================================
 const prelude_text = `
-@__set_gender_if_unset  = { unsafe // just to make forcing an option a little terser:
-                            {?female #gender.female 
-                            |?male   #gender.male
-                            |?neuter #gender.neuter    }
-                            {3 !gender.#female #female
-                            |2 !gender.#male   #male
-                            |1 !gender.#neuter #neuter } } 
+@__set_gender_if_unset  = {  ?female           #gender.female 
+                          |  ?male             #gender.male
+                          |  ?neuter           #gender.neuter 
+                          |3 !gender.#female   #female
+                          |2 !gender.#male     #male
+                          |1 !gender.#neuter   #neuter }
 @gender                 = {@__set_gender_if_unset
                            {?gender.female woman
                            |?gender.male   man
@@ -4391,24 +4445,24 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_1_to_1_os6 =
-{ %w    = 512;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
-  %hrf = false;
+@xl_magic_small_2_to_3 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;
+  %tw   = 768;  %th   = 1024;
+  %nw   = 1344; %nh   = 1792;
+  %hrf  = false;
   #xl_magic_size.small
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 512,
-// "height": 512,
+// "height": 768,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4437,70 +4491,24 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_3_to_2_os6 =
-{ %w    = 768;  %h    = 512;   
-  %ow   = 768;  %oh   = 576;   
-  %tw   = 1536; %th   = 1152;  
-  %nw   = 1792; %nh   = 1344;  
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 512,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_2_to_3 =
-{ %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;
-  %tw   = 768;  %th   = 1024;
-  %nw   = 1344; %nh   = 1792;
-  %hrf  = false;
+@xl_magic_small_3_to_4 =
+{ %w   = 576;  %h     = 768;    
+  %ow  = 576;  %oh    = 768;
+  %tw  = 768; %th    = 1024;
+  %nw  = 1344; %nh    = 1792;
+  %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
+  #xl_magic_aspect_ratio.3.4
   #xl_magic_object_scaling.4
 }
 // {
-// "width": 512,
+// "width": 576,
 // "height": 768,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_2_to_3_os6 =
-{ %w    = 512;  %h    = 768;   
-  %ow   = 576;  %oh   = 768;
-  %tw   = 1152; %th   = 1536;
-  %nw   = 1344; %nh   = 1792;
-  %hrf  = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 512,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4529,70 +4537,24 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_4_to_3_os6 = 
-{ %w   = 768;  %h     = 576;    
-  %ow  = 768;  %oh    = 576;    
-  %tw  = 1536; %th    = 1152;   
-  %nw  = 1792; %nh    = 1344;   
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.4.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 768,
-// "height": 576,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_4 =
-{ %w   = 576;  %h     = 768;    
+@xl_magic_small_9_to_16 =
+{ %w   = 576;  %h     = 1024;   
   %ow  = 576;  %oh    = 768;
-  %tw  = 768; %th    = 1024;
+  %tw  = 768;  %th    = 1024;
   %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
+  #xl_magic_aspect_ratio.9.16
   #xl_magic_object_scaling.4
 }
 // {
 // "width": 576,
-// "height": 768,
+// "height": 1024,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
 // "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_small_3_to_4_os6 = 
-{ %w   = 576;  %h     = 768;    
-  %ow  = 576;  %oh    = 768;
-  %tw  = 1152; %th    = 1536;
-  %nw  = 1344; %nh    = 1792;
-  %hrf = false;
-  #xl_magic_size.small
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.3.4
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 576,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
+// "targetImageHeigh": 768,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4621,20 +4583,20 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_16_to_9_os6 = 
-{ %w   = 1024;  %h    = 576;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
+@xl_magic_small_1_to_1_os6 =
+{ %w    = 512;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
   %hrf = false;
   #xl_magic_size.small
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
   #xl_magic_object_scaling.6
 }
 // {
-// "width": 1024,
-// "height": 576,
+// "width": 512,
+// "height": 512,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
 // "targetImageWidth": 1536,
@@ -4644,23 +4606,93 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_small_9_to_16 =
-{ %w   = 576;  %h     = 1024;   
+@xl_magic_small_2_to_3_os6 =
+{ %w    = 512;  %h    = 768;   
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 512,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_2_os6 =
+{ %w    = 768;  %h    = 512;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 512,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_3_to_4_os6 = 
+{ %w   = 576;  %h     = 768;    
   %ow  = 576;  %oh    = 768;
-  %tw  = 768;  %th    = 1024;
+  %tw  = 1152; %th    = 1536;
   %nw  = 1344; %nh    = 1792;
   %hrf = false;
   #xl_magic_size.small
   #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
 }
 // {
 // "width": 576,
-// "height": 1024,
+// "height": 768,
 // "originalImageWidth": 768,
 // "originalImageHeight": 576,
-// "targetImageWidth": 1024,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_small_4_to_3_os6 = 
+{ %w   = 768;  %h     = 576;    
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4689,6 +4721,355 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
+@xl_magic_small_16_to_9_os6 = 
+{ %w   = 1024;  %h    = 576;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.small
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1024,
+// "height": 576,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+// -------------------------------------------------------------------------------------------------
+// smallish: (original)
+// -------------------------------------------------------------------------------------------------
+
+@xl_magic_smallish_1_to_1 =
+{ %h   = 768;   %w    = 768; 
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.square
+  #xl_magic.aspect_ratio.1.1
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 768, 
+// "height": 768, 
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_2_to_3 =
+{ %w   = 704;   %h    = 1024;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 704, 
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHei
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_3_to_2 =
+{ %w   = 1024;  %h    = 704;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 1024,
+// "height": 704,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_3_to_4 =
+{ %w   = 768;   %h    = 960;  
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 768,
+// "height": 960,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_4_to_3 =
+{ %w    = 960;  %h    = 768;    
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 960, 
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_9_to_16 =
+{ %w   = 704;   %h    = 1216;
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 704,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_16_to_9 =
+{ %w   = 1216;  %h    = 704;
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 1216,
+// "height": 704,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_1_to_1_os6 =
+{ %w    = 768;  %h    = 768;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_2_to_3_os6 =
+{ %w    = 704;  %h    = 1024;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrf  = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 704,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_3_to_2_os6 =
+{ %w    = 1024; %h    = 704;   
+  %ow   = 768;  %oh   = 576;   
+  %tw   = 1536; %th   = 1152;  
+  %nw   = 1792; %nh   = 1344;  
+  %hrf  = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1024,
+// "height": 704,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_3_to_4_os6 = 
+{ %w   = 768;  %h     = 960;
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 768,
+// "height": 960,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_4_to_3_os6 = 
+{ %w   = 960;  %h     = 768;
+  %ow  = 768;  %oh    = 576;    
+  %tw  = 1536; %th    = 1152;   
+  %nw  = 1792; %nh    = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 960,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_9_to_16_os6 = 
+{ %w   = 704;  %h     = 1216;
+  %ow  = 576;  %oh    = 768;
+  %tw  = 1152; %th    = 1536;
+  %nw  = 1344; %nh    = 1792;
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 704,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_smallish_16_to_9_os6 = 
+{ %w   = 1216;  %h    = 704;
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.smallish
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1216,
+// "height": 704,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
 // -------------------------------------------------------------------------------------------------
 // medium:
 // -------------------------------------------------------------------------------------------------
@@ -4699,8 +5080,10 @@ const prelude_text = `
   %tw  = 1024;  %th   = 768;    
   %nw  = 1792;  %nh   = 1344;   
   %hrf = false;
-  #xl_magic.aspect_ratio_1_to_1
   #xl_magic_size.medium
+  #xl_magic_orientation.square
+  #xl_magic.aspect_ratio.1.1
+  #xl_magic_object_scaling.4
 }
 // {
 // "width": 1024,
@@ -4709,29 +5092,6 @@ const prelude_text = `
 // "originalImageHeight": 576,
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_1_to_1_os6 =
-{ %h   = 1024;  %w    = 1024;   
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.square
-  #xl_magic_aspect_ratio.1.1
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1024,
-// "height": 1024,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4756,29 +5116,7 @@ const prelude_text = `
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHei// "hiresFix": false
-// }
-
-@xl_magic_medium_2_to_3_os6 =
-{ %w   = 832;   %h    = 1216;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 1152;  %th   = 1536;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.2.3
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 832,
-// "height": 1216,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
+// "negativeOriginalImageHei
 // "hiresFix": false
 // }
 
@@ -4800,29 +5138,6 @@ const prelude_text = `
 // "originalImageHeight": 576,
 // "targetImageWidth": 1024,
 // "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_3_to_2_os6 =
-{ %w   = 1216;  %h    = 832; 
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1536;  %th   = 1152;   
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.6
-}
-// {
-// "width": 1216,
-// "height": 832,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1536,
-// "targetImageHeight": 1152,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -4874,6 +5189,121 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
+@xl_magic_medium_9_to_16 =
+{ %w   = 768;   %h    = 1344;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 768;   %th   = 1024;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 768,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_16_to_9 =
+{ %w   = 1344;  %h    = 768;    
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1024;  %th   = 768;    
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+// {
+// "width": 1344,
+// "height": 768,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1024,
+// "targetImageHeight": 768,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_1_to_1_os6 =
+{ %h   = 1024;  %w    = 1024;   
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1024,
+// "height": 1024,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_2_to_3_os6 =
+{ %w   = 832;   %h    = 1216;   
+  %ow  = 576;   %oh   = 768;
+  %tw  = 1152;  %th   = 1536;
+  %nw  = 1344;  %nh   = 1792;
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 832,
+// "height": 1216,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
+@xl_magic_medium_3_to_2_os6 =
+{ %w   = 1216;  %h    = 832; 
+  %ow  = 768;   %oh   = 576;    
+  %tw  = 1536;  %th   = 1152;   
+  %nw  = 1792;  %nh   = 1344;   
+  %hrf = false;
+  #xl_magic_size.medium
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// {
+// "width": 1216,
+// "height": 832,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": false
+// }
+
 @xl_magic_medium_4_to_3_os6 =
 { %w    = 1152; %h    = 896;     
   %ow   = 768;  %oh   = 576;    
@@ -4920,29 +5350,6 @@ const prelude_text = `
 // "hiresFix": false
 // }
 
-@xl_magic_medium_9_to_16 =
-{ %w   = 768;   %h    = 1344;   
-  %ow  = 576;   %oh   = 768;
-  %tw  = 768;   %th   = 1024;
-  %nw  = 1344;  %nh   = 1792;
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.portrait
-  #xl_magic_aspect_ratio.9.16
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 768,
-// "height": 1344,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
 @xl_magic_medium_9_to_16_os6 = 
 { %w   = 768;   %h    = 1344;   
   %ow  = 576;   %oh   = 768;
@@ -4961,29 +5368,6 @@ const prelude_text = `
 // "originalImageHeight": 576,
 // "targetImageWidth": 1536,
 // "targetImageHeight": 1152,
-// "negativeOriginalImageWidth": 1792,
-// "negativeOriginalImageHeight": 1344,
-// "hiresFix": false
-// }
-
-@xl_magic_medium_16_to_9 =
-{ %w   = 1344;  %h    = 768;    
-  %ow  = 768;   %oh   = 576;    
-  %tw  = 1024;  %th   = 768;    
-  %nw  = 1792;  %nh   = 1344;   
-  %hrf = false;
-  #xl_magic_size.medium
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-// {
-// "width": 1344,
-// "height": 768,
-// "originalImageWidth": 768,
-// "originalImageHeight": 576,
-// "targetImageWidth": 1024,
-// "targetImageHeight": 768,
 // "negativeOriginalImageWidth": 1792,
 // "negativeOriginalImageHeight": 1344,
 // "hiresFix": false
@@ -5030,20 +5414,6 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_3_to_2 =
-{ %w    = 1920; %h    = 1280;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 768;  %hrfh = 512;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.3.2
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_large_2_to_3 =
 { %w    = 1280; %h    = 1920;   
   %ow   = 576;  %oh   = 768;    
@@ -5055,6 +5425,20 @@ const prelude_text = `
   #xl_magic_size.large
   #xl_magic_orientation.portrait
   #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_3_to_2 =
+{ %w    = 1920; %h    = 1280;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
   #xl_magic_object_scaling.4
 }
 
@@ -5086,20 +5470,6 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
-@xl_magic_large_16_to_9 =
-{ %w    = 2048; %h    = 1152;   
-  %ow   = 768;  %oh   = 576;    
-  %tw   = 1024; %th   = 768;    
-  %nw   = 1792; %nh   = 1344;   
-  %hrfw = 1024; %hrfh = 576;
-  %hrf  = true;
-  %hrf_strength = 0.6;
-  #xl_magic_size.large
-  #xl_magic_orientation.landscape
-  #xl_magic_aspect_ratio.16.9
-  #xl_magic_object_scaling.4
-}
-
 @xl_magic_large_9_to_16 =
 { %w    = 1152; %h    = 2048;   
   %ow   = 576;  %oh   = 768;    
@@ -5114,58 +5484,306 @@ const prelude_text = `
   #xl_magic_object_scaling.4
 }
 
+@xl_magic_large_16_to_9 =
+{ %w    = 2048; %h    = 1152;   
+  %ow   = 768;  %oh   = 576;    
+  %tw   = 1024; %th   = 768;    
+  %nw   = 1792; %nh   = 1344;   
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.4
+}
+
+@xl_magic_large_1_to_1_os6 =
+{ %w    = 1536; %h    = 1536;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 512;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.square
+  #xl_magic_aspect_ratio.1.1
+  #xl_magic_object_scaling.6
+}
+// 1:1 os6
+// {
+// "width": 1536,
+// "height": 1536,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_2_to_3_os6 =
+{ %w    = 1280; %h    = 1920;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 512;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.2.3
+  #xl_magic_object_scaling.6
+}
+// 2:3 os6
+// {
+// "width": 1280,
+// "height": 1920,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 512,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_3_to_2_os6 =
+{ %w    = 1920; %h    = 1280;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 512;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.3.2
+  #xl_magic_object_scaling.6
+}
+// 3:2 os6
+// {
+// "width": 1920,
+// "height": 1280,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 512,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_3_to_4_os6 =
+{ %w    = 1344; %h    = 1796;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 768;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.3.4
+  #xl_magic_object_scaling.6
+}
+// 3:4 os6
+// {
+// "width": 1344,
+// "height": 1796,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 768,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_4_to_3_os6 = 
+{ %w    = 1792; %h    = 1344;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 768;  %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscale
+  #xl_magic_aspect_ratio.4.3
+  #xl_magic_object_scaling.6
+
+}
+// {
+// "width": 1792,
+// "height": 1344,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 768,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_9_to_16_os6 =
+{ %w    = 1152; %h    = 2048;
+  %ow   = 576;  %oh   = 768;
+  %tw   = 1152; %th   = 1536;
+  %nw   = 1344; %nh   = 1792;
+  %hrfw = 576;  %hrfh = 1024;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.portrait
+  #xl_magic_aspect_ratio.9.16
+  #xl_magic_object_scaling.6
+}
+// 9:16 os6
+// {
+// "width": 1152,
+// "height": 2048,
+// "originalImageWidth": 576,
+// "originalImageHeight": 768,
+// "targetImageWidth": 1152,
+// "targetImageHeight": 1536,
+// "negativeOriginalImageWidth": 1344,
+// "negativeOriginalImageHeight": 1792,
+// "hiresFix": true,
+// "hiresFixWidth": 576,
+// "hiresFixHeight": 1024,
+// "hiresFixStrength": 0.6
+// }
+
+@xl_magic_large_16_to_9_os6 =
+{ %w    = 2048; %h    = 1152;
+  %ow   = 768;  %oh   = 576;
+  %tw   = 1536; %th   = 1152;
+  %nw   = 1792; %nh   = 1344;
+  %hrfw = 1024; %hrfh = 576;
+  %hrf  = true;
+  %hrf_strength = 0.6;
+  #xl_magic_size.large
+  #xl_magic_orientation.landscape
+  #xl_magic_aspect_ratio.16.9
+  #xl_magic_object_scaling.6
+}
+// 16:9 os6
+// {
+// "width": 2048,
+// "height": 1152,
+// "originalImageWidth": 768,
+// "originalImageHeight": 576,
+// "targetImageWidth": 1536,
+// "targetImageHeight": 1152,
+// "negativeOriginalImageWidth": 1792,
+// "negativeOriginalImageHeight": 1344,
+// "hiresFix": true,
+// "hiresFixWidth": 1024,
+// "hiresFixHeight": 576,
+// "hiresFixStrength": 0.6
+// }
+
+
 // --------------------------------------------------------------------------------------------------
 // pickers:
 // -------------------------------------------------------------------------------------------------
 
 @xl_magic_small_random =
 { @xl_magic_small_1_to_1
-| @xl_magic_small_2_to_3
-| @xl_magic_small_3_to_2
-| @xl_magic_small_3_to_4
-| @xl_magic_small_4_to_3
-| @xl_magic_small_9_to_16
-| @xl_magic_small_16_to_9
+  | @xl_magic_small_2_to_3
+  | @xl_magic_small_3_to_2
+  | @xl_magic_small_3_to_4
+  | @xl_magic_small_4_to_3
+  | @xl_magic_small_9_to_16
+  | @xl_magic_small_16_to_9
 }
 
 @xl_magic_small_random_os6 = 
 { @xl_magic_small_1_to_1_os6
-| @xl_magic_small_2_to_3_os6
-| @xl_magic_small_3_to_2_os6
-| @xl_magic_small_3_to_4_os6
-| @xl_magic_small_4_to_3_os6
-| @xl_magic_small_9_to_16_os6
-| @xl_magic_small_16_to_9_os6
+  | @xl_magic_small_2_to_3_os6
+  | @xl_magic_small_3_to_2_os6
+  | @xl_magic_small_3_to_4_os6
+  | @xl_magic_small_4_to_3_os6
+  | @xl_magic_small_9_to_16_os6
+  | @xl_magic_small_16_to_9_os6
+}
+
+@xl_magic_smallish_random =
+{ @xl_magic_smallish_1_to_1
+  | @xl_magic_smallish_2_to_3
+  | @xl_magic_smallish_3_to_2
+  | @xl_magic_smallish_3_to_4
+  | @xl_magic_smallish_4_to_3
+  | @xl_magic_smallish_9_to_16
+  | @xl_magic_smallish_16_to_9
+}
+
+@xl_magic_smallish_random_os6 = 
+{ @xl_magic_smallish_1_to_1_os6
+  | @xl_magic_smallish_2_to_3_os6
+  | @xl_magic_smallish_3_to_2_os6
+  | @xl_magic_smallish_3_to_4_os6
+  | @xl_magic_smallish_4_to_3_os6
+  | @xl_magic_smallish_9_to_16_os6
+  | @xl_magic_smallish_16_to_9_os6
 }
 
 @xl_magic_medium_random =
 { @xl_magic_medium_1_to_1
-| @xl_magic_medium_2_to_3
-| @xl_magic_medium_3_to_2
-| @xl_magic_medium_3_to_4
-| @xl_magic_medium_4_to_3
-| @xl_magic_medium_9_to_16
-| @xl_magic_medium_16_to_9
+  | @xl_magic_medium_2_to_3
+  | @xl_magic_medium_3_to_2
+  | @xl_magic_medium_3_to_4
+  | @xl_magic_medium_4_to_3
+  | @xl_magic_medium_9_to_16
+  | @xl_magic_medium_16_to_9
 }
 
 @xl_magic_medium_random_os6 =
 { @xl_magic_medium_1_to_1_os6
-| @xl_magic_medium_2_to_3_os6
-| @xl_magic_medium_3_to_2_os6
-| @xl_magic_medium_3_to_4_os6
-| @xl_magic_medium_4_to_3_os6
-| @xl_magic_medium_9_to_16_os6
-| @xl_magic_medium_16_to_9_os6
+  | @xl_magic_medium_2_to_3_os6
+  | @xl_magic_medium_3_to_2_os6
+  | @xl_magic_medium_3_to_4_os6
+  | @xl_magic_medium_4_to_3_os6
+  | @xl_magic_medium_9_to_16_os6
+  | @xl_magic_medium_16_to_9_os6
 }
 
 @xl_magic_large_random =
 { @xl_magic_large_1_to_1
-| @xl_magic_large_2_to_3
-| @xl_magic_large_3_to_2
-| @xl_magic_large_3_to_4
-| @xl_magic_large_4_to_3
-| @xl_magic_large_9_to_16
-| @xl_magic_large_16_to_9
+  | @xl_magic_large_2_to_3
+  | @xl_magic_large_3_to_2
+  | @xl_magic_large_3_to_4
+  | @xl_magic_large_4_to_3
+  | @xl_magic_large_9_to_16
+  | @xl_magic_large_16_to_9
+}
+
+@xl_magic_large_random_os6 =
+{ @xl_magic_large_1_to_1_os6
+  | @xl_magic_large_2_to_3_os6
+  | @xl_magic_large_3_to_2_os6
+  | @xl_magic_large_3_to_4_os6
+  | @xl_magic_large_4_to_3_os6
+  | @xl_magic_large_9_to_16_os6
+  | @xl_magic_large_16_to_9_os6
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -5174,7 +5792,8 @@ const prelude_text = `
 //--------------------------------------------------------------------------------------------------
 
 @__set_wizards_artists_artist_if_unset =
-{ !wizards_artist.#zacharias_martin_aagaard
+{0
+| !wizards_artist.#zacharias_martin_aagaard
 | !wizards_artist.#slim_aarons
 | !wizards_artist.#elenore_abbott
 | !wizards_artist.#tomma_abts
@@ -8429,18 +9048,16 @@ function load_prelude(into_context = new Context()) {
       log_match_enabled = old_log_match_enabled;
     }
 
-    // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
-    const ignored = expand_wildcards(prelude_parse_result.value, into_context,
-                                     { correct_articles: true });
-    
-    log_flags_enabled = old_log_flags_enabled;
+    lm.indent(() => {
+      process_named_wildcard_definitions(prelude_parse_result.value, { context: into_context });
 
-    // log_flags_enabled = true;
-    
-    if (ignored === undefined)
-      throw new Error("crap");
+      // lm.log(`prelude AST:\n${inspect_fun(prelude_parse_result)}`);
+      const ignored = expand_wildcards(prelude_parse_result.value, into_context,
+                                       { correct_articles: true });
+      if (ignored === undefined)
+        throw new Error("crap");
 
-    // lm.log(`NWCS: ${inspect_fun(into_context.named_wildcards)}`);
+    });
   });
   
   if (log_loading_prelude) {
@@ -8448,6 +9065,43 @@ function load_prelude(into_context = new Context()) {
     if (rule_match_counter_enabled)
       lm.log(`MATCH_COUNT = ${format_pretty_number(Rule.match_counter)}`);
   }
+
+  function mark(thing, visited) {
+    if (!thing &&
+        visited instanceof Set) {
+      throw new Error(`bar mark args: ${inspect_fun(arguments)}`);
+    }
+
+    if (is_primitive(thing))
+      return;
+
+    if (visited.has(thing))
+      return;
+    
+    visited.add(thing);
+
+    // lm.log(`marking ${abbreviate(compress(inspect_fun(thing)))}`);
+
+    lm.indent(() => {
+      if (Array.isArray(thing)) {
+        for (const elem of thing.filget(x => !is.primitive(x)))
+          mark(elem, visited);
+      }
+      else if (thing instanceof ASTNode) {
+        thing.__provenance = 'prelude';
+        
+        for (const child of thing.direct_children())
+          mark(child, visited);
+      }
+      else {
+        throw new Error(`wat do? ` +
+                        `${abbreviate(comptess(inspect_fun(thing)))}`);
+      }
+    });
+  }
+
+  for (const nwc_awc of into_context.named_wildcards.values())
+    mark(nwc_awc, new Set());
   
   return into_context;
 }
@@ -8457,14 +9111,34 @@ function load_prelude(into_context = new Context()) {
 
 
 // =================================================================================================
+// LOCAL EXCEPTION TYPES:
+// =================================================================================================
+class WildcardsPlusError extends Error {
+  constructor(message) {
+    super(message);
+  }
+}
+// =================================================================================================
+// END OF LOCAL EXCEPTION TYPES.
+// =================================================================================================
+
+
+
+// =================================================================================================
 // THE MAIN AST WALKING FUNCTION THAT I'LL BE USING FOR THE SD PROMPT GRAMMAR'S OUTPUT:
 // =================================================================================================
 let expand_wildcards_trap_counter = 0; // not yet used
 // -------------------------------------------------------------------------------------------------
-function expand_wildcards(thing, context = new Context(), { correct_articles = true } = {}) {
-  if (thing            === undefined ||
-      context          === undefined ||
-      correct_articles === undefined)
+class FatalExpansionError extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+function expand_wildcards(thing, context, { correct_articles = true } = {}) {
+  if (thing === undefined           ||
+      !(context instanceof Context) || 
+      typeof correct_articles !== 'boolean')
     throw new Error(`bad expand_wildcards args: ${abbreviate(compress(inspect_fun(arguments)))}`);
   // -----------------------------------------------------------------------------------------------
   if (typeof thing === 'string') {
@@ -8472,31 +9146,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       lm.log(`nothing to expand in ${thing_str_repr(thing)} => ${thing_str_repr(thing)}`);
     return thing;
   }
-  // -----------------------------------------------------------------------------------------------
-  function picker_allow(option) {
-    for (const check_flag of option.check_flags) {
-      let found = false;
-      
-      for (const flag of check_flag.flags) {
-        if (context.flag_is_set(flag)) {
-          found = true;
-          break;
-        }
-      }
-      
-      if (!found)
-        return false;
-    }
-    
-    return true;
-  };
-  // -----------------------------------------------------------------------------------------------
-  function picker_forbid(option) {
-    for (const not_flag of option.not_flags)
-      if (context.flag_is_set(not_flag.flag))
-        return true;
-    return false;
-  };
   // -----------------------------------------------------------------------------------------------
   function picker_each(pick) {
     // lm.log(`pick => ${thing_str_repr(pick, { always_include_type_str: true })}`);
@@ -8510,10 +9159,6 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
       return ret;
     });
-  }
-  // -----------------------------------------------------------------------------------------------
-  function warning_str(str) {
-    return `\\<WARNING: ${str}!>`;
   }
   // -----------------------------------------------------------------------------------------------
   // const log = (guard_bool, msg, with_indentation = true) => { 
@@ -8606,13 +9251,10 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       // AnonWildcards:
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTAnonWildcard) {
-        // let str = smart_join(thing.pick(1, 1,
-        //                                 picker_allow, picker_forbid, picker_each, 
-        //                                 context.pick_one_priority)[0],
-        //                      { correct_articles: correct_articles })
-        
         let str = thing.pick(1, 1,
-                             picker_allow, picker_forbid, picker_each, 
+                             context.picker_allow_fun,
+                             context.picker_forbid_fun,
+                             picker_each, 
                              context.pick_one_priority)[0];
 
         if (log_level__expand_and_walk)
@@ -8650,9 +9292,11 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
                 ? context.pick_one_priority
                 : context.pick_multiple_priority;
           
-          res           = anon_wildcard.pick(thing.min_count, thing.max_count,
-                                             picker_allow, picker_forbid, picker_each, 
-                                             picker_priority);
+          res = anon_wildcard.pick(thing.min_count, thing.max_count,
+                                   context.picker_allow_fun,
+                                   context.picker_forbid_fun,
+                                   picker_each, 
+                                   picker_priority);
           
           if (log_level__expand_and_walk)
             lm.indent(() => lm.log(`picked items ${thing_str_repr(res)}`));
@@ -8780,15 +9424,15 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
       } 
       // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (context.named_wildcards.has(thing.name))
-          if (true)
-            lm.log(`WARNING: redefining named wildcard @${thing.name}, ` +
-                   `you may not have intended to do this, check your template!`,
-                   log_level__expand_and_walk);
+        // do nothing.
+        
+        // if (context.named_wildcards.has(thing.name))
+        //   throw new FatalExpansionError(`WARNING: redefining named wildcard @${thing.name}, ` +
+        //                                 `is not permitted!`);
 
-        context.named_wildcards.set(thing.name, thing.wildcard);
+        // context.named_wildcards.set(thing.name, thing.wildcard);
 
-        throw new ThrownReturn(''); // produce nothing
+        // throw new ThrownReturn(''); // produce nothing
       }
       // -------------------------------------------------------------------------------------------
       // internal objects:
@@ -9163,15 +9807,12 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
         if (file.endsWith('.ckpt')) {
           // do nothing 
         }
-        else if (file.endsWith('_lora_f16')) {
+        else if (file.endsWith('_lora_f16'))
           file = `${file}.ckpt`;
-        }
-        else if (file.endsWith('_lora')) {
+        else if (file.endsWith('_lora'))
           file = `${file}_f16.ckpt`;
-        }
-        else {
+        else
           file = `${file}_lora_f16.ckpt`;
-        }
 
         const weight = weight_match_result.value;
         
@@ -9235,72 +9876,142 @@ function expand_wildcards(thing, context = new Context(), { correct_articles = t
 
 
 // =================================================================================================
-// SEMANTICS AUDITING FUNCTION.
+// THE NEW PHASE 1 (PROCESS ASTNamedWildcardDefinitions) FUNCTION.
 // =================================================================================================
-const audit_semantics_modes = Object.freeze({
-  throw_error:       'error',
-  collect_warnings:  'warning', 
-  unsafe:            'unsafe',
-});
-// -------------------------------------------------------------------------------------------------
-function audit_semantics(root_ast_node,
-                         { base_context = null, 
-                           audit_semantics_mode = audit_semantics_modes.collect_warnings } = {}) {
-  if (root_ast_node === undefined)
-    throw new Error(`bad audit_semantics args: ` +
+function process_named_wildcard_definitions(root_ast_node, { context } ={}) {
+  if (!(Array.isArray(root_ast_node) &&
+        context instanceof Context))
+    throw new Error(`bad process_named_wildcard_definitions args: ` +
                     `${abbreviate(compress(inspect_fun(arguments)))}, ` +
                     `this likely indicates a programmer error`);
 
-  const visited = new Set();
-  const dummy_context = base_context
-        ? base_context.clone()
-        : new Context();
-
-  // -----------------------------------------------------------------------------------------------
-  function walk(thing, local_audit_semantics_mode, warnings_arr) {    
-    if (typeof local_audit_semantics_mode !== 'string' ||
-        !Array.isArray(warnings_arr))
-      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
-    // ---------------------------------------------------------------------------------------------
-    function walk_children(thing, mode, warnings_arr) {
-      if (typeof mode !== 'string')
-        throw new Error(`bad walk_children mode: ` +
-                        `${abbreviate(compress(inspect_fun(mode)))}`);
-
-      const children = thing.direct_children().filter(child => !is_primitive(child));
-
-      if (children?.length > 0)
-        walk(children, mode, warnings_arr);      
-    }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw(msg, warnings_arr) {
-      if (local_audit_semantics_mode instanceof Context)
-        throw new Error("got Context");
+  for (const thing of root_ast_node) {
+    if (thing instanceof ASTNamedWildcardDefinition) {
+      if (context.named_wildcards.has(thing.name))
+        throw new FatalProcessNamedWildcardDefinitions(`WARNING: redefining named wildcard @${thing.name}, ` +
+                                                       `is not permitted!`);
       
-      msg = `${local_audit_semantics_mode.toUpperCase()}: ${msg}`;
-
-      if (local_audit_semantics_mode == audit_semantics_mode.throw_error)
-        throw new Error(msg);
-      else if (local_audit_semantics_mode == audit_semantics_modes.collect_warnings)
-        warnings_arr.push(msg);
+      context.named_wildcards.set(thing.name, thing.wildcard);
+      if (log_level__process_named_wildcard_definitions >= 1)
+        lm.log(`defined @${thing.name}`);
     }
-    // ---------------------------------------------------------------------------------------------
-    function warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr) {
-      if (dummy_context.flag_is_set(flag) ||
-          local_audit_semantics_mode === audit_semantics_modes.unsafe)
-        return;
+  }
+}
+// -------------------------------------------------------------------------------------------------
+class FatalProcessNamedWildcardDefinitions extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// =================================================================================================
+// END OF THE NEW PHASE 1 FUNCTION.
+// =================================================================================================
 
-      const flag_str = flag.join(".").toLowerCase();
-      const known_flags = dummy_context.flags.map(f => f.join("."));
-      const suggestion = suggest_closest(flag_str, known_flags);
-      warn_or_throw(`flag '${flag_str}' is checked before it could possibly be set. ` +
-                    `Maybe this was intentional, but it could suggest that you may made have ` +
-                    `a typo or other error in your template.` +
-                    (suggestion
-                     ? ` ${suggestion}`
-                     : ''),
-                    warnings_arr);
+
+// =================================================================================================
+// SEMANTICS AUDITING FUNCTION.
+// =================================================================================================
+class FatalSemanticError extends WildcardsPlusError {
+  constructor(message) {
+    super(message);
+  }
+}
+// -------------------------------------------------------------------------------------------------
+const audit_semantics_modes = Object.freeze({
+  no_errors:   'no_errors',
+  throw_error: 'error',
+  warnings:    'warning',
+  // no_track:          'no_track',
+});
+// -------------------------------------------------------------------------------------------------
+function audit_semantics(root_ast_node,
+                         { base_context = null,
+                           audit_semantics_mode = audit_semantics_modes.warnings } = {}) {
+  if (!(Array.isArray(root_ast_node) &&
+        base_context instanceof Context &&
+        Object.values(audit_semantics_modes).includes(audit_semantics_mode)))
+    throw new Error(`bad audit_semantics args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw(about_thing, msg, mode) {
+    if (!(about_thing &&
+          typeof msg === 'string' &&
+          Object.values(audit_semantics_modes).includes(mode)))
+      throw new Error(`bad warn_or_throw args: ` +
+                      `${inspect_fun(arguments)}`);
+
+    if (about_thing.__provenance === 'prelude')
+      return;
+    
+    msg = `${mode.toUpperCase()}: ${msg}`;
+
+    if (mode === audit_semantics_modes.throw_error) {
+      throw new Error(msg);
     }
+    else if (mode === audit_semantics_modes.warnings) {
+      if (!warnings.has(about_thing)) {
+        if (log_level__audit >= 2)
+          lm.log(`PUSH WARNING '${msg}'`);
+        warnings.set(about_thing, msg);
+      }
+    }
+    else {
+      throw new Error(`what do?" ${inspect_fun(mode)}`);
+    }
+  }
+  // -----------------------------------------------------------------------------------------------
+  function warn_or_throw_unless_flag_could_be_set_by_now(about_thing, verb, flag, local_context, local_audit_semantics_mode, visited) {
+    if (!(about_thing &&
+          typeof verb == 'string' &&
+          Array.isArray(flag) &&
+          local_context instanceof Context &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+          visited instanceof Set))
+      throw new Error(`bad warn_or_throw_unless_flag_could_be_set_by_now args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+
+    // lm.log(`warn unless set ${inspect_fun(flag)}`);
+
+    if (local_context.flag_is_set(flag)) {
+      // if (log_level__audit >= 1)
+      //   lm.log(`flag ${flag} could be set by now`);
+      return;
+    }
+    
+    const flag_str = flag.join(".").toLowerCase();
+    // lm.log(`joined flag ${flag_str}`);
+    const known_flags = local_context.flags.map(f => f.join("."));
+    const suggestion = suggest_closest(flag_str, known_flags);
+    warn_or_throw(about_thing,
+                  `flag '${flag_str}' is ${verb} before it could possibly be set. ` +
+                  `Maybe this was intentional, but it could suggest that you may made have ` +
+                  `a typo or other error in your template.${suggestion}`,
+                  local_audit_semantics_mode);
+  }
+  // -----------------------------------------------------------------------------------------------
+  function walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) {
+    if (!(thing instanceof ASTNode &&
+          local_context instanceof Context && 
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+          typeof in_named_wildcard_reference == 'boolean' &&
+          visited instanceof Set))
+      throw new Error(`bad walk_children args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+    
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children.length > 0)
+      walk(children, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited); 
+  }
+  // ===============================================================================================
+  function walk(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited) { 
+    if (!(thing &&
+          local_context instanceof Context &&
+          Object.values(audit_semantics_modes).includes(local_audit_semantics_mode) &&
+          typeof in_named_wildcard_reference == 'boolean' &&
+          visited instanceof Set))
+      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
     // ---------------------------------------------------------------------------------------------
     if (is_primitive(thing))
       return;
@@ -9312,127 +10023,343 @@ function audit_semantics(root_ast_node,
       
       return;
     }
-    
-    visited.add(thing);
+
+    if (! // (thing instanceof ASTNamedWildcardReference ||
+        (thing instanceof ASTAnonWildcard && in_named_wildcard_reference)) { // ) {
+      visited.add(thing);
+    }
 
     if (log_level__audit >= 2)
-      lm.log(`audit semantics in ` +
-             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
-             `flags: ${abbreviate(compress(inspect_fun(dummy_context.flags)), 200)}`);
+      lm.log(
+        `(${local_audit_semantics_mode[0].toUpperCase()}) ` + 
+          `${in_named_wildcard_reference? 'speculatively ' : ''}audit semantics in ` +
+          `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}, ` +
+          `flags: ${compress(inspect_fun(local_context.flags))}`);
 
     lm.indent(() => {
-      // -------------------------------------------------------------------------------------------
+      // ===========================================================================================
       // typecases:
-      // -------------------------------------------------------------------------------------------
+      // ===========================================================================================
       if (Array.isArray(thing)) {
-        for (const elem of thing)
+        for (const elem of thing.filter(elem => !is_primitive(elem)))
           if (!is_primitive(elem))
-            walk(elem, local_audit_semantics_mode, warnings_arr)
+            walk(elem, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
         // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardDefinition) {
-        if (dummy_context.named_wildcards.has(thing.name))
-          warn_or_throw(`redefining named wildcard @${thing.name}, ` +
-                        `you may not have intended to do this, check your template!`,
-                        warnings_arr);
-
-        dummy_context.named_wildcards.set(thing.name, thing.wildcard);
+        // do nothing.
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNamedWildcardReference) {
-        const got = dummy_context.named_wildcards.get(thing.name);
+        const got = local_context.named_wildcards.get(thing.name);
         
-        if (!got) {
-          const known_names = Array.from(dummy_context.named_wildcards.keys());
-          const suggestion  = suggest_closest(thing.name, known_names);
-          warn_or_throw(`named wildcard @${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a typo or other error in your template. ` +
-                        `${suggestion}`,
-                        warnings_arr);
-        }
-        
-        // lm.indent(() =>
-        walk(got, audit_semantics_mode, warnings_arr)
-        // ); // don't propagate local_audit_semantics_mode
+        if (!got) 
+          throw new FatalSemanticError(`referenced undefined named wildcard @${thing.name}`);
+        else 
+          walk(got, local_context, local_audit_semantics_mode, true, visited); // start in_named_wildcard_reference
       }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTUpdateConfigurationBinary) {
+        if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
+          return;
+        
+        if (!known_configuration_key_names.has(`%${thing.key.toLowerCase()}`)) {
+          const suggestion = suggest_closest(thing.key, known_configuration_key_names);
+          const message = `'%${thing.key}' is an unknown configuration key. ` +
+                `we'll allow you to set it, ` +
+                `but doing so may produce unexpected results.${suggestion}`;
+          // lm.log(`MSG: ${message}`);
+          warn_or_throw(message, local_audit_semantics_mode);          
+        }
+        // else {
+        //   lm.log(`FOUND: ${thing.key}`);
+        // }
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTAnonWildcard) {
+        // if (thing.__no_reaudit)
+        //   return;
+        
+        const all_options = thing.picker.options.map(x => x.value);
+        const split_options = thing.picker
+              .split_options(local_context.picker_allow_fun,
+                             local_context.picker_forbid_fun);
+        const currently_legal_options =
+              split_options .legal_options.map(x => x.value);
+        const currently_illlegal_options =
+              split_options .legal_options.map(x => x.value);
+        
+        if (in_named_wildcard_reference) {
+          // to avoid infinite loops while performing the first pass, we'll use a copy of visited.
+          // then, for the second pass we'll switch back to the original to allow revisiting:
+          const visited_copy = new Set(visited);
+          
+          if (log_level__audit >= 1)
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
+          lm.indent(() => {
+            for (const option of currently_legal_options)
+              walk(option,
+                   local_context,
+                   // switch to no_errors mode: some things that would look sus during this pass might 
+                   // not look sus afterwards, f.e. { ?foo whatever | #foo }.
+                   audit_semantics_modes.no_errors, 
+                   true, // or maybe false? nah, i think this is corect... any children could also
+                   // get evaluated twice and so should be juded as_if_parralel, right?
+                   visited);
+          });
+
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS ON ALL OPTIONS TO CHECK ` +
+                   `SEMANTICS, MAY REVISIT SOME LATER:`);
+
+          if (thing.__provenance !== 'prelude')
+            lm.indent(() => {
+              for (const option of all_options)
+                walk(option,
+                     local_context.clone(),
+                     local_audit_semantics_mode,
+                     true, // false, // not 100% sure 'bout this yet but it seems to work.
+                     visited_copy);
+            });
+
+          // not sure how much this helps, but why not: 
+          if (all_options.every(x => visited.has(x)))
+            visited.add(thing);
+        }
+        else {
+          const visited_copy = new Set(visited);
+
+          if (log_level__audit >= 1)
+            lm.log(`${local_audit_semantics_mode.toUpperCase()} PASS TO CHECK SEMANTICS, MAY ` +
+                   `REVISIT SOME LATER:`);
+          lm.indent(() => {
+            for (const option of all_options)
+              walk(option,
+                   local_context.clone(),
+                   local_audit_semantics_mode,
+                   in_named_wildcard_reference,
+                   visited_copy); /* we'll need to revisit these some of these nodes in a non-cloned
+                                     context next, so we'll use a copy of visited.
+                                  */
+          });
+
+          if (log_level__audit >= 1)
+            lm.log(`NO_ERRORS PASS ON LEGAL OPTIONS TO TAKE SIDE EFFECTS:`);
+          lm.indent(() =>  {
+            for (const option of currently_legal_options)
+              walk(option,
+                   local_context,
+                   audit_semantics_modes.no_errors,
+                   in_named_wildcard_reference,
+                   visited);
+          });
+        }
+      }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarReference) {
-        if (!dummy_context.scalar_variables.has(thing.name)) {
-          const known_names = Array.from(dummy_context.scalar_variables.keys());
-          const suggestion = suggest_closest(thing.name, known_names);
-          warn_or_throw(`scalar variable $${thing.name} referenced before definition, ` +
-                        `this suggests that you may have a made typo or other error in your ` +
-                        `template. ${suggestion}`,
-                        warnings_arr);
+        if (local_audit_semantics_mode === audit_semantics_mode.no_errors)
+          return;
+
+        if (!local_context.scalar_variables.has(thing.name)) {
+          const known_names = Array.from(local_context.scalar_variables.keys().map(x => `$${x}`));
+          const suggestion = suggest_closest(`$${thing.name}`, known_names);
+          
+          scalars_referenced_before_init.push({ name: thing.name, suggestion });
         }
-        
-        const got = dummy_context.named_wildcards.get(thing.name);
-        
-        walk(got, local_audit_semantics_mode, warnings_arr);
-        // ^ propagate local_audit_semantics_mode
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTScalarAssignment) {
-        dummy_context.scalar_variables.set(thing.destination.name, "doesn't matter");
-        walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode
+        local_context.scalar_variables.set(thing.destination.name, "doesn't matter");
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTCheckFlags) {
         if (thing.consequently_set_flag_tail) {
           // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
+          local_context.set_flag([ ...thing.flags[0], ...thing.consequently_set_flag_tail ], false);
         }
-        else {
-          for (const flag of thing.flags) 
-            warn_or_throw_unless_flag_could_be_set_by_now(flag, warnings_arr);
+        else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors) {
+          for (const flag of thing.flags) {
+            // lm.log(`check ${inspect_fun(flag)}`);
+            warn_or_throw_unless_flag_could_be_set_by_now(`?${flag.join(".")}`, // thing,
+                                                          'checked',
+                                                          flag,
+                                                          local_context,
+                                                          local_audit_semantics_mode,
+                                                          visited);
+          }
         }
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNotFlag) {
         if (thing.consequently_set_flag_tail)
           // undecided on whether this case deserves a warning... for now, let's avoid one:
-          dummy_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
+          local_context.set_flag([ ...thing.flag, ...thing.consequently_set_flag_tail ], false);
         else if (thing.set_immediately) 
           // this case probably doesn't deserve a warning, avoid one:
-          dummy_context.set_flag(thing.flag, false);
-        else 
-          warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
+          local_context.set_flag(thing.flag, false);
+        else if (local_audit_semantics_mode !== audit_semantics_modes.no_errors)
+          warn_or_throw_unless_flag_could_be_set_by_now(thing,
+                                                        'checked',
+                                                        thing.flag,
+                                                        local_context,
+                                                        local_audit_semantics_mode,
+                                                        visited);
       }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTSetFlag) {
-        dummy_context.set_flag(thing.flag, false);
+        local_context.set_flag(thing.flag, false);
       } 
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTUnsetFlag) {
-        warn_or_throw_unless_flag_could_be_set_by_now(thing.flag, warnings_arr);
+        if (local_audit_semantics_mode === audit_semantics_modes.no_errors)
+          return;
+        warn_or_throw_unless_flag_could_be_set_by_now('unset',
+                                                      thing.flag,
+                                                      local_context,
+                                                      local_audit_semantics_mode,
+                                                      visited);
       }
-      else if (thing instanceof ASTAnonWildcard) {
-        const mode = thing.unsafe
-              ? audit_semantics_modes.unsafe
-              : local_audit_semantics_mode;
-        // ^ propagate local_audit_semantics_mode
-        
-        walk_children(thing, mode, warnings_arr);
-      }
-      else if (thing instanceof ASTAnonWildcardAlternative) {
-        walk_children(thing, local_audit_semantics_mode, warnings_arr);
-        // ^ propagate local_audit_semantics_mode
-      }
+      // -------------------------------------------------------------------------------------------
       else if (thing instanceof ASTNode) {
-        walk_children(thing, audit_semantics_mode, warnings_arr);
-        // ^ don't propagate local_audit_semantics_mode
+        walk_children(thing, local_context, local_audit_semantics_mode, in_named_wildcard_reference, visited);
       }
+      // -------------------------------------------------------------------------------------------
       else {
         throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
       }
     });
   }
-
-  const warnings =  [];
+  // ===============================================================================================
   
-  walk(root_ast_node, audit_semantics_mode, warnings);
+  const dummy_context                  = base_context.clone();
+  const warnings                       = new Map();
+  const scalars_referenced_before_init = [];
+  
+  walk(root_ast_node, dummy_context, audit_semantics_mode, false, new Set());
+  
+  for (const { name, suggestion } of scalars_referenced_before_init) {
+    const msg = (dummy_context.scalar_variables.has(name)
+                 ? `scalar variable '$${name}' is referenced before it could have been initialized `
+                 : `scalar variable '$${name}' is referenced but is never initialized `) +
+          `and so the reference will produce an empty string, ` +
+          `which may not be what you intended to do. ` +
+          `this could be intentional or it could ` +
+          `suggest that you may have a made typo or other error ` +
+          `in your template.${suggestion}`;
+    warn_or_throw(Symbol(msg), // just a unique dummy object
+                  msg,
+                  audit_semantics_mode); 
+    
+    if (!dummy_context.scalar_variables.has(name) &&
+        !base_context.scalar_variables.has(name))
+      base_context.scalar_variables.set(name, '');    
+  }
 
+  for (const name of dummy_context.scalar_variables.keys())
+    if (!base_context.scalar_variables.has(name))
+      base_context.scalar_variables.set(name, '');
+  
   if (log_level__audit >= 1)
     lm.log(`all flags: ${inspect_fun(dummy_context.flags)}`);
 
-  return warnings;
+  return Array.from(warnings.values());
 }
 // =================================================================================================
 // END OF THE SEMANTICS AUDITING FUNCTION.
+// =================================================================================================
+
+
+// =================================================================================================
+// THE NEW PHASE 3 (INITIALIZE SCALARS) FUNCTION.
+// =================================================================================================
+function phase3(root_ast_node, { context } = {}) { 
+  // throw new Error("trap 1");
+  
+  if (!(Array.isArray(root_ast_node) &&
+        context instanceof Context))
+    throw new Error(`bad phase3 args: ` +
+                    `${abbreviate(compress(inspect_fun(arguments)))}, ` +
+                    `this likely indicates a programmer error`);
+
+  // -----------------------------------------------------------------------------------------------
+  function walk_children(thing) {
+    if (!(thing instanceof ASTNode))
+      throw new Error(`bad walk_children args: ` +
+                      `${abbreviate(compress(inspect_fun(arguments)))}`);
+    
+    const children = thing.direct_children().filter(child => !is_primitive(child));
+
+    if (children.length > 0)
+      walk(children); 
+  }
+  // ===============================================================================================
+  function walk(thing) { 
+    if (!thing)
+      throw new Error(`bad walk args: ${inspect_fun(arguments)}`);
+
+    if (is_primitive(thing))
+      return;
+
+    if (visited.has(thing)) {
+      if (log_level__audit >= 2)
+        lm.log(`already phase3ed ` +
+               `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+      
+      return;
+    }
+
+    visited.add(thing);
+
+    if (log_level__phase3 >= 2)
+      lm.log(`do phase3 on ` +
+             `${compress(thing_str_repr(thing, { always_include_type_str: true, length: 200}))}`);
+
+    lm.indent(() => {
+      // ===========================================================================================
+      // typecases:
+      // ===========================================================================================
+      if (Array.isArray(thing)) {
+        for (const elem of thing.filter(elem => !is_primitive(elem)))
+          walk(elem);
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarReference) {
+        if (!context.scalar_variables.has(thing.name)) {
+          context.scalar_variables.set(thing.name, '');
+          if (log_level__phase3 >= 1)
+            lm.log(`${log_level__phase3 == 1 ? '  ' : ''}INITIALIZED $${thing.name} ` +
+                   `(from ref)`, log_level__phase3 >= 2);
+        }
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTScalarAssignment) {
+        if (!context.scalar_variables.has(thing.destination.name)) {
+          context.scalar_variables.set(thing.destination.name, '');
+          if (log_level__phase3 >= 1)
+            lm.log(`${log_level__phase3 == 1 ? '  ' : ''}INITIALIZED $${thing.destination.name} ` +
+                   `(from assign)`, log_level__phase3 >= 2);
+        }
+        walk_children(thing);
+      }
+      // -------------------------------------------------------------------------------------------
+      else if (thing instanceof ASTNode) {
+        walk_children(thing);
+      }
+      // -------------------------------------------------------------------------------------------
+      else {
+        throw new Error(`unrecognized thing: ${thing_str_repr(thing)}`);
+      }
+    });
+  }
+  // ===============================================================================================
+  const visited = new Set();
+  
+  walk(root_ast_node);
+}
+// =================================================================================================
+// END OF THE NEW PHASE 2 FUNCTION.
 // =================================================================================================
 
 
@@ -9714,13 +10641,12 @@ class ASTLatchedNamedWildcard extends ASTNode {
 // ASTAnonWildcard:
 // -------------------------------------------------------------------------------------------------
 class ASTAnonWildcard extends ASTNode {
-  constructor(options, { trailer = null, unsafe = false } = {}) {
+  constructor(options, { trailer = null } = {}) {
     super();
     this.picker = new WeightedPicker(options
                                      .filter(o => o.weight !== 0)
                                      .map(o => [o.weight, o]));
     this.trailer = trailer;
-    this.unsafe  = unsafe;
   }
   // -----------------------------------------------------------------------------------------------
   __direct_children() {
@@ -9733,9 +10659,6 @@ class ASTAnonWildcard extends ASTNode {
   // -----------------------------------------------------------------------------------------------
   toString() {
     let str = '';
-
-    if (this.unsafe)
-      str += "unsafe ";
     
     str += '{';
 
@@ -9973,8 +10896,10 @@ class ASTUINegPrompt extends ASTLeafNode {
 // =================================================================================================
 // structural_word_break and its helper combinators:
 // =================================================================================================
+const comment_beginning       = raw`\/\/|\/\*`;
 const structural_chars            = '{|}';
-const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$)`
+// const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|$|${comment_beginning})`
+const structural_word_break_ahead = r_raw`(?=[\s${structural_chars}]|${comment_beginning}|$)`
       .abbreviate_str_repr('structural_word_break_ahead');
 const structural_close_ahead      = r(/(?=\s*})/)
       .abbreviate_str_repr('structural_close_ahead');
@@ -10014,7 +10939,6 @@ const unexpected_punctuation_trailer = unexpected(punctuation_trailer)
 // =================================================================================================
 const syntax_chars            = raw`@#$%`;
 // const pseudo_structural_chars = raw`<\(\)\[\]`;
-const comment_beginning       = raw`\/\/|\/\*`;
 // -------------------------------------------------------------------------------------------------
 const make_plain_text_rule = (additional_excluded_chars = '') => {
   const plain_text_re_front_part =
@@ -10023,10 +10947,11 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
         raw  `(?:\\.|(?![\s${structural_chars}${additional_excluded_chars}]|${comment_beginning})\S)*?` +
         raw`)`;
 
-  const alternative_1 = plain_text_re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
-  const alternative_2 = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  const alternative_1  = plain_text_re_front_part + `?` + raw`(?:<+|[(\[]+)(?=[@$])`;
+  // const alternative_2  = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}]|$))`;
+  const alternative_2b = plain_text_re_front_part +       raw`(?:<+|(?=[\s${structural_chars}${additional_excluded_chars}]|$))`;
 
-  const plain_text_re_src = alternative_1 + `|`  + alternative_2;
+  const plain_text_re_src = alternative_1 + `|`  + alternative_2b;
 
   // lm.log(`RE: ${plain_text_re_src}`);
 
@@ -10036,13 +10961,13 @@ const make_plain_text_rule = (additional_excluded_chars = '') => {
                .replace(/<+$/,    '<')
                .replace(/\\n/g,   '\n')
                .replace(/\\ /g,   ' ')
-               .replace(/\\([^<])/g, '$1'));
+               .replace(/\\([^<])/g, '$1')); // unescape any other backslash escaped chars except \<
 };
 // -------------------------------------------------------------------------------------------------
-const plain_text           = make_plain_text_rule()
-      .abbreviate_str_repr('plain_text');
 const plain_text_no_semis  = make_plain_text_rule(';')
       .abbreviate_str_repr('plain_text_no_semis');
+const plain_text           = make_plain_text_rule()
+      .abbreviate_str_repr('plain_text');
 // =================================================================================================
 // A1111-style LoRAs:
 // =================================================================================================
@@ -10076,9 +11001,12 @@ const ExposedRjsonc =
 // =================================================================================================
 // flag-related rules:
 // =================================================================================================
-const flag_ident = xform(seq(choice(ident, '*'),
-                             star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, '*')))),
-                         arr => [arr[0], ...arr[1]]);
+const make_flag_ident_rule = (additional_choices = []) =>
+      xform(seq(additional_choices.length == 0 ? ident : choice(ident, ...additional_choices),
+                star(cadr('.', choice(xform(parseInt, /\d+\b/), ident, ...additional_choices)))),
+            arr => [arr[0], ...arr[1]]);
+const flag_ident = make_flag_ident_rule('*');
+const flag_ident_no_wcs = make_flag_ident_rule();
 const SimpleCheckFlag =
       xform(with_swb(seq(question,
                          flag_ident)),
@@ -10101,7 +11029,7 @@ const CheckFlagWithSetConsequent =
       xform(cutting_with_swb(seq(question,     // [0]
                                  flag_ident,   // [1]
                                  dot_hash,     // [2]
-                                 flag_ident)), // [3]
+                                 flag_ident_no_wcs)), // [3]
             arr => {
               const args = [ [ arr[1] ], arr[3] ]; 
               return new ASTCheckFlags(...args);
@@ -10120,7 +11048,7 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
       xform(cutting_seq(bang,                         // [0]
                         flag_ident,                   // [1]
                         dot_hash,                     // [2]
-                        flag_ident,                   // [3]
+                        flag_ident_no_wcs,            // [3]
                         structural_word_break_ahead), // - 
             arr => {
               const args = [arr[1],
@@ -10131,11 +11059,11 @@ const NotFlagWithSetConsequent = // last not alternative, therefore cutting_seq
 // -------------------------------------------------------------------------------------------------
 const SetFlag   =
       xform(arr => new ASTSetFlag(arr),
-            cutting_cadr(hash, flag_ident, structural_word_break_ahead))
+            cutting_cadr(hash, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('SetFlag');
 const UnsetFlag =
       xform(arr=> new ASTUnsetFlag(arr),
-            cutting_cadr(shebang, flag_ident, structural_word_break_ahead))
+            cutting_cadr(shebang, flag_ident_no_wcs, structural_word_break_ahead))
       .abbreviate_str_repr('UnsetFlag');
 // -------------------------------------------------------------------------------------------------
 const unexpected_TestFlag_at_top_level = rule => 
@@ -10218,7 +11146,8 @@ const make_ASTAnonWildcardAlternative = arr => {
 };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcardHeaderItems =
-      wst_star(choice(TestFlagInGuardPosition, discarded_comment, SetFlag, UnsetFlag))
+      // maybe remove last two choices?
+      wst_star(choice(TestFlagInGuardPosition, discarded_comment/*, UnsetFlag, SetFlag*/))
       .abbreviate_str_repr('AnonWildcardHeaderItems');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcardAlternative_rule = (content_rule,
@@ -10242,43 +11171,65 @@ const AnonWildcardAlternativeNoSJMergeArticleCorrection =
       .abbreviate_str_repr('AnonWildcardAlternativeNoSJMergeArticleCorrection');
 // -------------------------------------------------------------------------------------------------
 const make_AnonWildcard_rule            =
-      (alternative_rule, { can_have_trailer = false, empty_value = undefined } = {}) => {
-        const new_ASTAnonWildcard = arr =>
-              new ASTAnonWildcard(arr[1], { trailer: arr[2], unsafe: arr[0] == 'unsafe' });
-        const body_rule = lws(wst_brc_enc(wst_star(alternative_rule, pipe)));
+      (alternative_rule, { can_have_trailer = false, reduce_to_value } = {}) => {
+        const new_ASTAnonWildcard_or_reduced_value = arr => {
+          // lm.log(`ARR: ${inspect_fun(arr)}`)
+          
+          arr[0] = arr[0].filter(x => x.weight !== 0);
+
+          if (reduce_to_value !== undefined) {
+            if (arr[0].length === 0)
+              return reduce_to_value;
+            if (arr[0].length                === 1 &&
+                arr[0][0].check_flags.length === 0 && 
+                arr[0][0].not_flags.length   === 0 &&
+                arr[0][0].body.length        === 1) {
+              if (typeof arr[0][0].body[0]     === 'string') {
+                let str = arr[0][0].body[0];
+                if (can_have_trailer && arr[1])
+                  str += arr[1];
+                return str;
+              }
+              else {
+                if (can_have_trailer &&
+                    arr[1] &&
+                    'trailer' in arr[0][0].body[0]) {
+                  arr[0][0].body[0].trailer = arr[1];
+                }
+                return arr[0][0].body[0];
+              }
+            }
+          }
+          return new ASTAnonWildcard(arr[0], { trailer: arr[1] });
+        };
+        const body_rule = wst_brc_enc(wst_star(alternative_rule, pipe));
         const tail_rule = can_have_trailer
               ? optional_punctuation_trailer
               : unexpected_punctuation_trailer;
-        const xform_fun = empty_value === undefined
-              ? arr => new_ASTAnonWildcard(arr)
-              : arr => (arr.length === 0
-                        ? empty_value
-                        : new_ASTAnonWildcard(arr));
-        return xform(xform_fun,
-                     seq(optional('unsafe'),
-                         discarded_comments,
+        return xform(new_ASTAnonWildcard_or_reduced_value,
+                     seq(discarded_comments,
                          body_rule,
                          tail_rule));
       };
 // -------------------------------------------------------------------------------------------------
 const AnonWildcard =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, empty_value: DISCARD })
+                             { can_have_trailer: true, reduce_to_value: DISCARD })
       .abbreviate_str_repr('AnonWildcard');
 // no empty value because values that are going to go on the rhs of context.named_wildcards need
 // to actually be ASTAnonWildcards:
 const AnonWildcardInDefinition =
       make_AnonWildcard_rule(AnonWildcardAlternative,
-                             { can_have_trailer: true, empty_value: undefined })
+                             { can_have_trailer: true, reduce_to_value: undefined })
       .abbreviate_str_repr('AnonWildcardInDefinition');
 // note differing empty values due their contexts of use:
 const AnonWildcardNoSJMergeArticleCorrection =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: true, empty_value: DISCARD })
+                             { can_have_trailer: true, reduce_to_value: '' }) // DISCARD })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrection');
 const AnonWildcardNoSJMergeArticleCorrectionOrTrailer =
       make_AnonWildcard_rule(AnonWildcardAlternativeNoSJMergeArticleCorrection,
-                             { can_have_trailer: false, empty_value:  '' })
+                             { can_have_trailer: false, reduce_to_value:  '' })
       .abbreviate_str_repr('AnonWildcardNoSJMergeArticleCorrectionOrTrailer');
 // =================================================================================================
 // non-terminals for the special functions/variables:
@@ -10329,11 +11280,10 @@ const SpecialFunctionInclude =
 const UnexpectedSpecialFunctionInclude =
       unexpected(SpecialFunctionInclude,
                  (rule, input, index) =>
-                 new FatalParseError("%include is only supported when " +
+                 new FatalParseError(`%include is only supported when ` +
                                      `using wildcards-plus-tool.js, ` +
-                                     `NOT when ` +
-                                     "running the wildcards-plus.js script " +
-                                     "inside Draw Things",
+                                     `NOT when running the wildcards-plus.js ` +
+                                     `script  inside Draw Things`,
                                      input, index - 1))
       .abbreviate_str_repr('UnexpectedSpecialFunctionInclude');
 // -------------------------------------------------------------------------------------------------
@@ -10378,7 +11328,7 @@ const SpecialFunctionUpdateConfigurationBinary =
                             lws(any_assignment_operator),                   // [0][1]
                             discarded_comments),                            // -
                         lws(choice(ExposedRjsonc,                           // [1]
-                                   head(() => LimitedContentNoAWCArticleCorrection,
+                                   head(() => LimitedContentNoAwcSJMergeArticleCorrection,
                                         optional(SpecialFunctionTail))))))  // [1][1]
       .abbreviate_str_repr('SpecialFunctionUpdateConfigurationBinary');
 // -------------------------------------------------------------------------------------------------
@@ -10415,7 +11365,7 @@ const SpecialFunctionNotInclude =
 // =================================================================================================
 // other non-terminals:
 // =================================================================================================
-const NamedWildcardReference  =
+const make_NamedWildcardReference_rule  = can_have_trailer => 
       xform(seq(at,                                        // [0]
                 optional(caret),                           // [1]
                 optional(xform(parseInt, uint), 1),        // [2]
@@ -10423,7 +11373,9 @@ const NamedWildcardReference  =
                                cadr(dash, uint))),
                 optional(/[,\.&|;]/),                      // [4]
                 ident,                                     // [5]
-                optional_punctuation_trailer,  // [6]
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer),  // [6]
                ), 
             arr => {
               const ident   = arr[5];
@@ -10448,9 +11400,9 @@ const NamedWildcardReference  =
                                                    caret,
                                                    min_ct,
                                                    max_ct,
-                                                   trailer);
-            })
-      .abbreviate_str_repr('NamedWildcardReference');
+                                                   trailer) ;
+            }).abbreviate_str_repr(`make_NamedWildcardReference_rule<${can_have_trailer}>`);
+const NamedWildcardReference = make_NamedWildcardReference_rule(true);
 // -------------------------------------------------------------------------------------------------
 const NamedWildcardDesignator = cadr(at, ident)
       .abbreviate_str_repr('NamedWildcardDesignator');
@@ -10485,15 +11437,18 @@ const NamedWildcardUsage      =
             })
       .abbreviate_str_repr('NamedWildcardUsage');
 // -------------------------------------------------------------------------------------------------
-const ScalarReference         =
+const make_ScalarReference_rule = can_have_trailer =>
       xform(seq(dollar,
                 optional(caret),
                 ident,
-                optional_punctuation_trailer),
+                (can_have_trailer
+                 ? optional_punctuation_trailer
+                 : unexpected_punctuation_trailer)),
             arr => new ASTScalarReference(arr[2],
                                           arr[1],
                                           arr[3]))
-      .abbreviate_str_repr('ScalarReference');
+      .abbreviate_str_repr(`make_ScalarReference_rule<${can_have_trailer}>`);
+const ScalarReference = make_ScalarReference_rule(true) ;
 // -------------------------------------------------------------------------------------------------
 const ScalarDesignator        =
       xform(seq(dollar, ident),
@@ -10527,11 +11482,11 @@ const make_LimitedContent_rule = (plain_text_rule, anon_wildcard_rule) =>
       );
 // -------------------------------------------------------------------------------------------------
 const LimitedContent =
-      make_LimitedContent_rule(plain_text, AnonWildcard)
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcard)
       .abbreviate_str_repr('LimitedContent');
-const LimitedContentNoAWCArticleCorrection =
-      make_LimitedContent_rule(plain_text, AnonWildcardNoSJMergeArticleCorrection)
-      .abbreviate_str_repr('LimitedContentNoAWCArticleCorrection');
+const LimitedContentNoAwcSJMergeArticleCorrection =
+      make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrection)
+      .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrection');
 const LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer =
       make_LimitedContent_rule(plain_text_no_semis, AnonWildcardNoSJMergeArticleCorrectionOrTrailer)
       .abbreviate_str_repr('LimitedContentNoAwcSJMergeArticleCorrectionOrTrailer');
@@ -10684,13 +11639,36 @@ try {
   base_context.pick_one_priority      = user_selected_pick_one_priority;
   base_context.pick_multiple_priority = user_selected_pick_multiple_priority;
 
-  // delete base_context.configuration["negativeOriginalImageHeight"];
-  // delete base_context.configuration["negativeOriginalImageWidth"];
-  // delete base_context.configuration["originalImageHeight"];
-  // delete base_context.configuration["originalImageWidth"];
-  // delete base_context.configuration["targetImageHeight"];
-  // delete base_context.configuration["targetImageWidth"];
+  // -----------------------------------------------------------------------------------------------
+  // process_named_wildcard_definitions:
+  let process_named_wildcard_definitions_elapsed;
 
+  lm.log(`process_named_wildcard_definitions...`);
+  lm.indent(() => {
+    process_named_wildcard_definitions_elapsed = measure_time(() =>
+      process_named_wildcard_definitions(AST, { context: base_context }));
+  });
+  lm.log(`process_named_wildcard_definitions took ${process_named_wildcard_definitions_elapsed.toFixed(2)} ms`);
+
+  // audit flags:
+  let audit_elapsed, audit_warnings;
+
+  lm.log(`auditing...`);
+  lm.indent(() => {
+    audit_elapsed = measure_time(() =>
+      audit_warnings = audit_semantics(AST, { base_context: base_context }));
+  });
+  lm.log(`audit took ${audit_elapsed.toFixed(2)} ms`);
+
+  const audit_warning_counts = count_occurrences(audit_warnings);
+  
+  for (let [warning, count] of audit_warning_counts)
+    lm.log((count > 1
+            ? `${warning} (${count} times)`
+            : warning),
+           false);
+
+  // -----------------------------------------------------------------------------------------------
   LOG_LINE();
   lm.log(`pipeline.configuration is:`);
   LOG_LINE();
@@ -10735,7 +11713,8 @@ try {
       LOG_LINE();
       lm.log(`Flags after:`);
       LOG_LINE();
-      lm.log(`${inspect_fun(context.flags)}`);
+      for (const flag of context.flags)
+        lm.log(`  #${flag.join('.')}`);
     }
     
     if (context.scalar_variables.size > 0) {

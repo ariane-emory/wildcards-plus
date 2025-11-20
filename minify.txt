@@ -1,8 +1,4 @@
 // -*- fill-column: 90; comment-start: "//"; eval: (display-fill-column-indicator-mode 1); -*-
 // =======================================================================================
-// \n <FOO <BAR< < <BAZ< CORGE<
-// \n foo \<bar <baz
 
-// foo\ bar \n
-// baz \ quux \n
-foo\<bar
+(foo: @neg_random_weight)
