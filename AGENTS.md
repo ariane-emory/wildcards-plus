@@ -11,8 +11,9 @@
 ## Code Style Guidelines
 
 ### Language & Runtime
-- JavaScript ES modules (type: "module" in package.json)
-- Node.js for tool, Draw Things environment for main script
+- JavaScript ES modules (type: "module" in package.json) in the testing tool ONLY.
+- The JavaScriptCore environment used by DrawThings is sandboxed and presents NO access to any files outside the script itselt, therefore modules/imports MUST NOT be used in the main script (wildcards-plus.js).
+- wildcards-plus-tool.js runs in Node, whereas wildcards-plus.js runs in a JavScriptCore environment, therefor the latter MUST NOT use any Node-specific features.
 - No external dependencies beyond Node.js standard library
 
 ### Imports & Structure
